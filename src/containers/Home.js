@@ -1,15 +1,19 @@
 import React from 'react'
-import { withRouteData } from 'react-static'
+import { withRouteData, Link } from 'react-static'
 import convert from 'htmr'
 //
 
-export default withRouteData(({ jdown, reactStatic }) => (
+export default withRouteData(({ home, projects }) => (
   <div>
-    <section>
-      {convert(reactStatic.contents)}
-    </section>
-    <section>
-      {convert(jdown.contents)}
-    </section>
+    {convert(home.contents)}
+
+    <ul>
+      {projects.map(project => (
+        <li key={project.slug}>
+          <Link to={`/work/${project.slug}/`}>{project.title}</Link>
+        </li>
+      ))}
+    </ul>
+
   </div>
 ))
