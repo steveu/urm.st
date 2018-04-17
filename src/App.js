@@ -113,10 +113,17 @@ const AnimatedRoutes = getContext({
 const App = () => (
   <Router>
     <div>
+      <h1>
+        <Link to="/">
+          Steve Urmston
+          <em>Digital Product Designer</em>
+        </Link>
+      </h1>
       <nav>
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
         <Link to="/work">Work</Link>
+        <Link to="/about">About</Link>
+        <Link to="/notes">Notes</Link>
+        <Link to="/contact">Contact</Link>
       </nav>
       <div className="content">
         <Routes component={AnimatedRoutes} />
