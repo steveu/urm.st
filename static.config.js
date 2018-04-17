@@ -1,6 +1,7 @@
 import { reloadRoutes } from 'react-static/node'
 import jdown from 'jdown'
 import chokidar from 'chokidar'
+import ExtractTextPlugin from 'extract-text-webpack-plugin'
 
 chokidar.watch('content').on('all', () => reloadRoutes())
 
@@ -79,4 +80,5 @@ export default {
     ]
     return config
   },
+  preact: true,
 }
