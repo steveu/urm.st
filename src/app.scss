@@ -1,9 +1,11 @@
 @import url("https://fonts.googleapis.com/css?family=Muli|Merriweather");
-@import url("~normalize.css/normalize.css");
+@import url("../node_modules/normalize.css/normalize.css");
 
 // Vertical Rhythm
 $base-font-size: 18px;
 $base-line-height: 28px;
+
+$gutter: 1rem;
 
 // Typefaces
 $font-family: 'Muli', serif;
@@ -23,6 +25,9 @@ $purple: adjust-hue($orange, -60deg);
 //$orange: #E0523C; // alternative red
 $light-blue: #E7F3FF;
 
+html, body {
+  min-height: 100%;
+}
 body {
   font-family: $font-family;
   color: $text-color;
@@ -49,4 +54,79 @@ body {
 
 h1, h2, h3, h4, h5 {
   font-family: $heading-font-family;
+}
+
+header {
+  // border-bottom: 1px solid #ccc;
+  // padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  
+
+  h1 {
+    font-size: 28px;
+    margin-right: 8rem;
+    a {
+      text-decoration: none;
+      color: $text-color;
+    }
+    em {
+      display: block;
+      font-size: $base-font-size;
+      font-style: normal;
+      font-family: $font-family;
+    }
+  }
+
+  nav {
+    display: flex;
+    flex-grow: 1;
+    justify-content: space-between;
+  }
+}
+
+div.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+div.content {
+  // max-width: 960px;
+  // margin: 0 auto;
+
+  .wrapper {
+    border-top: 1px solid #ccc;
+    padding-top: 2rem;
+  }
+}
+
+footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  background: #222 url('/assets/images/80-70-3.png');;
+  color: #ccc;
+  padding: $gutter 0 $gutter 0;
+
+  box-shadow:
+    0px -1px 1px 0px #fff,
+    inset 0px 1px 1px 0px #000
+  ;
+
+  border-top: 8px solid $orange;
+
+
+  p {
+    padding: 0;
+  }
+
+  a {
+    color: #777;
+    border: none;
+  }
+}
+
+div.wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
 }

@@ -7,7 +7,6 @@ export default withRouteData(({ project }) => (
   <div>
     <Link to="/work/">{'<'} Back</Link>
     <br />
-    <h3>{project.title}</h3>
     {convert(project.contents)}
   </div>
 ))

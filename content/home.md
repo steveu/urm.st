@@ -1,14 +1,11 @@
-## Hello there, I'm Steve a full stack Digital Product Designer based in York - I design and build interfaces for web and mobile
+# Hello :) I'm Steve, a full stack Digital Product Designer based in York - I design and build interfaces for web and mobile
 
 ## Skills
 
-* UI Design for website and apps
-* UX Design (Wireframes, planning documentation)
-* UX Research (User testing)
-* Digital Marketing (Analytics, CRO and SEO)
-* JavaScript development (AngularJS, React, Vue)
+* Product Management (Strategy, Business Analytics)
+* User Experience Design (User testing, Wireframes, Prototyping)
+* Interface & Interaction Design (for web and mobile)
+* JavaScript Development (AngularJS, React, Vue)
 * Web Design (HTML, CSS)
-* Product Management
-* Team Leadership
-* Line Management
-
+* Digital Marketing (Analytics, CRO and SEO)
+* Team Leadership (Line Management)

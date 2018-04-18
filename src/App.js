@@ -89,7 +89,7 @@ const AnimatedRoutes = getContext({
                   <PreservedRouterContext
                     key={key}
                     style={{
-                      position: 'absolute',
+                      position: 'relative',
                       top: 0,
                       right: 0,
                       bottom: 0,
@@ -112,22 +112,39 @@ const AnimatedRoutes = getContext({
 
 const App = () => (
   <Router>
-    <div>
-      <h1>
-        <Link to="/">
-          Steve Urmston
-          <em>Digital Product Designer</em>
-        </Link>
-      </h1>
-      <nav>
-        <Link to="/work">Work</Link>
-        <Link to="/about">About</Link>
-        <Link to="/notes">Notes</Link>
-        <Link to="/contact">Contact</Link>
-      </nav>
+    <div className="container">
+      <header>
+        <div class="wrapper">
+          <h1>
+            <Link to="/">
+              Steve Urmston
+              <em>Digital Product Designer</em>
+            </Link>
+          </h1>
+          <nav>
+            <Link to="/work">Work</Link>
+            <Link to="/about">About</Link>
+            <Link to="/notes">Notes</Link>
+            <Link to="/contact">Contact</Link>
+          </nav>
+        </div>
+
+      </header>
       <div className="content">
-        <Routes component={AnimatedRoutes} />
+        <div class="wrapper">
+          <Routes component={AnimatedRoutes} />
+        </div>
       </div>
+      <footer>
+        <p class="contact">
+          Find me on <a class="twitter" href="http://twitter.com/steveu"><span data-icon="&#x23;"></span>Twitter</a>, <a class="dribbble" href="http://dribbble.com/steveu"><span data-icon="&#x22;"></span>Dribbble</a>, <a class="github" href="http://github.com/steveu"><span data-icon="&#x39;"></span>GitHub</a> and <a class="linkedin" href="http://uk.linkedin.com/in/steveurmston"><span data-icon="&#x3a;"></span>LinkedIn</a>. Send email to <a href="mailto:&#x73;&#116;&#x65;&#x76;&#101;&#64;&#117;&#114;&#109;&#x2e;&#115;&#x74;"><span data-icon="&#x3b;"></span>&#x73;&#x74;&#101;&#118;&#x65;&#x40;&#x75;&#x72;&#x6d;&#x2e;&#115;&#x74;</a>.
+        </p>
+
+        <p class="copyright">
+          <a class="cc" rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">
+          <img alt="Creative Commons License" src="/assets/images/cc_licence.png" width="88" height="31" /></a>
+        </p>
+      </footer>
     </div>
   </Router>
 )
