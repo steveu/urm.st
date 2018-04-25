@@ -1,6 +1,8 @@
 ---
-title: An example post
-slug: an-example-post
+title: Bytemark Website
+slug: bytemark-website
+class: blank
+short: Hello
 ---
 
 An h1 header

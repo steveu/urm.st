@@ -1,6 +1,8 @@
 ---
-title: Bytemark Cloud
-slug: bytemark-cloud
+title: Bytemark Panel
+slug: bytemark-panel
+class: bytemark
+description: From the outset Bytemark Cloud was conceived as a separate product (BigV) and when I joined there was a separate website, branding and wonky administration tool.
 ---
 
 # Bytemark Cloud - A four year journey from Developer to Product Manager

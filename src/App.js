@@ -132,25 +132,21 @@ const App = () => (
         <div className="wrapper">
           <h1>
             <Link to="/">
-              Steve Urmston
-              <em>Digital Product Designer</em>
+              <Icon name="star" width="30" height="30" />
+              Steven Urmston
             </Link>
           </h1>
           <nav>
             <Link to="/work">
-              <Icon name="folder" width="30" height="35" />
               Work
             </Link>
             <Link to="/about">
-              <Icon name="person" width="30" height="30" />
               About
             </Link>
             <Link to="/notes">
-              <Icon name="book" width="30" height="30" />
               Notes
             </Link>
             <Link to="/contact">
-              <Icon name="chat" width="30" height="30" />
               Contact
             </Link>
           </nav>
@@ -158,9 +154,7 @@ const App = () => (
 
       </header>
       <div className="content">
-        <div className="wrapper">
-          <Routes component={AnimatedRoutes} />
-        </div>
+        <Routes component={AnimatedRoutes} />
       </div>
       <footer id="footer">
         <div className="wrapper">
