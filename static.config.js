@@ -1,6 +1,7 @@
 import { reloadRoutes } from 'react-static/node'
 import jdown from 'jdown'
 import chokidar from 'chokidar'
+import path from 'path'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 
 chokidar.watch('content').on('all', () => reloadRoutes())
@@ -51,10 +52,16 @@ export default {
       {
         oneOf: [
           {
-            test: /\.s(a|c)ss$/,
+            test: /\.svg$/,
+            loader: 'svg-sprite-loader'
+          },
+          {
+            test: /\.scss/,
             use:
               stage === 'dev'
-                ? [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }]
+                ? [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader', options: {
+                    includePaths: ['src/', path.resolve(__dirname, 'node_modules/')]
+                  } }]
                 : ExtractTextPlugin.extract({
                   use: [
                     {
@@ -62,13 +69,13 @@ export default {
                       options: {
                         importLoaders: 1,
                         minimize: true,
-                        sourceMap: false,
-                      },
+                        sourceMap: false
+                      }
                     },
                     {
                       loader: 'sass-loader',
-                      options: { includePaths: ['src/'] },
-                    },
+                      options: { includePaths: ['src/', 'node_modules/'] }
+                    }
                   ],
                 }),
           },

@@ -9,8 +9,8 @@ slug: bytemark-cloud
 
 I worked on this project in various roles;
 
-From 2012 to 2014 as a UX Developer (and the only designer in the company) I
-
+* From 2014 to 2016 as a UX Developer
+* From 2016 to 2018 as Product Manager (Cloud) & Product Team Lead
 
 #### The Challenge
 
@@ -18,7 +18,7 @@ From the outset Bytemark Cloud was conceived as a separate product (BigV) and wh
 
 The user base was a mix of technically demanding System Administrators through to freelancers, web designers and business owners who just wanted their hosting to be simple to manage.
 
- System Administrators, many of which were older Bytemark customers along with newer customers who had started using BigV.
+Many users were older Bytemark customers alongside newer customers who had started using BigV.
 
 #### The Approach
 

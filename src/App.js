@@ -8,6 +8,8 @@ import { hot } from 'react-hot-loader'
 //
 import Routes from 'react-static-routes'
 
+import Icon from './Icon'
+
 import './app.scss'
 
 // The magic :)
@@ -37,6 +39,11 @@ const AnimatedRoutes = getContext({
           </div>
         )
       }
+
+      var footerElement = document.getElementById('footer');
+      
+      // console.log(footerElement);
+      // document.getElementById('footer').style.position = 'fixed';
 
       // Use React-Move to animate the different components coming in and out
       return (
@@ -69,6 +76,14 @@ const AnimatedRoutes = getContext({
             opacity: [0],
             translateY: [-10],
             timing: { duration: 200, ease: easeQuadOut },
+            events: {
+              start() { // runs in the context of the node
+              },
+              interrupt() { // runs in the context of the node
+              },
+              end() { // runs in the context of the node
+              },
+            },
           })}
         >
           {nodes => (
@@ -114,7 +129,7 @@ const App = () => (
   <Router>
     <div className="container">
       <header>
-        <div class="wrapper">
+        <div className="wrapper">
           <h1>
             <Link to="/">
               Steve Urmston
@@ -122,28 +137,35 @@ const App = () => (
             </Link>
           </h1>
           <nav>
-            <Link to="/work">Work</Link>
-            <Link to="/about">About</Link>
-            <Link to="/notes">Notes</Link>
-            <Link to="/contact">Contact</Link>
+            <Link to="/work">
+              <Icon name="folder" width="30" height="35" />
+              Work
+            </Link>
+            <Link to="/about">
+              <Icon name="person" width="30" height="30" />
+              About
+            </Link>
+            <Link to="/notes">
+              <Icon name="book" width="30" height="30" />
+              Notes
+            </Link>
+            <Link to="/contact">
+              <Icon name="chat" width="30" height="30" />
+              Contact
+            </Link>
           </nav>
         </div>
 
       </header>
       <div className="content">
-        <div class="wrapper">
+        <div className="wrapper">
           <Routes component={AnimatedRoutes} />
         </div>
       </div>
-      <footer>
-        <p class="contact">
-          Find me on <a class="twitter" href="http://twitter.com/steveu"><span data-icon="&#x23;"></span>Twitter</a>, <a class="dribbble" href="http://dribbble.com/steveu"><span data-icon="&#x22;"></span>Dribbble</a>, <a class="github" href="http://github.com/steveu"><span data-icon="&#x39;"></span>GitHub</a> and <a class="linkedin" href="http://uk.linkedin.com/in/steveurmston"><span data-icon="&#x3a;"></span>LinkedIn</a>. Send email to <a href="mailto:&#x73;&#116;&#x65;&#x76;&#101;&#64;&#117;&#114;&#109;&#x2e;&#115;&#x74;"><span data-icon="&#x3b;"></span>&#x73;&#x74;&#101;&#118;&#x65;&#x40;&#x75;&#x72;&#x6d;&#x2e;&#115;&#x74;</a>.
-        </p>
-
-        <p class="copyright">
-          <a class="cc" rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/">
-          <img alt="Creative Commons License" src="/assets/images/cc_licence.png" width="88" height="31" /></a>
-        </p>
+      <footer id="footer">
+        <div className="wrapper">
+          <p>Footer text</p>
+        </div>
       </footer>
     </div>
   </Router>

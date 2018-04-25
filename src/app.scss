@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css?family=Muli|Merriweather");
-@import url("../node_modules/normalize.css/normalize.css");
+@import "~normalize.css/normalize.css";
 
 // Vertical Rhythm
 $base-font-size: 18px;
@@ -25,14 +25,12 @@ $purple: adjust-hue($orange, -60deg);
 //$orange: #E0523C; // alternative red
 $light-blue: #E7F3FF;
 
-html, body {
-  min-height: 100%;
-}
 body {
+  overscroll-behavior: none;
   font-family: $font-family;
   color: $text-color;
   background: #F7F7F7 url('/assets/images/80-70-3.png');
-  border-top: 8px solid $orange;
+  // border-top: 8px solid $orange;
   font-size: $base-font-size;
   line-height: 1.4;
   -webkit-text-size-adjust: 100%;
@@ -60,11 +58,13 @@ header {
   // border-bottom: 1px solid #ccc;
   // padding-bottom: 1rem;
   margin-bottom: 1rem;
-  
+  padding-top: 2rem;
 
   h1 {
-    font-size: 28px;
+    font-size: 30px;
+    line-height: 30px;
     margin-right: 8rem;
+    margin-top: 0;
     a {
       text-decoration: none;
       color: $text-color;
@@ -81,13 +81,32 @@ header {
     display: flex;
     flex-grow: 1;
     justify-content: space-between;
+    a {
+      text-align: center;
+      text-decoration: none;
+      color: #110e0b;
+    }
+    .icon {
+      display: block;
+      fill: #302d27;
+      width: 35px;
+      height: 35px;
+      text-align: center;
+      margin: 0 auto;
+    }
+    // .icon-work {
+    //   fill: #000000;
+    //   width: 50px;
+    //   height: 50px;
+    // }
   }
 }
 
 div.container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - 8px);
+  border-top: 8px solid $orange;
 }
 
 div.content {
@@ -101,19 +120,21 @@ div.content {
 }
 
 footer {
-  flex-shrink: 0;
+  transition: all 3s;
+  // flex-shrink: 0;
   margin-top: auto;
   background: #222 url('/assets/images/80-70-3.png');;
   color: #ccc;
-  padding: $gutter 0 $gutter 0;
+  padding: 0;
 
   box-shadow:
     0px -1px 1px 0px #fff,
     inset 0px 1px 1px 0px #000
   ;
 
-  border-top: 8px solid $orange;
+  min-height: 100px;
 
+  border-top: 8px solid $orange;
 
   p {
     padding: 0;

@@ -14,6 +14,7 @@
     "d3-ease": "^1.0.3",
     "htmr": "0.6.3",
     "jdown": "0.1.0",
+    "mustard-ui": "^0.0.7",
     "normalize.css": "^8.0.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
@@ -21,12 +22,16 @@
     "react-move": "^2.7.0",
     "react-router": "^4.2.0",
     "react-static": "^5.7.6",
-    "recompose": "^0.26.0"
+    "recompose": "^0.26.0",
+    "sass-resources-loader": "^1.3.3",
+    "svg-sprite-loader": "^3.7.3"
   },
   "devDependencies": {
     "eslint-config-react-tools": "1.x.x",
-    "node-sass": "^4.7.2",
-    "sass-loader": "^6.0.6",
-    "serve": "^6.1.0"
+    "extract-text-webpack-plugin": "^3.0.2",
+    "node-sass": "^4.8.3",
+    "sass-loader": "~7.0.1",
+    "serve": "^6.1.0",
+    "webpack": "^4.6.0"
   }
 }
