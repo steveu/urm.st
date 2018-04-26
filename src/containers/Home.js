@@ -7,31 +7,31 @@ import Icon from 'Icon'
 export default withRouteData(({ home, projects }) => (
   <div>
     <section>
-      <div className="wrapper">
+      <div className="grid-wrapper">
         {convert(home.contents)}
         <ul className="skills">
           <li>
-            <h3>Product Management</h3>
-            <p>Strategy, Business Analytics</p>
+            <h4>Product Management</h4>
+            <p>Strategy, Business, Leadership</p>
           </li>
           <li>
-            <h3>User Experience Design</h3>
+            <h4>User Experience Design</h4>
             <p>User testing, Wireframes, Prototyping</p>
           </li>
           <li>
-            <h3>UI & Interaction Design</h3>
+            <h4>UI & Interaction Design</h4>
             <p>For Web and Mobile</p>
           </li>
           <li>
-            <h3>JavaScript Development</h3>
-            <p>AngularJS, React, Vue</p>
+            <h4>JavaScript Development</h4>
+            <p>Node, AngularJS, React, Vue</p>
           </li>
           <li>
-            <h3>Responsive Web Design</h3>
+            <h4>Responsive Web Design</h4>
             <p>HTML, CSS</p>
           </li>
           <li>
-            <h3>Digital Marketing</h3>
+            <h4>Digital Marketing</h4>
             <p>Analytics, CRO and SEO</p>
           </li>
         </ul>
@@ -47,7 +47,9 @@ export default withRouteData(({ home, projects }) => (
           </figure>
           <aside>
             <h2>{project.title}</h2>
-            <p>{project.description}</p>
+            {project.description.map(paragraph => (
+              <p>{paragraph}</p>
+            ))}
           </aside>
         </div>
       </section>

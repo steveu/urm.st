@@ -5,15 +5,22 @@ import { withRouteData, Link } from 'react-static'
 
 export default withRouteData(({ projects }) => (
   <div>
-    <h1>It's blog time.</h1>
-    <br />
-    All Posts:
-    <ul>
-      {projects.map(project => (
-        <li key={project.slug}>
-          <Link to={`/work/${project.slug}/`}>{project.title}</Link>
-        </li>
-      ))}
-    </ul>
+    {projects.map(project => (
+      <section className={project.class} key={project.slug}>
+        <div className="wrapper work">
+          <figure>
+            <Link to={`/work/${project.slug}/`}>
+              <img src={`/projects/${project.slug}-hero.png`} width="400px" />
+            </Link>
+          </figure>
+          <aside>
+            <h2>{project.title}</h2>
+            {project.description.map(paragraph => (
+              <p>{paragraph}</p>
+            ))}
+          </aside>
+        </div>
+      </section>
+    ))}
   </div>
 ))

@@ -129,7 +129,7 @@ const App = () => (
   <Router>
     <div className="container">
       <header>
-        <div className="wrapper">
+        <div className="grid-wrapper">
           <h1>
             <Link to="/">
               <Icon name="star" width="30" height="30" />
