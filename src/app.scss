@@ -55,7 +55,7 @@ body {
   background: #F7F7F7 url('/assets/images/80-70-3.png');
   overscroll-behavior: none;
 
-  // @include vr-grid();
+  @include vr-grid();
 }
 
 
@@ -122,10 +122,14 @@ header {
 
   .grid-wrapper {
     display: flex;
+    @include vr(
+      $padding-right: 0
+    );
   }
   h1 {
     margin: 0;
     font-weight: 400;
+    // flex: 0 0 50%;
     .icon {
       display: inline-flex;
       align-self: center;
@@ -145,6 +149,7 @@ header {
       );
       display: flex;
       text-decoration: none;
+      max-width: 12rem;
       color: $text-color;
       &:hover {
         color: $orange;
@@ -154,13 +159,18 @@ header {
 
   nav {
     display: flex;
-    flex-grow: 1;
+    // flex-grow: 1;
+    margin-left: auto;
     justify-content: space-between;
     a {
       display: block;
       text-decoration: none;
       color: #110e0b;
-      padding: 0px 2px 0 2px;
+      // flex: 1 1 auto;
+      @include vr(
+        $padding: 0 1.25
+      );
+      text-align: center;
       @include vr($height: 3);
       @include vr($line-height: 3);
       border-bottom: 2px solid transparent;
