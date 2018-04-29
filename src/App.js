@@ -138,16 +138,16 @@ const App = () => (
           </h1>
           <nav>
             <Link to="/work">
-              Work
+              <span>Work</span>
             </Link>
             <Link to="/about">
-              About
+              <span>About</span>
             </Link>
             <Link to="/notes">
-              Notes
+              <span>Notes</span>
             </Link>
             <Link to="/contact">
-              Contact
+              <span>Contact</span>
             </Link>
           </nav>
         </div>

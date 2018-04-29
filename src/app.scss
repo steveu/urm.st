@@ -55,7 +55,7 @@ body {
   background: #F7F7F7 url('/assets/images/80-70-3.png');
   overscroll-behavior: none;
 
-  @include vr-grid();
+  // @include vr-grid();
 }
 
 
@@ -163,25 +163,38 @@ header {
     margin-left: auto;
     justify-content: space-between;
     a {
-      display: block;
+      display: flex;
       text-decoration: none;
       color: #110e0b;
       // flex: 1 1 auto;
       @include vr(
-        $padding: 0 1.25
+        $padding-left: 1.1,
+        $padding-right: 1.1,
+        $padding-top: 0.75,
+        $padding-bottom: 0.75
       );
       text-align: center;
-      @include vr($height: 3);
-      @include vr($line-height: 3);
-      border-bottom: 2px solid transparent;
-      @include vr($offset-bottom: 2px);
+    
+      span {
+        display: block;
+        border-bottom: 2px solid transparent;
+        @include vr(
+          $height: 1.5,
+          $line-height: 1.5,
+          $padding-left: 0.15,
+          $padding-right: 0.15,
+          $offset-bottom: 2px
+        );
+      }
 
       &:hover {
         color: $orange;
       }
       &.active {
         color: $orange;
-        border-color: $orange;
+        span {
+          border-color: $orange;
+        }
       }
     }
     .icon {
