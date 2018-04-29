@@ -244,30 +244,48 @@ footer {
 }
 
 
-ul.skills {
-  display: flex;
-  flex-wrap: wrap;
+section.skills {
 
-  @include vr(
-    $margin: 2 0 0 0
-  );
-  padding: 0;
-  li {
-    display: block;
-    margin: 0;
+  h1 {
+    @include vr(
+      $margin-right: 1
+    );
+  }
+  .grid-wrapper {
+    @include vr(
+      $padding-right: 0.5
+    );
+  }
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+
+    @include vr(
+      $margin: 1.5 0 0.5 -0.5
+    );
     padding: 0;
-    flex: 0 0 33.33333%;
+    li {
+      display: block;
+      margin: 0;
+      padding: 0;
+      @include vr(
+        $padding-left: 0.5,
+        $padding-right: 0.5
+      );
+      flex: 0 0 33.33333%;
 
-    h4 {
-      @include vr(
-        $margin-top: 0.75,
-        $margin-bottom: 0.25
-      );
-    }
-    p {
-      @include vr(
-        $margin-top: 0.25
-      );
+      h4 {
+        @include vr(
+          $margin-top: 0.75,
+          $margin-bottom: 0.25
+        );
+      }
+      p {
+        @include vr(
+          $margin-top: 0.25,
+          $margin-bottom: 0.5
+        );
+      }
     }
   }
 }

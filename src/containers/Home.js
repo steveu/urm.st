@@ -6,10 +6,10 @@ import Icon from 'Icon'
 
 export default withRouteData(({ home, projects }) => (
   <div>
-    <section>
+    <section className="skills">
       <div className="grid-wrapper">
         {convert(home.contents)}
-        <ul className="skills">
+        <ul>
           <li>
             <h4>Product Management</h4>
             <p>Strategy, Business, Leadership</p>
