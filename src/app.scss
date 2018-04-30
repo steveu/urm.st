@@ -291,41 +291,64 @@ section.skills {
 }
 
 
-ul.projects {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 2rem 0 0 0;
-  padding: 0;
-}
-
 div.work {
   display: flex;
-
   figure {
     display: block;
-    flex: 0 0 66.66666%;
+    flex: 0 0 66.6666666666%;
     margin: 0;
-    padding: 0 2rem 0 0;
+    padding: 0;
+    @include vr(
+      $padding-right: 0.5
+    );
+    overflow: hidden;
     box-sizing: border-box;
 
     img {
       display: block;
-      box-shadow: 5px 5px 10px 0px rgba(#000, 0.1);
+      box-shadow: 5px 5px 5px 0px rgba(#000, 0.2);
       border-radius: 3px;
+      transform: translateX(-3px);
       width: 100%;
     }
   }
 
   aside {
-    flex: 0 0 33.333333%;
-    
+    flex: 0 0 33.33333333333%;
+    @include vr(
+      $padding-left: 0.5
+    );
     h2 {
       margin-top: 0;
       font-weight: 300;
     }
-
     p {
       font-weight: 300;
     }
+  }
+}
+
+
+.button {
+  display: inline-block;
+  background: rgba(#fff, 0.01);
+  color: #fff;
+  border-radius: 11px;
+  text-decoration: none;
+  border: 2px solid rgba(#fff, 0.5);
+  box-shadow: 3px 3px 3px 0px rgba(#000, 0.1);
+  font-weight: 400;
+  @include vr(
+    $height: 2,
+    $line-height: 2,
+    $padding-left: 1,
+    $padding-right: 1,
+    $offset-top: 2px,
+    $offset-bottom: 2px
+  );
+
+  &:hover {
+    border-color: saturate($orange, 40);
+    color: saturate($orange, 40);
   }
 }
