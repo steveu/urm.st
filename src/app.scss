@@ -6,6 +6,7 @@
 // @import "~normalize.css/normalize.css";
 
 @import '~vertical-rhythm-reset/dist/vertical-rhythm-reset';
+@import "~sass-easing/_easings";
 
 $vr-font-size    : 18px;
 $vr-line-height  : 1.5;
@@ -299,8 +300,9 @@ div.work {
     margin: 0;
     padding: 0;
     @include vr(
-      $padding-right: 0.5
+      $padding-right: 0.6
     );
+    // transform: translateX(-3px);
     overflow: hidden;
     box-sizing: border-box;
 
@@ -308,7 +310,7 @@ div.work {
       display: block;
       box-shadow: 5px 5px 5px 0px rgba(#000, 0.2);
       border-radius: 3px;
-      transform: translateX(-3px);
+      
       width: 100%;
     }
   }
@@ -328,6 +330,10 @@ div.work {
   }
 }
 
+// extenders
+.animateButton {
+  transition: all 0.25s $easeOutCubic;
+}
 
 .button {
   display: inline-block;
@@ -338,6 +344,8 @@ div.work {
   border: 2px solid rgba(#fff, 0.5);
   box-shadow: 3px 3px 3px 0px rgba(#000, 0.1);
   font-weight: 400;
+  overflow: hidden;
+  -webkit-background-clip: padding-box;
   @include vr(
     $height: 2,
     $line-height: 2,
@@ -346,9 +354,42 @@ div.work {
     $offset-top: 2px,
     $offset-bottom: 2px
   );
+  @extend .animateButton;
 
-  &:hover {
-    border-color: saturate($orange, 40);
-    color: saturate($orange, 40);
+  &:before,
+  &:after {
+    content: '';
+    width: 0;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    @extend .animateButton;
+    background-color: saturate($orange, 0);
   }
+  
+  &:before {
+    left: 50%;
+  }
+  
+  &:after {
+    right: 50%;
+  }
+  
+  
+  &:hover {
+    border-color: saturate($orange, 0);
+    border-top-color: lighten($orange, 10);
+    border-left-color: lighten($orange, 10);
+    color: #fff;
+    box-shadow: 3px 3px 10px 0px rgba(#000, 0.2);
+
+    &:before,
+    &:after {
+      width: 52%;
+      opacity: 1;
+    }
+  }
+
 }
