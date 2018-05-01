@@ -1,7 +1,7 @@
 ---
 title: Bytemark Panel
 slug: bytemark-panel
-class: bytemark
+class: bytemark inverse
 description:
   - A single page JavaScript application (AngularJS) which I've been heavily involved in since 2014. From Product Management of features, UX research and UI design, through to frontend development and Node tooling.
   - It pulls together many APIs to provide user friendly server administration and account management tools for Bytemark customers.

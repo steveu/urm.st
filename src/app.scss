@@ -38,7 +38,7 @@ $font-family: 'Muli', sans-serif;
 $heading-font-family: 'Merriweather', serif;
 
 // Text Colors
-$text-color: #000;
+$text-color: #222;
 $heading-color: #000;
 
 // Colors
@@ -55,7 +55,7 @@ body {
   font-family: $font-family;
   background: #F7F7F7 url('/assets/images/80-70-3.png');
   overscroll-behavior: none;
-
+  color: $text-color;
   // @include vr-grid();
 }
 
@@ -338,11 +338,11 @@ div.work {
 .button {
   display: inline-block;
   background: rgba(#fff, 0.01);
-  color: #fff;
+  color: $text-color;
   border-radius: 11px;
   text-decoration: none;
-  border: 2px solid rgba(#fff, 0.5);
-  box-shadow: 3px 3px 3px 0px rgba(#000, 0.1);
+  border: 2px solid rgba(#333, 0.4);
+  box-shadow: 3px 3px 3px 0px rgba(#000, 0.05);
   font-weight: 400;
   overflow: hidden;
   -webkit-background-clip: padding-box;
@@ -355,6 +355,13 @@ div.work {
     $offset-bottom: 2px
   );
   @extend .animateButton;
+
+  .inverse & {
+    box-shadow: 3px 3px 3px 0px rgba(#000, 0.1);
+    background: rgba(#fff, 0.01);
+    border-color: rgba(#fff, 0.5);
+    color: #fff;
+  }
 
   &:before,
   &:after {
