@@ -24,7 +24,7 @@ $red: adjust-hue($orange, -30deg);
 $teal: adjust-hue($orange, -270deg);
 $purple: adjust-hue($orange, -60deg);
 
-//$orange: #E0523C; // alternative red
+$red: #E0523C; // alternative red
 $light-blue: #E7F3FF;
 
 body {
@@ -332,5 +332,34 @@ div.work {
     @include vr(
       $padding-left: 0.5
     );
+  }
+
+  @include width-below($phablet) {
+    display: block;
+    figure {
+      padding-right: 0;
+    }
+    aside {
+      padding-left: 0;
+      @include vr(
+        $padding-top: 1
+      );
+    }
+  }
+}
+
+h1.has-icon {
+  display: inline-flex;
+  margin-bottom: 0;
+  svg {
+    align-self: center;
+    @include vr(
+      $height: 1.1,
+      $width: 1.1,
+      $offset-top: 2,
+      $margin-right: 0.25,
+      $margin-left: 0.3
+    );
+    fill: $red;
   }
 }
