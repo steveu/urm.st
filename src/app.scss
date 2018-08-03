@@ -62,8 +62,18 @@ div.container {
 }
 
 section {
-  @include vr($padding-top: 2);
-  @include vr($padding-bottom: 2);
+  @include vr(
+    $padding-top: 1.5,
+    $padding-bottom: 1.5
+  );
+
+  @include width-above($desktop) {
+    @include vr(
+      $padding-top: 2,
+      $padding-bottom: 2
+    );
+  }
+
   &.orange {
     background: lighten($orange, 5);
   }
@@ -125,10 +135,13 @@ footer {
 section.skills {
 
   h1 {
-    @include vr(
-      $margin-right: 1
-    );
     line-height: 1.5em !important;
+    @include width-above($phablet) {
+      @include vr(
+        $margin-right: 1
+      );
+    }
+    
   }
   .grid-wrapper {
     @include vr(
@@ -140,8 +153,14 @@ section.skills {
     flex-wrap: wrap;
 
     @include vr(
-      $margin: 1.5 0 0.5 -0.5
+      $margin: 0 0 0.5 -0.5
     );
+
+    @include width-above($widescreen) {
+      @include vr(
+        $margin-top: 1.5
+      );
+    }
     padding: 0;
     li {
       display: block;
@@ -151,7 +170,11 @@ section.skills {
         $padding-left: 0.5,
         $padding-right: 0.5
       );
-      flex: 0 0 33.33333%;
+
+      flex: 0 0 50%;
+      @include width-above($tablet) {
+        flex: 0 0 33.33333333333%;
+      }
 
       h4 {
         @include vr(

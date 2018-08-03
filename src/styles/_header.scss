@@ -82,7 +82,7 @@ header {
     }
   }
 
-  @include width-below($tablet){
+  @include width-below($phablet){
 
     .grid-wrapper {
       display: block;

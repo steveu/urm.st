@@ -1,8 +1,10 @@
+$widescreen: 70em;
 $desktop: 60em;
-$tablet: 34em;
+$tablet: 44em;
+$phablet: 34em;
 $mobile: 20em;
 
-@include register-breakpoints($desktop, $tablet, $mobile);
+@include register-breakpoints($widescreen, $desktop, $tablet, $phablet, $mobile);
 
 
 // $vr-font-size    : 18px;
