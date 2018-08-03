@@ -5,7 +5,7 @@ import { NodeGroup } from 'react-move'
 import { withContext, getContext } from 'recompose'
 import PropTypes from 'prop-types'
 import { hot } from 'react-hot-loader'
-//
+
 import Routes from 'react-static-routes'
 
 import Icon from './Icon'
@@ -42,9 +42,6 @@ const AnimatedRoutes = getContext({
 
       var footerElement = document.getElementById('footer');
       
-      // console.log(footerElement);
-      // document.getElementById('footer').style.position = 'fixed';
-
       // Use React-Move to animate the different components coming in and out
       return (
         <NodeGroup
@@ -143,9 +140,6 @@ const App = () => (
             <Link to="/about">
               <span>About</span>
             </Link>
-            <Link to="/notes">
-              <span>Notes</span>
-            </Link>
             <Link to="/contact">
               <span>Contact</span>
             </Link>
@@ -157,8 +151,14 @@ const App = () => (
         <Routes component={AnimatedRoutes} />
       </div>
       <footer id="footer">
-        <div className="wrapper">
-          <p>Footer text</p>
+        <div className="grid-wrapper">
+          <p>
+            Find me on
+            <a href="https://twitter.com/steveu">Twitter</a>,&nbsp;
+            <a href="https://github.com/steveu">GitHub</a> and&nbsp;
+            <a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a>. Send email to&nbsp;
+            <a href="mailto:steve@urm.st">steve@urm.st</a>.
+          </p>
         </div>
       </footer>
     </div>

@@ -3,7 +3,6 @@ import { withRouteData, Link } from 'react-static'
 import convert from 'htmr'
 import Icon from 'Icon'
 import Projects from '../components/Projects'
-//
 
 export default withRouteData(({ home, projects }) => (
   <div>
@@ -17,7 +16,7 @@ export default withRouteData(({ home, projects }) => (
           </li>
           <li>
             <h4>User Experience Design</h4>
-            <p>User testing, Wireframes, Prototyping</p>
+            <p>User testing, Wireframes, Prototypes</p>
           </li>
           <li>
             <h4>UI & Interaction Design</h4>
@@ -25,7 +24,7 @@ export default withRouteData(({ home, projects }) => (
           </li>
           <li>
             <h4>JavaScript Development</h4>
-            <p>Node, AngularJS, React, Vue</p>
+            <p>React, Angular, Vue, Node</p>
           </li>
           <li>
             <h4>Responsive Web Design</h4>

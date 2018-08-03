@@ -1,0 +1,121 @@
+header {
+  @include vr(
+    $padding-top: 1,
+    $offset-bottom: 1
+  );
+  border-bottom: 1px solid #ccc;
+
+  .grid-wrapper {
+    display: flex;
+    @include vr(
+      $padding-right: 0
+    );
+  }
+  h1 {
+    margin: 0;
+    font-weight: 400;
+    .icon {
+      display: inline-flex;
+      align-self: center;
+      @include vr(
+        $height: 0.8,
+        $width: 0.8,
+        $offset-top: 2,
+        $margin-right: 0.2
+      );
+      fill: $orange;
+    }
+    a {
+      font-weight: 400;
+      @include vr(
+        $font-size: 0,
+        $height: 3,
+        $line-height: 3
+      );
+      display: flex;
+      text-decoration: none;
+      max-width: 12rem;
+      color: $text-color;
+      &:hover {
+        color: $orange;
+      }
+    }
+  }
+
+  nav {
+    display: flex;
+    margin-left: auto;
+    justify-content: space-between;
+    a {
+      display: flex;
+      text-decoration: none;
+      color: #110e0b;
+      @include vr(
+        $padding-left: 1.1,
+        $padding-right: 1.1,
+        $padding-top: 0.75,
+        $padding-bottom: 0.75
+      );
+      text-align: center;
+    
+      span {
+        display: block;
+        border-bottom: 2px solid transparent;
+        @include vr(
+          $height: 1.5,
+          $line-height: 1.5,
+          $padding-left: 0.15,
+          $padding-right: 0.15,
+          $offset-bottom: 2px
+        );
+      }
+
+      &:hover {
+        color: $orange;
+      }
+      &.active {
+        color: $orange;
+        span {
+          border-color: $orange;
+        }
+      }
+    }
+  }
+
+  @include width-below($tablet){
+
+    .grid-wrapper {
+      display: block;
+      text-align: center;
+      @include vr(
+        $padding-right: 0,
+        $padding-left: 0
+      );
+    }
+
+    h1 {
+      margin-bottom: 0;
+      a {
+        margin: 0 auto;
+        min-width: 0;
+        @include vr(
+          $font-size: 1,
+          $height: 1.5,
+          $line-height: 1.5,
+          $margin-top: 0.25
+        );
+      }
+    }
+
+    nav {
+      a {
+        @include vr(
+          $padding-left: 1.1,
+          $padding-right: 1.1,
+          $padding-top: 0.5,
+          $padding-bottom: 0.5
+        );
+      }
+    }
+  }
+}

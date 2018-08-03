@@ -1,1 +1,1 @@
-# Hello :) I'm Steve, a full stack Digital Product Designer from York. From user-centred design to frontend development. I think in UX, try to put humans first and data second. I like agile and interdisciplinary teams
+# Hello :) I'm Steve, a full stack Digital Product Designer from York. I love working in agile interdisciplinary teams, building software that makes a difference in peoples' lives.

@@ -1,0 +1,30 @@
+$desktop: 60em;
+$tablet: 34em;
+$mobile: 20em;
+
+@include register-breakpoints($desktop, $tablet, $mobile);
+
+
+// $vr-font-size    : 18px;
+// $vr-line-height  : 1.5;
+// $vr-modular-scale: minor-third;
+
+$vr-breakpoints: (
+  0em: (
+    font-size: 16px,
+    line-height: 1.5,
+    modular-scale: minor-second
+  ),
+  34em: (
+    font-size: 17px,
+    modular-scale: 1.15
+  ),
+  60em: (
+    font-size: 18px,
+    modular-scale: minor-third
+  )
+);
+
+
+$vr-helpers      : false;
+// $vr-grid-color: rgba(233, 30, 99, 0.5);
