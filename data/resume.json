@@ -26,7 +26,7 @@
       "website": "https://www.bytemark.co.uk",
       "startDate": "2017-11-01",
       "highlights": [
-        "Responsible for UI design and frontend development within a Scrum team"
+        "Key member of Scrum team, responsible for UI design and frontend development"
       ]
     },
     {
@@ -48,7 +48,7 @@
       "startDate": "2014-01-01",
       "endDate": "2016-06-01",
       "highlights": [
-        "Designed and developed complex web applications using AngularJS"
+        "Introduced a design and UX focus to a previously engineering-led company"
       ]
     },
     {
@@ -107,6 +107,15 @@
   ],
   "skills": [
     {
+      "name": "Design",
+      "level": "Master",
+      "keywords": [
+        "UI Design",
+        "Interaction Design",
+        "Web Design"
+      ]
+    },
+    {
       "name": "Development",
       "level": "Master",
       "keywords": [
@@ -115,15 +124,6 @@
         "AngularJS",
         "HTML",
         "CSS"
-      ]
-    },
-    {
-      "name": "Design",
-      "level": "Master",
-      "keywords": [
-        "UI Design",
-        "Interaction Design",
-        "Web Design"
       ]
     },
     {

@@ -16,7 +16,7 @@ export default withRouteData(({ home, projects }) => (
           </li>
           <li>
             <h4>User Experience Design</h4>
-            <p>User testing, Wireframes, Prototypes</p>
+            <p>Research and User Testing</p>
           </li>
           <li>
             <h4>UI & Interaction Design</h4>
@@ -24,11 +24,11 @@ export default withRouteData(({ home, projects }) => (
           </li>
           <li>
             <h4>JavaScript Development</h4>
-            <p>React, Angular, Vue, Node</p>
+            <p>React, AngularJS, Node</p>
           </li>
           <li>
             <h4>Responsive Web Design</h4>
-            <p>HTML, CSS</p>
+            <p>HTML, CSS, Sass</p>
           </li>
           <li>
             <h4>Digital Marketing</h4>
@@ -38,7 +38,5 @@ export default withRouteData(({ home, projects }) => (
       </div>
     </section>
     <Projects items={projects}></Projects>
-
-    
   </div>
 ))

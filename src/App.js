@@ -1,15 +1,21 @@
 import React from 'react'
-import { Router, Route, Link, cleanPath } from 'react-static'
+import { Router, Route, cleanPath, Head } from 'react-static'
+import Routes from 'react-static-routes'
+
+// Hot loading development
+import { hot } from 'react-hot-loader'
+
+// Animated routes
 import { easeQuadOut } from 'd3-ease'
 import { NodeGroup } from 'react-move'
 import { withContext, getContext } from 'recompose'
 import PropTypes from 'prop-types'
-import { hot } from 'react-hot-loader'
 
-import Routes from 'react-static-routes'
+// Components
+import Header from './components/Header'
+import Footer from './components/Footer'
 
-import Icon from './Icon'
-
+// Styles
 import './app.scss'
 
 // The magic :)
@@ -39,8 +45,6 @@ const AnimatedRoutes = getContext({
           </div>
         )
       }
-
-      var footerElement = document.getElementById('footer');
       
       // Use React-Move to animate the different components coming in and out
       return (
@@ -124,43 +128,18 @@ const AnimatedRoutes = getContext({
 
 const App = () => (
   <Router>
-    <div className="container">
-      <header>
-        <div className="grid-wrapper">
-          <h1>
-            <Link to="/">
-              <Icon name="star" width="30" height="30" />
-              Steven Urmston
-            </Link>
-          </h1>
-          <nav>
-            <Link to="/work">
-              <span>Work</span>
-            </Link>
-            <Link to="/about">
-              <span>About</span>
-            </Link>
-            <Link to="/resume">
-              <span>Resume</span>
-            </Link>
-          </nav>
+    <div>
+      <Head>
+        <title>Steven Urmston | Digital Product Designer</title>
+        <description>Full Stack Digital Product Designer based in York, UK</description>
+      </Head>
+      <Header />
+      <div className="container">
+        <div className="content">
+          <Routes component={AnimatedRoutes} />
         </div>
-
-      </header>
-      <div className="content">
-        <Routes component={AnimatedRoutes} />
+        <Footer />
       </div>
-      <footer id="footer">
-        <div className="grid-wrapper">
-          <p>
-            Find me on
-            <a href="https://twitter.com/steveu">Twitter</a>,&nbsp;
-            <a href="https://github.com/steveu">GitHub</a> and&nbsp;
-            <a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a>. Send email to&nbsp;
-            <a href="mailto:steve@urm.st">steve@urm.st</a>.
-          </p>
-        </div>
-      </footer>
     </div>
   </Router>
 )

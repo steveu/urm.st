@@ -10,7 +10,7 @@ chokidar.watch('content').on('all', () => reloadRoutes())
 
 export default {
   getSiteData: () => ({
-    title: 'React Static',
+    title: 'Steven Urmston - Digital Product Designer',
   }),
   getRoutes: async () => {
     const resume = resumeJson
@@ -95,6 +95,7 @@ export default {
         ],
       },
     ]
+    config.plugins.push(new ExtractTextPlugin('app.css'))
     return config
   },
   preact: true,

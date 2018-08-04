@@ -39,7 +39,7 @@
 
     &__document {
       @include vr(
-        $padding: 1
+        $padding: 1.25 1
       );
     }
   }
@@ -177,7 +177,11 @@
       line-height: 1 !important;
       font-size: 0.8rem;
       position: relative;
-      margin-left: 1.5rem;
+      margin-right: 1.5rem;
+      margin-bottom: 1rem;
+      &:last-child {
+        margin-right: 0;
+      }
       strong {
         line-height: 1 !important;
       }
@@ -191,16 +195,7 @@
         transform: translateY(-4px);
         fill: $orange;
       }
-      // &:before {
-      //   display: inline-block;
-      //   content: "";
-      //   width: 8px;
-      //   height: 8px;
-      //   background: #333;
-      //   position: absolute;
-      //   top: 0px;
-      //   left: 0px;
-      // }
+
       &.development strong {
         color: darken($blue, 10);
       }
@@ -216,6 +211,18 @@
       &.ux strong {
         color: darken($red, 10);
       }
+    }
+
+    @include width-below($desktop) {
+      span {
+        margin-right: 1rem;
+      }
+    }
+    @include width-below($phablet) {
+      span {
+        margin-right: 0.5rem;
+      }
+      flex-wrap: wrap;
     }
   }
 

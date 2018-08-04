@@ -1,8 +1,13 @@
 import React from 'react'
-import { withRouteData, Link } from 'react-static'
-//
+import { withRouteData, Head } from 'react-static'
+
 import Projects from '../components/Projects'
 
 export default withRouteData(({ projects }) => (
-  <Projects items={projects}></Projects>
+  <div>
+    <Head>
+      <title>Steven Urmston | Work</title>
+    </Head>
+    <Projects items={projects}></Projects>
+  </div>
 ))
