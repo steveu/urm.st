@@ -4,6 +4,8 @@ import chokidar from 'chokidar'
 import path from 'path'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 
+import resumeJson from './data/resume.json'
+
 chokidar.watch('content').on('all', () => reloadRoutes())
 
 export default {
@@ -11,6 +13,7 @@ export default {
     title: 'React Static',
   }),
   getRoutes: async () => {
+    const resume = resumeJson
     const { projects, home, about } = await jdown('content')
     return [
       {
@@ -25,6 +28,13 @@ export default {
         component: 'src/containers/About',
         getData: () => ({
           about,
+        }),
+      },
+      {
+        path: '/resume',
+        component: 'src/containers/Resume',
+        getData: () => ({
+          resume,
         }),
       },
       {

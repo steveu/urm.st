@@ -20,11 +20,12 @@ $heading-color: #000;
 // Colors
 $orange: #DE7719;
 $blue: complement($orange);
-$red: adjust-hue($orange, -30deg);
+$red: adjust-hue($orange, -45deg);
+$yellow: adjust-hue($orange, 25deg);
 $teal: adjust-hue($orange, -270deg);
-$purple: adjust-hue($orange, -60deg);
+$purple: adjust-hue($orange, -90deg);
 
-$red: #E0523C; // alternative red
+// $red: #E0523C; // alternative red
 $light-blue: #E7F3FF;
 
 body {
@@ -103,9 +104,9 @@ h1, h2, h3, h4, h5 {
 
 
 @import "./styles/header.scss";
+@import "./styles/resume.scss";
 
 footer {
-  transition: all 3s;
   // flex-shrink: 0;
   margin-top: auto;
   background: #222 url('/assets/images/80-70-3.png');;
@@ -197,7 +198,7 @@ div.work {
   display: flex;
   figure {
     display: block;
-    flex: 0 0 66.6666666666%;
+    flex: 0 0 60%;
     margin: 0;
     padding: 0;
     @include vr(
@@ -219,7 +220,7 @@ div.work {
   }
 
   aside {
-    flex: 0 0 33.33333333333%;
+    flex: 0 0 40%;
     @include vr(
       $padding-left: 0.5
     );
@@ -362,4 +363,9 @@ h1.has-icon {
     );
     fill: $red;
   }
+}
+
+iframe.pdf {
+  width: 100%;
+  min-height: 500px;
 }

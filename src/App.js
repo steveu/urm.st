@@ -140,8 +140,8 @@ const App = () => (
             <Link to="/about">
               <span>About</span>
             </Link>
-            <Link to="/contact">
-              <span>Contact</span>
+            <Link to="/resume">
+              <span>Resume</span>
             </Link>
           </nav>
         </div>

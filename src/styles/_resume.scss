@@ -1,0 +1,222 @@
+.resume {
+  background: darken(#333, 0) url('/assets/images/80-70-3.png');
+  background: #efefef url('/assets/images/80-70-3.png');
+  margin-top: 1px;
+  min-height: 700px;
+
+  @include vr(
+    $padding-top: 1,
+    $padding-bottom: 1.5
+  );
+
+  a {
+    color: #333;
+    color: $orange;
+    text-decoration: underline;
+    &:hover {
+      color: $orange;
+    }
+  }
+
+  &__document {
+    background: #fff;
+    box-shadow: 5px 5px 20px rgba(#000, 0.1);
+    border-top: 6px solid #333;
+    @include vr(
+      $padding: 1.5
+    );
+  }
+
+  @include width-below($phablet) {
+    @include vr(
+      $padding-top: 0,
+      $padding-bottom: 0
+    );
+    .grid-wrapper {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    &__document {
+      @include vr(
+        $padding: 1
+      );
+    }
+  }
+
+  
+  &__title {
+
+  }
+
+  &__section {
+    @include vr(
+      $padding-bottom: 1,
+      $padding-top: 0.5
+    );
+    border-bottom: 1px solid #ccc;
+
+    &:first-child {
+      padding-top: 0;
+    }
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  &__grid {
+    display: flex;
+  }
+
+  &__left {
+    max-width: 40em;
+  }
+
+  &__right {
+    margin-left: auto;
+    text-align: right;
+
+    &.isDates {
+      max-width: 10em;
+    }
+  }
+
+  @include width-below($phablet) {
+    &__grid {
+      display: block;
+    }
+    &__right {
+      text-align: left;
+      &.isDates {
+        max-width: none;
+      }
+    }
+  }
+
+  &__item {
+    @include vr(
+      $padding-bottom: 0.5
+    );
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+  }
+
+
+  h1, h2, h3, h4, h5, p, ul, ol, dl {
+    margin-top: 0;
+    margin-bottom: 0;
+    // @include vr(
+    //   $margin-bottom: 0,
+    //   $margin-top: 0
+    // );
+  }
+
+  &__section-heading {
+    text-transform: uppercase;
+    color: #888;
+    @include vr(
+      $font-size: 0,
+      $padding-bottom: 0.5
+    );
+  }
+
+  .isDates {
+    font-size: 0.85rem;
+    // @include vr(
+    //   $font-size: 
+    // );
+  }
+
+  &__skills {
+    display: flex;
+    flex-wrap: wrap;
+    @include vr(
+      $margin-top: -0.25
+    );
+  }
+
+  &__tag {
+    background: lighten(#efefef, 3);
+    border: 1px solid #efefef;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    @include vr(
+      $padding: 0 0.4,
+      $margin-right: 0.4,
+      $margin-top: 0.4
+    );
+
+    &.development {
+      border-color: darken($blue, 0);
+    }
+    &.design {
+      border-color: darken($purple, 0);
+    }
+    &.management {
+      border-color: darken($teal, 0);
+    }
+    &.marketing {
+      border-color: darken($yellow, 0);
+    }
+    &.ux {
+      border-color: darken($red, 0);
+    }
+  }
+
+  &__section-key {
+    display: flex;
+    text-align: left;
+    @include vr(
+      $padding-top: 0.25
+    );
+    span {
+      display: block;
+      line-height: 1 !important;
+      font-size: 0.8rem;
+      position: relative;
+      margin-left: 1.5rem;
+      strong {
+        line-height: 1 !important;
+      }
+      svg {
+        display: inline-block;
+        @include vr(
+          $height: 0.45,
+          $width: 0.45,
+          $margin-left: 0.1,
+        );
+        transform: translateY(-4px);
+        fill: $orange;
+      }
+      // &:before {
+      //   display: inline-block;
+      //   content: "";
+      //   width: 8px;
+      //   height: 8px;
+      //   background: #333;
+      //   position: absolute;
+      //   top: 0px;
+      //   left: 0px;
+      // }
+      &.development strong {
+        color: darken($blue, 10);
+      }
+      &.design strong {
+        color: darken($purple, 10);
+      }
+      &.management strong {
+        color: darken($teal, 10);
+      }
+      &.marketing strong {
+        color: darken($yellow, 10);
+      }
+      &.ux strong {
+        color: darken($red, 10);
+      }
+    }
+  }
+
+}

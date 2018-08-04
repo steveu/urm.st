@@ -1,0 +1,156 @@
+{
+  "basics": {
+    "name": "Steven Urmston",
+    "label": "Digital Product Designer",
+    "picture": "",
+    "email": "steve@urm.st",
+    "phone": "+44 7590843170",
+    "website": "https://urm.st",
+    "location": {
+      "address": "The Coach House, Fulford Park",
+      "postalCode": "YO10 4QE",
+      "city": "York",
+      "countryCode": "UK",
+      "region": "North Yorkshire"
+    },
+    "profiles": [{
+      "network": "Twitter",
+      "username": "steveu",
+      "url": "https://twitter.com/steveu"
+    }]
+  },
+  "work": [
+    {
+      "company": "Bytemark",
+      "position": "Lead Frontend Developer",
+      "website": "https://www.bytemark.co.uk",
+      "startDate": "2017-11-01",
+      "highlights": [
+        "Responsible for UI design and frontend development within a Scrum team"
+      ]
+    },
+    {
+      "company": "Bytemark",
+      "position": "Product Manager",
+      "website": "https://www.bytemark.co.uk",
+      "startDate": "2016-06-01",
+      "endDate": "2017-11-01",
+      "highlights": [
+        "Helped implement customer-driven product strategy, marketing and vision",
+        "Provided Leadership and Management for a multidisciplinary Product Team",
+        "Increased average customer revenue by 35% and customer growth by 15%"
+      ]
+    },
+    {
+      "company": "Bytemark",
+      "position": "UX Developer",
+      "website": "https://www.bytemark.co.uk",
+      "startDate": "2014-01-01",
+      "endDate": "2016-06-01",
+      "highlights": [
+        "Designed and developed complex web applications using AngularJS"
+      ]
+    },
+    {
+      "company": "Independent Contractor",
+      "position": "Web & UI Designer",
+      "startDate": "2012-10-01",
+      "endDate": "2014-01-01"
+    },
+    {
+      "company": "Designition",
+      "position": "Senior Designer",
+      "website": "https://designition.co.uk",
+      "startDate": "2005-06-01",
+      "endDate": "2012-09-01",
+      "highlights": [
+        "Visual design, client relations and full-stack development for web agency",
+        "Won two major awards for websites I designed and developed"
+      ]
+    },
+    {
+      "company": "Clearbar",
+      "website": "https://web.archive.org/web/20050204022131/http://clearbar.com:80/index.php",
+      "position": "Owner",
+      "startDate": "2003-10-01",
+      "endDate": "2005-12-01",
+      "highlights": [
+        "Ran a business providing Web design and development services"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of York",
+      "area": "Leadership and Management",
+      "studyType": "ILM (Level 5)",
+      "startDate": "2017-10-01"
+    },
+    {
+      "institution": "University of York",
+      "area": "Human-Centred Interactive Technologies",
+      "studyType": "MSc (Distinction)",
+      "startDate": "2008-10-01",
+      "endDate": "2009-07-01",
+      "highlights": [
+        "Received a fully funded ESRPC scholarship",
+        "The app built for my Dissertation continued to be used after research ended."
+      ]
+    },
+    {
+      "institution": "University of Glasgow",
+      "area": "Political Science",
+      "studyType": "MA (2.1)",
+      "startDate": "1999-10-01",
+      "endDate": "2003-07-01"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Development",
+      "level": "Master",
+      "keywords": [
+        "JavaScript",
+        "React",
+        "AngularJS",
+        "HTML",
+        "CSS"
+      ]
+    },
+    {
+      "name": "Design",
+      "level": "Master",
+      "keywords": [
+        "UI Design",
+        "Interaction Design",
+        "Web Design"
+      ]
+    },
+    {
+      "name": "Management",
+      "level": "Intermediate",
+      "keywords": [
+        "Product Strategy",
+        "Line Management",
+        "Leadership"
+      ]
+    },
+    {
+      "name": "UX",
+      "level": "Advanced",
+      "keywords": [
+        "UX Research",
+        "User Testing"
+      ]
+    },
+    {
+      "name": "Marketing",
+      "level": "Beginner",
+      "keywords": [
+        "Analytics",
+        "CRO",
+        "SEO"
+      ]
+    }
+  ]
+}
