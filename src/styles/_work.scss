@@ -25,6 +25,7 @@
 
   &__description {
     flex: 0 0 40%;
+
     @include vr(
       $padding-left: 0.5
     );
@@ -32,8 +33,12 @@
       margin-top: 0;
       font-weight: 300;
       @include vr(
-        $line-height: 1.5
+        $line-height: 1.5,
+        $margin-bottom: 0
       );
+    }
+    .subtitle {
+      margin-top: 0;
     }
     p {
       font-weight: 300;

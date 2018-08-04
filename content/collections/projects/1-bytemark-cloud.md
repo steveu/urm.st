@@ -4,8 +4,8 @@ slug: bytemark-cloud
 class: bytemark inverse
 case_study: true
 description:
-  - A single page JavaScript application (AngularJS) which I've been heavily involved in since 2014. From Product Management of features, UX research and UI design, through to frontend development and Node tooling.
-  - It pulls together many APIs to provide user friendly server administration and account management tools for Bytemark customers.
+  - Cloud server administration and account management product which I’ve been heavily involved with since building an influential UX-driven AngularJS application back in 2014.
+  - I’ve also led the product strategy and vision for a period; launching new feature to drive revenue increases, and conducting customer and usability research to ensure it stays relevant in a competitive market.
 ---
 
 # Bytemark Cloud - A four year journey from Developer to Product Manager

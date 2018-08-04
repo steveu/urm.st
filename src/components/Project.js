@@ -11,6 +11,7 @@ class Project extends PureComponent {
           <div className="work">
             <aside className="work__description">
               <h2>{project.title}</h2>
+              <p className="subtitle">{project.subtitle}</p>
               {project.description.map(paragraph => (
                 <p>{paragraph}</p>
               ))}
