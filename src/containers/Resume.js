@@ -9,8 +9,6 @@ import Resume from '../components/Resume'
 
 export default withRouteData(({ resume }) => {
 
-  
-
   let skillTags = [];
   for (var i = 0; i < resume.skills.length; i++) {
     for (var t = 0; t < resume.skills[i].keywords.length; t++) {
@@ -26,7 +24,10 @@ export default withRouteData(({ resume }) => {
       <Head>
         <title>Steven Urmston | Resume</title>
       </Head>
-      <Resume resume={resume} skills={skillTags} />
+      <Resume
+        resume={resume}
+        skills={skillTags}
+      />
     </div>
   )
 })

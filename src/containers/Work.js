@@ -8,6 +8,6 @@ export default withRouteData(({ projects }) => (
     <Head>
       <title>Steven Urmston | Work</title>
     </Head>
-    <Projects items={projects}></Projects>
+    <Projects projects={projects}></Projects>
   </div>
 ))

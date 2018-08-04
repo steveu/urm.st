@@ -84,7 +84,11 @@ section {
   }
   &.bytemark {
     color: #fff;
-    background: #004ea4 url('/assets/images/80-70-2.png');
+    background: #004ea4 url('/assets/images/80-70-4.png');
+    border-top: 1px solid rgba(#000, 0.5);
+    @include vr(
+      $offset-top: 1px
+    );
   }
 }
 
@@ -105,6 +109,7 @@ h1, h2, h3, h4, h5 {
 
 @import "./styles/header.scss";
 @import "./styles/resume.scss";
+@import "./styles/work.scss";
 
 footer {
   // flex-shrink: 0;
@@ -188,51 +193,10 @@ section.skills {
           $margin-top: 0.25,
           $margin-bottom: 0.5
         );
+        // @include width-below($phablet) {
+        //   margin-bottom: 0;
+        // }
       }
-    }
-  }
-}
-
-
-div.work {
-  display: flex;
-  figure {
-    display: block;
-    flex: 0 0 60%;
-    margin: 0;
-    padding: 0;
-    @include vr(
-      $padding-right: 0.6
-    );
-    // transform: translateX(-3px);
-    overflow: hidden;
-    box-sizing: border-box;
-
-    img {
-      -webkit-transform-style: preserve-3d;
-      -webkit-backface-visibility: hidden;
-      display: block;
-      box-shadow: 5px 5px 5px 0px rgba(#000, 0.2);
-      border-radius: 3px;
-      
-      width: 100%;
-    }
-  }
-
-  aside {
-    flex: 0 0 40%;
-    @include vr(
-      $padding-left: 0.5
-    );
-    h2 {
-      margin-top: 0;
-      font-weight: 300;
-      @include vr(
-        $line-height: 1.5
-      );
-    }
-    p {
-      font-weight: 300;
     }
   }
 }
@@ -290,7 +254,6 @@ div.work {
   &:after {
     right: 50%;
   }
-  
   
   &:hover {
     border-color: saturate($orange, 0);

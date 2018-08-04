@@ -45,7 +45,7 @@ export default {
         }),
         children: projects.map(project => ({
           path: `${project.slug}`,
-          component: 'src/containers/Project',
+          component: 'src/containers/CaseStudy',
           getData: () => ({
             project,
           }),

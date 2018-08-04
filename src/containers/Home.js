@@ -37,6 +37,6 @@ export default withRouteData(({ home, projects }) => (
         </ul>
       </div>
     </section>
-    <Projects items={projects}></Projects>
+    <Projects projects={projects}></Projects>
   </div>
 ))

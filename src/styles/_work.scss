@@ -1,0 +1,61 @@
+.work {
+  display: flex;
+  flex-direction: row-reverse;
+  &__figure {
+    display: block;
+    flex: 0 0 60%;
+    margin: 0;
+    padding: 0;
+    @include vr(
+      $padding-right: 0.6
+    );
+    padding-bottom: 6px;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    img {
+      -webkit-transform-style: preserve-3d;
+      -webkit-backface-visibility: hidden;
+      display: block;
+      box-shadow: 5px 5px 5px 0px rgba(#000, 0.2);
+      // border-radius: 3px;
+      width: 100%;
+    }
+  }
+
+  &__description {
+    flex: 0 0 40%;
+    @include vr(
+      $padding-left: 0.5
+    );
+    h2 {
+      margin-top: 0;
+      font-weight: 300;
+      @include vr(
+        $line-height: 1.5
+      );
+    }
+    p {
+      font-weight: 300;
+    }
+  }
+
+  @include width-below($desktop) {
+    &__figure {
+      flex: 0 0 40%;
+    }
+    &__description {
+      flex: 0 0 60%;
+    }
+  }
+
+  @include width-below($phablet) {
+    display: block;
+    &__description {
+      padding-left: 0;
+      @include vr(
+        $padding-bottom: 1
+      );
+    }
+  }
+}
