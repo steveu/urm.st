@@ -131,7 +131,7 @@ const App = () => (
     <div>
       <Head>
         <title>Steven Urmston | Digital Product Designer</title>
-        <description>Full Stack Digital Product Designer based in York, UK</description>
+        <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
       </Head>
       <div className="container">
         <Header />
