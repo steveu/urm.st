@@ -81,7 +81,8 @@ export default {
             importLoaders: 1,
             minimize: stage === 'prod',
             sourceMap: false,
-          },
+            modules: false,
+          }
         },
         {
           loader: 'sass-loader',
