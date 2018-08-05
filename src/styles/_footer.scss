@@ -3,13 +3,14 @@ footer {
   background: #222 url('/assets/images/80-70-3.png');;
   color: #ccc;
   @include vr(
-    $padding-top: 1
+    $padding-top: 1,
+    $padding-bottom: 1
   );
   box-shadow:
     0px -1px 1px 0px #fff,
     inset 0px 1px 1px 0px #000
   ;
-  min-height: 7rem;
+  // min-height: 7rem;
   border-top: 8px solid $orange;
 
   .grid-wrapper {

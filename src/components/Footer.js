@@ -20,7 +20,7 @@ const Footer = (props) => (
       >
         <img
           alt="Creative Commons License"
-          src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png"
+          src="/assets/images/licence.png"
         />
       </a>
     </div>
