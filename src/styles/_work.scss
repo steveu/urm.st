@@ -20,6 +20,14 @@
         max-width: 100%;
       }
     }
+
+    .fluid-video {
+      @include fluid-aspect(80 43, video);
+
+      video {
+        max-width: 100%;
+      }
+    }
   }
 
   &__description {

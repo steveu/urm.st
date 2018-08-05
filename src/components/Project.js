@@ -7,6 +7,16 @@ class Project extends PureComponent {
 
   renderFigure(project) {
     switch(project.type) {
+      case 'video':
+        return (
+          <figure className="work__figure">
+            <div class="fluid-video">
+              <video autoplay="" loop="" controls preload="auto">
+                <source src={project.video} />
+              </video>
+            </div>
+          </figure>
+        )
       case 'iframe':
         return (
           <figure className="work__figure">
