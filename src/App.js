@@ -133,8 +133,8 @@ const App = () => (
         <title>Steven Urmston | Digital Product Designer</title>
         <description>Full Stack Digital Product Designer based in York, UK</description>
       </Head>
-      <Header />
       <div className="container">
+        <Header />
         <div className="content">
           <Routes component={AnimatedRoutes} />
         </div>
