@@ -59,6 +59,51 @@ export default {
     ]
   },
   webpack: (config, { defaultLoaders, stage }) => {
+
+    let loaders = []
+
+    if (stage === 'dev') {
+      loaders = [
+        { loader: 'style-loader' },
+        { loader: 'css-loader' },
+        {
+          loader: 'sass-loader',
+          options: {
+            includePaths: ['src/', path.resolve(__dirname, 'node_modules/')]
+          }
+        }
+      ]
+    } else {
+      loaders = [
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            minimize: stage === 'prod',
+            sourceMap: false,
+          },
+        },
+        {
+          loader: 'sass-loader',
+          options: { includePaths: ['src/', 'node_modules/'] },
+        },
+      ]
+
+      // Don't extract css to file during node build process
+      if (stage !== 'node') {
+        loaders = ExtractTextPlugin.extract({
+          fallback: {
+            loader: 'style-loader',
+            options: {
+              sourceMap: false,
+              hmr: false,
+            },
+          },
+          use: loaders,
+        })
+      }
+    }
+
     config.module.rules = [
       {
         oneOf: [
@@ -67,28 +112,8 @@ export default {
             loader: 'svg-sprite-loader'
           },
           {
-            test: /\.scss/,
-            use:
-              stage === 'dev'
-                ? [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader', options: {
-                    includePaths: ['src/', path.resolve(__dirname, 'node_modules/')]
-                  } }]
-                : ExtractTextPlugin.extract({
-                  use: [
-                    {
-                      loader: 'css-loader',
-                      options: {
-                        importLoaders: 1,
-                        minimize: true,
-                        sourceMap: false
-                      }
-                    },
-                    {
-                      loader: 'sass-loader',
-                      options: { includePaths: ['src/', 'node_modules/'] }
-                    }
-                  ],
-                }),
+            test: /\.s(a|c)ss$/,
+            use: loaders,
           },
           defaultLoaders.cssLoader,
           defaultLoaders.jsLoader,
@@ -96,7 +121,6 @@ export default {
         ],
       },
     ]
-    config.plugins.push(new ExtractTextPlugin('app.css'))
     return config
   },
   preact: true,
