@@ -1,0 +1,32 @@
+footer {
+  margin-top: auto;
+  background: #222 url('/assets/images/80-70-3.png');;
+  color: #ccc;
+  @include vr(
+    $padding-top: 1
+  );
+  box-shadow:
+    0px -1px 1px 0px #fff,
+    inset 0px 1px 1px 0px #000
+  ;
+  min-height: 7rem;
+  border-top: 8px solid $orange;
+
+  .grid-wrapper {
+    display: flex;
+  }
+  p {
+    padding: 0;
+    margin: 0;
+    width: auto;
+    a {
+      color: #777;
+      border: none;
+    }
+  }
+
+  a[rel=license] {
+    display: block;
+    margin-left: auto;
+  }
+}

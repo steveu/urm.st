@@ -108,6 +108,14 @@ section {
   }
 }
 
+a {
+  color: $orange;
+
+  &:hover {
+    color: darken($orange, 10);
+  }
+}
+
 .grid-wrapper {
   max-width: 57rem;
   margin: 0 auto;
@@ -124,40 +132,10 @@ h1, h2, h3, h4, h5 {
 
 
 @import "./styles/header.scss";
+@import "./styles/footer.scss";
 @import "./styles/resume.scss";
 @import "./styles/work.scss";
 @import "./styles/window.scss";
-
-
-
-footer {
-  transition: all 3s;
-  // flex-shrink: 0;
-  margin-top: auto;
-  background: #222 url('/assets/images/80-70-3.png');;
-  color: #ccc;
-  padding: 0;
-
-  box-shadow:
-    0px -1px 1px 0px #fff,
-    inset 0px 1px 1px 0px #000
-  ;
-
-  min-height: 100px;
-
-  border-top: 8px solid $orange;
-
-  p {
-    padding: 0;
-  }
-
-  a {
-    color: #777;
-    border: none;
-  }
-}
-
-
 
 section.skills {
 

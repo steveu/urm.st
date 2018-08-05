@@ -21,9 +21,6 @@ export default withRouteData(({ about }) => (
         </figure>
         <aside>
           {convert(about.contents)}
-          <Link className="button" to="/contact/">
-            Find me on LinkedIn
-          </Link>
         </aside>
       </div>
     </section>

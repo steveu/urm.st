@@ -63,7 +63,7 @@ const AnimatedRoutes = getContext({
           start={() => ({
             opacity: [0],
             scale: 1,
-            translateY: [10],
+            translateY: [15],
           })}
           enter={() => ({
             opacity: [1],
@@ -75,7 +75,7 @@ const AnimatedRoutes = getContext({
           })}
           leave={() => ({
             opacity: [0],
-            translateY: [-10],
+            translateY: [-15],
             timing: { duration: 200, ease: easeQuadOut },
             events: {
               start() { // runs in the context of the node
