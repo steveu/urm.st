@@ -11,7 +11,7 @@ class Project extends PureComponent {
         return (
           <figure className="work__figure">
             <div className="fluid-video">
-              <video autoPlay loop controls preload="auto">
+              <video loop controls preload="auto">
                 <source src={project.video} />
               </video>
             </div>
