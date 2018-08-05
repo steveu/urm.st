@@ -1,7 +1,7 @@
 ---
 title: York Assembly
 slug: york-assembly
-class: inverse black
+class: blank
 type: iframe
 download: /assets/files/game_mechanics_vle.pdf
 iframe: http://www.slideshare.net/slideshow/embed_code/7852875?rel=0

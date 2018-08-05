@@ -6,8 +6,8 @@ case_study: true
 type: hero
 image: /projects/bytemark-cloud-hero.png
 description:
-  - Cloud server administration and account management product which I’ve been heavily involved with since building an influential UX-driven AngularJS application back in 2014.
-  - I’ve also led the product strategy and vision for a period; launching new feature to drive revenue increases, and conducting customer and usability research to ensure it stays relevant in a competitive market.
+  - A Cloud hosting product I’ve been heavily involved with since I designed and built an influential JavaScript application (AngularJS) back in 2014.
+  - I have also led the product strategy and vision for a period. Specifying and launching new features to drive revenue, and conducting customer & usability research to ensure it stays relevant in an extremely competitive market.
 ---
 
 # Bytemark Cloud - A four year journey from Developer to Product Manager

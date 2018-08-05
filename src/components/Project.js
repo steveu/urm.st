@@ -57,7 +57,13 @@ class Project extends PureComponent {
               {project.description.map(paragraph => (
                 <p>{paragraph}</p>
               ))}
-
+              {project.link && (
+                <p>
+                  <a href={project.link}>
+                    {project.link}
+                  </a>
+                </p>
+              )}
               {project.case_study && (
                 <Link className="button" to={`/work/${project.slug}/`}>
                   Read case study

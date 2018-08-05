@@ -26,7 +26,7 @@
     flex: 0 0 40%;
 
     @include vr(
-      $padding-left: 0.5
+      $padding-left: 0.75
     );
     h2 {
       margin-top: 0;
@@ -41,6 +41,13 @@
     }
     p {
       font-weight: 300;
+    }
+
+    a:not(.button) {
+      color: $orange;
+      &:hover {
+        color: lighten($orange, 20);
+      }
     }
   }
 

@@ -25,16 +25,19 @@
       
     }
 
-    &.is-black {
-      border-color: #333;
-
-      .window__chrome {
-        background-color: #333;
-      }
+    &__contents {
+      border: 1px solid darken(#f1f1f1, 10);
     }
 
-    &__contents {
-      border: 1px solid darken(#f1f1f1, 5);
+    &.is-black {
+      border-color: #222;
+
+      .window__chrome {
+        background-color: #222;
+      }
+      .window__contents {
+        border-color: rgba(#000, 0.9);
+      }
     }
 
     &__buttons {
@@ -46,8 +49,8 @@
       border-radius: 50%;
       display: block;
       @include vr(
-        $width: 0.375,
-        $height: 0.375,
+        $width: 0.325,
+        $height: 0.325,
         $margin-right: 0.2
       );
 

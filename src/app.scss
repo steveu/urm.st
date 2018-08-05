@@ -81,7 +81,11 @@ section {
   }
   &.black {
     color: rgba(#fff, 0.95);
-    background: #444 url('/assets/images/80-70-4.png');
+    background: #343434 url('/assets/images/80-70-4.png');
+    border-top: 1px solid rgba(#000, 0.05);
+    @include vr(
+      $offset-top: 1px
+    );
   }
   &.blue {
     background: lighten($blue, 0);
