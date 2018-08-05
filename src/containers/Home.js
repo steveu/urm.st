@@ -37,6 +37,9 @@ export default withRouteData(({ home, projects }) => (
         </ul>
       </div>
     </section>
-    <Projects projects={projects}></Projects>
+    <Projects
+      projects={projects}
+      isFeatured="true"
+    ></Projects>
   </div>
 ))

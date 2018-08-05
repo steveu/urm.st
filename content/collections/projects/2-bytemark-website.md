@@ -3,6 +3,7 @@ title: Bytemark Website
 slug: bytemark-website
 class: black
 frame_class: is-black
+feature: true
 short: Hello
 link: https://www.bytemark.co.uk/
 image: /projects/bytemark-website-hero.png

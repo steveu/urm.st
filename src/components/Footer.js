@@ -4,7 +4,7 @@ import React from 'react'
 // import Icon from '../Icon'
 
 const Footer = (props) => (
-  <footer>
+  <footer id="footer">
     <div className="grid-wrapper">
       <p>
         Find me on

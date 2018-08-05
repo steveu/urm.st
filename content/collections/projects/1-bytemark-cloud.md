@@ -3,6 +3,7 @@ title: Bytemark Cloud
 slug: bytemark-cloud
 class: bytemark inverse
 case_study: true
+feature: true
 type: hero
 image: /projects/bytemark-cloud-hero.png
 description:

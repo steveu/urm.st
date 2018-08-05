@@ -90,7 +90,6 @@ section {
   &.green {
     color: rgba(#fff, 0.95);
     background: darken(#20BA73, 5) url('/assets/images/80-70-3.png');
-    // border-top: 1px solid rgba(#000, 0.05);
     // @include vr(
     //   $offset-top: 1px
     // );
@@ -129,7 +128,10 @@ h1, h2, h3, h4, h5 {
 @import "./styles/work.scss";
 @import "./styles/window.scss";
 
+
+
 footer {
+  transition: all 3s;
   // flex-shrink: 0;
   margin-top: auto;
   background: #222 url('/assets/images/80-70-3.png');;
@@ -154,6 +156,7 @@ footer {
     border: none;
   }
 }
+
 
 
 section.skills {
