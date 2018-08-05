@@ -10,8 +10,8 @@ class Project extends PureComponent {
       case 'video':
         return (
           <figure className="work__figure">
-            <div class="fluid-video">
-              <video autoplay="" loop="" controls preload="auto">
+            <div className="fluid-video">
+              <video autoPlay loop controls preload="auto">
                 <source src={project.video} />
               </video>
             </div>
@@ -20,15 +20,15 @@ class Project extends PureComponent {
       case 'iframe':
         return (
           <figure className="work__figure">
-            <div class="fluid-iframe">
+            <div className="fluid-iframe">
               <iframe
                 width="100%"
                 src={project.iframe}
-                frameborder="0"
-                marginwidth="0"
-                marginheight="0"
+                frameBorder="0"
+                marginWidth="0"
+                marginHeight="0"
                 scrolling="no"
-                allowfullscreen=""
+                allowFullScreen=""
               ></iframe>
             </div>
           </figure>
@@ -64,8 +64,8 @@ class Project extends PureComponent {
             <aside className="work__description">
               <h2>{project.title}</h2>
               <p className="subtitle">{project.subtitle}</p>
-              {project.description.map(paragraph => (
-                <p>{paragraph}</p>
+              {project.description.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
               ))}
               {project.link && (
                 <p>

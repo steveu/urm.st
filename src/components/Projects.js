@@ -10,14 +10,16 @@ class Projects extends PureComponent {
     let { projects, isFeatured } = this.props
 
     if (isFeatured) {
-      console.log('feature');
       projects = projects.filter(function(project) { return project.feature; })
     }
 
     return (
       <div>
-        {projects.map(project => (
-          <Project project={project} />
+        {projects.map((project, index) => (
+          <Project
+            key={index}
+            project={project}
+          />
         ))}
       </div>
     )

@@ -13,8 +13,8 @@ export default withRouteData(({ about }) => (
       <div className="grid-wrapper about">
         <figure className="about__image">
           <picture>
-            <source media="(min-width: 34em)" srcset={steve} />
-            <source media="(min-width: 0px)" srcset={steveLandscape} />
+            <source media="(min-width: 34em)" srcSet={steve} />
+            <source media="(min-width: 0px)" srcSet={steveLandscape} />
             <img src={steve} alt="Steve Urmston - Digital Product Designer" />
           </picture>
 

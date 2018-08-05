@@ -13,7 +13,7 @@ class WindowChrome extends PureComponent {
           </div>
         </div>
         <div className="window__contents">
-          <img src={image} width="100%" />
+          <img src={image} />
         </div>
       </div>
     )

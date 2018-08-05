@@ -29,8 +29,8 @@ const Resume = (props) => {
           <div className="resume__section">
             <h4 className="resume__section-heading">Experience</h4>
 
-            {resume.work.map(work => (
-              <div className="resume__item">
+            {resume.work.map((work, index) => (
+              <div key={`work-${index}`} className="resume__item">
                 <div className="resume__grid">
                   <div className="resume__left">
                     <h5 className="resume__title">
@@ -46,8 +46,8 @@ const Resume = (props) => {
                     )}
                     {work.highlights && (
                       <ul>
-                      {work.highlights.map(highlight => (
-                        <li>{highlight}</li>
+                      {work.highlights.map((highlight, index) => (
+                        <li key={`work-highlight-${index}`}>{highlight}</li>
                       ))}
                       </ul>
                     )}
@@ -72,8 +72,8 @@ const Resume = (props) => {
           <div className="resume__section">
             <h4 className="resume__section-heading">Education</h4>
 
-            {resume.education.map(education => (
-              <div className="resume__item">
+            {resume.education.map((education, index) => (
+              <div key={`education-${index}`} className="resume__item">
                 <div className="resume__grid">
                   <div className="resume__left">
                     <h5>
@@ -82,8 +82,8 @@ const Resume = (props) => {
                     </h5>
                     {education.highlights && (
                       <ul>
-                      {education.highlights.map(highlight => (
-                        <li>{highlight}</li>
+                      {education.highlights.map((highlight, index) => (
+                        <li key={`education-highlight-${index}`}>{highlight}</li>
                       ))}
                       </ul>
                     )}
@@ -111,8 +111,8 @@ const Resume = (props) => {
               </div>
               <div className="resume__right">
                 <div className="resume__section-key">
-                  {resume.skills.map(skill => (
-                    <span className={slugify(skill.name)}>
+                  {resume.skills.map((skill, index) => (
+                    <span key={`skill-${index}`} className={slugify(skill.name)}>
                       <strong>{skill.name}</strong>
                       {skill.level === "Master" ? (
                         <Icon name="star" width="30" height="30" />
@@ -125,8 +125,8 @@ const Resume = (props) => {
               </div>
             </div>
             <div className="resume__skills">
-              {skills.map(skill => (
-                <span className={`resume__tag ${skill.category}`}>
+              {skills.map((skill, index) => (
+                <span key={`skill-tag-${index}`} className={`resume__tag ${skill.category}`}>
                   {skill.name}
                 </span>
               ))}
