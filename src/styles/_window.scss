@@ -1,0 +1,61 @@
+.window {
+  box-shadow: 5px 5px 10px 0px rgba(#000, 0.05);
+  img {
+    display: block;
+    border-radius: 1px;
+  }
+}
+
+@include width-above($desktop) {
+
+  .window {
+    border: 4px solid #f1f1f1;
+    border-radius: 4px;
+    
+    img {
+      border-radius: 0px;
+    }
+
+    &__chrome {
+      background-color: #f1f1f1;
+      @include vr(
+        $line-height: 1,
+        $padding: 0.15 0.25 0.25 0.25
+      );
+      
+    }
+
+    &.is-black {
+      border-color: #333;
+
+      .window__chrome {
+        background-color: #333;
+      }
+    }
+
+    &__contents {
+      border: 1px solid darken(#f1f1f1, 5);
+    }
+
+    &__buttons {
+      display: flex;
+      align-items: center;
+    } 
+    &__dot {
+      background-color: #bbb;
+      border-radius: 50%;
+      display: block;
+      @include vr(
+        $width: 0.375,
+        $height: 0.375,
+        $margin-right: 0.2
+      );
+
+      &.is-red { background: #ED594A; }
+      &.is-green { background: #5AC05A; }
+      &.is-yellow { background: #FDD800; }
+    }
+
+    
+  }
+}

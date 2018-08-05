@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react'
 import { Link } from 'react-static'
 
+import WindowChrome from './WindowChrome'
+
 class Project extends PureComponent {
 
   renderFigure(project) {
@@ -26,10 +28,16 @@ class Project extends PureComponent {
           <figure className="work__figure">
             {project.case_study ? (
               <Link to={`/work/${project.slug}/`}>
-                <img src={project.image} width="100%" />
+                <WindowChrome
+                  image={project.image}
+                  frame_class={project.frame_class}
+                />
               </Link>
             ) : (
-              <img src={`/projects/${project.slug}-hero.png`} width="100%" />
+              <WindowChrome
+                image={project.image}
+                frame_class={project.frame_class}
+              />
             )}
           </figure>
         )

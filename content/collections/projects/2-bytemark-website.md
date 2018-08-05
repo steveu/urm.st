@@ -2,7 +2,9 @@
 title: Bytemark Website
 slug: bytemark-website
 class: blank
+frame_class: is-black
 short: Hello
+image: /projects/bytemark-website-hero.png
 description:
   - From the outset Bytemark Cloud was conceived as a separate product (BigV)
   - hello
