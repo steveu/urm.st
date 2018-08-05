@@ -38,6 +38,7 @@
     }
 
     &__document {
+      border-top: none;
       @include vr(
         $padding: 1.25 1
       );

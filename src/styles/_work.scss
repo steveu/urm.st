@@ -1,6 +1,6 @@
 .work {
   display: flex;
-  flex-direction: row-reverse;
+  // flex-direction: row-reverse;
   &__figure {
     display: block;
     flex: 0 0 60%;
@@ -20,6 +20,14 @@
       box-shadow: 5px 5px 5px 0px rgba(#000, 0.2);
       // border-radius: 3px;
       width: 100%;
+    }
+
+    .fluid-iframe {
+      @include fluid-aspect(199 163, iframe);
+
+      iframe {
+        max-width: 100%;
+      }
     }
   }
 
@@ -56,11 +64,13 @@
 
   @include width-below($phablet) {
     display: block;
-    &__description {
-      padding-left: 0;
+    &__figure {
       @include vr(
         $padding-bottom: 1
       );
+    }
+    &__description {
+      padding-left: 0;
     }
   }
 }

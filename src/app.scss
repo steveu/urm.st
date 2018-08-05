@@ -76,7 +76,12 @@ section {
   }
 
   &.orange {
-    background: lighten($orange, 5);
+    color: #fff;
+    background: $orange url('/assets/images/80-70-4.png');
+  }
+  &.black {
+    color: rgba(#fff, 0.95);
+    background: #444 url('/assets/images/80-70-4.png');
   }
   &.blue {
     background: lighten($blue, 0);

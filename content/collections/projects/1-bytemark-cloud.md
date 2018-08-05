@@ -3,6 +3,8 @@ title: Bytemark Cloud
 slug: bytemark-cloud
 class: bytemark inverse
 case_study: true
+type: hero
+image: /projects/bytemark-cloud-hero.png
 description:
   - Cloud server administration and account management product which I’ve been heavily involved with since building an influential UX-driven AngularJS application back in 2014.
   - I’ve also led the product strategy and vision for a period; launching new feature to drive revenue increases, and conducting customer and usability research to ensure it stays relevant in a competitive market.
