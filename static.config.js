@@ -9,6 +9,7 @@ import resumeJson from './data/resume.json'
 chokidar.watch('content').on('all', () => reloadRoutes())
 
 export default {
+  siteRoot: 'https://urm.st/',
   getSiteData: () => ({
     title: 'Steven Urmston - Digital Product Designer',
   }),
