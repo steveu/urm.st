@@ -22,7 +22,7 @@ export default withRouteData(({ resume }) => {
   return (
     <div>
       <Head>
-        <title>Steven Urmston | Resume</title>
+        <title>Steve Urmston | Resume</title>
       </Head>
       <Resume
         resume={resume}

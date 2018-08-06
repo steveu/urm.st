@@ -6,7 +6,7 @@ import Projects from '../components/Projects'
 export default withRouteData(({ projects }) => (
   <div>
     <Head>
-      <title>Steven Urmston | Work</title>
+      <title>Steve Urmston | Work</title>
     </Head>
     <Projects projects={projects}></Projects>
   </div>

@@ -5,7 +5,7 @@ import convert from 'htmr'
 export default withRouteData(({ about }) => (
   <div>
     <Head>
-      <title>Steven Urmston | About</title>
+      <title>Steve Urmston | About</title>
     </Head>
     <section className="">
       <div className="grid-wrapper about">
