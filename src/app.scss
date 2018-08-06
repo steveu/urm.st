@@ -202,7 +202,7 @@ h1, h2, h3, h4, h5 {
 
 }
 
-@media print {
+// @media print {
   header, footer {
     display: none !important;
   }
@@ -216,11 +216,17 @@ h1, h2, h3, h4, h5 {
   .resume {
     padding: 0 !important;
     background: #fff !important;
-    font-size: 0.9rem;
   }
 
+  .resume h4 {
+    font-size: 17px;
+  }
   .resume h5 {
     font-size: 17px !important;
+  }
+
+  .resume ul {
+    font-size: 16px;
   }
 
   strong {
@@ -239,4 +245,4 @@ h1, h2, h3, h4, h5 {
     box-shadow: none !important;
   }
 
-}
+// }
