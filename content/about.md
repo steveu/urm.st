@@ -1,6 +1,6 @@
 # I Heart Product
 
-So I’m Steve, a full-stack Digital Product Designer. I’ve been lucky enough to spend 15 years working across Design, UX, Software Development and Product Management, developing a skill-set particularly suited to cross-functional Product Teams.
+So I’m Steve Urmston, a full-stack Digital Product Designer. I’ve been lucky enough to spend 15 years working across Design, UX, Software Development and Product Management, developing a skill-set particularly suited to cross-functional Product Teams.
 
 Using core strengths in Interface Design, Interaction Design and Frontend Development (JavaScript, React, Angular, HTML & CSS); I deliver elegant and effortless web-based products.
 
