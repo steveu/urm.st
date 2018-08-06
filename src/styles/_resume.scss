@@ -1,21 +1,11 @@
 .resume {
   background: #efefef url('/assets/images/80-70-3.png');
   margin-top: 1px;
-  min-height: 700px;
 
   @include vr(
     $padding-top: 1,
     $padding-bottom: 1.5
   );
-
-  a {
-    color: #333;
-    color: $orange;
-    text-decoration: underline;
-    &:hover {
-      color: $orange;
-    }
-  }
 
   &__document {
     background: #fff;
@@ -44,18 +34,12 @@
     }
   }
 
-  
-  &__title {
-
-  }
-
   &__section {
     @include vr(
       $padding-bottom: 1,
       $padding-top: 0.5
     );
     border-bottom: 1px solid #ccc;
-
     &:first-child {
       padding-top: 0;
     }
@@ -104,14 +88,9 @@
     }
   }
 
-
   h1, h2, h3, h4, h5, p, ul, ol, dl {
     margin-top: 0;
     margin-bottom: 0;
-    // @include vr(
-    //   $margin-bottom: 0,
-    //   $margin-top: 0
-    // );
   }
 
   &__section-heading {
@@ -125,9 +104,6 @@
 
   .isDates {
     font-size: 0.85rem;
-    // @include vr(
-    //   $font-size: 
-    // );
   }
 
   &__skills {

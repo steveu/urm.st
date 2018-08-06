@@ -1,0 +1,40 @@
+.about {
+  display: flex;
+
+  figure {
+    display: block;
+    flex: 0 0 33.333333333%;
+    margin: 0;
+    padding: 0;
+    @include vr(
+      $padding-right: 0.6
+    );
+    overflow: hidden;
+    box-sizing: border-box;
+
+    img {
+      display: block;
+      width: 100%;
+    }
+  }
+
+  aside {
+    flex: 0 0 66.6666666666%;
+    @include vr(
+      $padding-left: 0.5
+    );
+  }
+
+  @include width-below($phablet) {
+    display: block;
+    figure {
+      padding-right: 0;
+    }
+    aside {
+      padding-left: 0;
+      @include vr(
+        $padding-top: 1
+      );
+    }
+  }
+}

@@ -25,16 +25,12 @@ $yellow: adjust-hue($orange, 25deg);
 $teal: adjust-hue($orange, -270deg);
 $purple: adjust-hue($orange, -90deg);
 
-// $red: #E0523C; // alternative red
-$light-blue: #E7F3FF;
-
 body {
   min-width: 320px;
   font-family: $font-family;
   background: #F7F7F7 url('/assets/images/80-70-3.png');
   overscroll-behavior: none;
   color: $text-color;
-  // @include vr-grid();
 }
 
 
@@ -75,10 +71,6 @@ section {
     );
   }
 
-  &.orange {
-    color: #fff;
-    background: $orange url('/assets/images/80-70-4.png');
-  }
   &.black {
     color: rgba(#fff, 0.95);
     background: #363636 url('/assets/images/80-70-3.png');
@@ -90,13 +82,6 @@ section {
   &.green {
     color: rgba(#fff, 0.95);
     background: darken(#20BA73, 5) url('/assets/images/80-70-3.png');
-    // @include vr(
-    //   $offset-top: 1px
-    // );
-  }
-  &.blue {
-    background: lighten($blue, 0);
-    color: #fff;
   }
   &.bytemark {
     color: #fff;
@@ -110,7 +95,6 @@ section {
 
 a {
   color: $orange;
-
   &:hover {
     color: darken($orange, 10);
   }
@@ -130,75 +114,13 @@ h1, h2, h3, h4, h5 {
   font-weight: 400;
 }
 
-
 @import "./styles/header.scss";
 @import "./styles/footer.scss";
 @import "./styles/resume.scss";
 @import "./styles/work.scss";
 @import "./styles/window.scss";
-
-section.skills {
-
-  h1 {
-    line-height: 1.5em !important;
-    @include width-above($phablet) {
-      @include vr(
-        $margin-right: 1
-      );
-    }
-    
-  }
-  .grid-wrapper {
-    @include vr(
-      $padding-right: 0.5
-    );
-  }
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-
-    @include vr(
-      $margin: 0 0 0.5 -0.5
-    );
-
-    @include width-above($widescreen) {
-      @include vr(
-        $margin-top: 1.5
-      );
-    }
-    padding: 0;
-    li {
-      display: block;
-      margin: 0;
-      padding: 0;
-      @include vr(
-        $padding-left: 0.5,
-        $padding-right: 0.5
-      );
-
-      flex: 0 0 50%;
-      @include width-above($tablet) {
-        flex: 0 0 33.33333333333%;
-      }
-
-      h4 {
-        @include vr(
-          $margin-top: 0.75,
-          $margin-bottom: 0.25
-        );
-      }
-      p {
-        @include vr(
-          $margin-top: 0.25,
-          $margin-bottom: 0.5
-        );
-        // @include width-below($phablet) {
-        //   margin-bottom: 0;
-        // }
-      }
-    }
-  }
-}
+@import "./styles/about.scss";
+@import "./styles/skills.scss";
 
 // extenders
 .animateButton {
@@ -268,66 +190,4 @@ section.skills {
     }
   }
 
-}
-
-.about {
-  display: flex;
-
-  figure {
-    display: block;
-    flex: 0 0 33.333333333%;
-    margin: 0;
-    padding: 0;
-    @include vr(
-      $padding-right: 0.6
-    );
-    overflow: hidden;
-    box-sizing: border-box;
-
-    img {
-      display: block;
-      width: 100%;
-    }
-  }
-
-  aside {
-    flex: 0 0 66.6666666666%;
-    @include vr(
-      $padding-left: 0.5
-    );
-  }
-
-  @include width-below($phablet) {
-    display: block;
-    figure {
-      padding-right: 0;
-    }
-    aside {
-      padding-left: 0;
-      @include vr(
-        $padding-top: 1
-      );
-    }
-  }
-}
-
-h1.has-icon {
-  display: inline-flex;
-  margin-bottom: 0;
-  svg {
-    align-self: center;
-    @include vr(
-      $height: 1.1,
-      $width: 1.1,
-      $offset-top: 2,
-      $margin-right: 0.25,
-      $margin-left: 0.3
-    );
-    fill: $red;
-  }
-}
-
-iframe.pdf {
-  width: 100%;
-  min-height: 500px;
 }
