@@ -1,10 +1,13 @@
 import React from 'react'
-import { withRouteData } from 'react-static'
+import { withRouteData, Head } from 'react-static'
 import convert from 'htmr'
 import Projects from '../components/Projects'
 
 export default withRouteData(({ home, projects }) => (
   <div>
+    <Head>
+      <title>Steve Urmston | Digital Product Designer</title>
+    </Head>
     <section className="skills">
       <div className="grid-wrapper">
         {convert(home.contents)}
