@@ -216,6 +216,11 @@ h1, h2, h3, h4, h5 {
   .resume {
     padding: 0 !important;
     background: #fff !important;
+    font-size: 0.9rem;
+  }
+
+  .resume h5 {
+    font-size: 17px !important;
   }
 
   .grid-wrapper {
@@ -223,8 +228,6 @@ h1, h2, h3, h4, h5 {
     padding-right: 0 !important;
   }
   .resume__document {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
     border-top: none !important;
     box-shadow: none !important;
   }
