@@ -17,6 +17,16 @@ $heading-font-family: 'Merriweather', serif;
 $text-color: #333;
 $heading-color: #000;
 
+
+.animated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+img {
+  -webkit-backface-visibility: hidden;
+}
+
 // Colors
 $orange: #DE7719;
 $blue: complement($orange);

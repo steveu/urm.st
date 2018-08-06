@@ -3,7 +3,7 @@ import { withRouteData, Head } from 'react-static'
 import convert from 'htmr'
 
 export default withRouteData(({ about }) => (
-  <div>
+  <div className="animated">
     <Head>
       <title>Steve Urmston | About</title>
     </Head>
