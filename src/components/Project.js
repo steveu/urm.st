@@ -28,7 +28,7 @@ class Project extends PureComponent {
                 marginWidth="0"
                 marginHeight="0"
                 scrolling="no"
-                allowfullscreen
+                allowFullScreen
               ></iframe>
             </div>
           </figure>
