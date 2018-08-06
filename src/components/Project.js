@@ -22,13 +22,13 @@ class Project extends PureComponent {
           <figure className="work__figure">
             <div className="fluid-iframe">
               <iframe
-                width="100%"
                 src={project.iframe}
+                width="100%"
                 frameBorder="0"
                 marginWidth="0"
                 marginHeight="0"
                 scrolling="no"
-                allowFullScreen=""
+                allowfullscreen
               ></iframe>
             </div>
           </figure>
