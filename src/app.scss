@@ -201,3 +201,32 @@ h1, h2, h3, h4, h5 {
   }
 
 }
+
+@media print {
+  header, footer {
+    display: none !important;
+  }
+  body {
+    background: transparent !important;
+  }
+
+  div.container:before, .container:after {
+    display: none !important;
+  }
+  .resume {
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .grid-wrapper {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .resume__document {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-top: none !important;
+    box-shadow: none !important;
+  }
+
+}
