@@ -226,11 +226,17 @@ h1, h2, h3, h4, h5 {
   }
 
   .resume ul {
-    font-size: 16px;
+    font-size: 15.5px;
+    margin-left: -1rem !important;
+    margin-right: 0 !important;
   }
 
   strong {
     font-weight: normal;
+    color: #000;
+  }
+
+  .resume a {
     color: #000;
   }
 
@@ -241,7 +247,7 @@ h1, h2, h3, h4, h5 {
   .resume__document {
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
-    border-top: none !important;
+    // border-top: none !important;
     box-shadow: none !important;
   }
 
