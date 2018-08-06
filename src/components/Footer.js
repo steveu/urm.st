@@ -1,7 +1,4 @@
 import React from 'react'
-// import { Link } from 'react-static'
-
-// import Icon from '../Icon'
 
 const Footer = (props) => (
   <footer id="footer">

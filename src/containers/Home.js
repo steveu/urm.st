@@ -1,7 +1,6 @@
 import React from 'react'
-import { withRouteData, Link } from 'react-static'
+import { withRouteData } from 'react-static'
 import convert from 'htmr'
-import Icon from 'Icon'
 import Projects from '../components/Projects'
 
 export default withRouteData(({ home, projects }) => (

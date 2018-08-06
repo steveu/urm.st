@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-static'
 import Moment from 'react-moment'
 
 // Helpers

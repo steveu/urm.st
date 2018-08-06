@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react'
-import { Link } from 'react-static'
 
 // Components
 import Project from './Project'
