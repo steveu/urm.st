@@ -36,7 +36,6 @@ export default {
         <title>Steve Urmston | Digital Product Designer</title>
         <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="stylesheet" href="/print.css" />
       </Head>
       <Body>
         {children}
