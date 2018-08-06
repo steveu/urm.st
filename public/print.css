@@ -1,0 +1,19 @@
+header, footer {
+  display: none !important;
+}
+body {
+  background: transparent !important;
+}
+
+div.container:before, .container:after {
+  display: none !important;
+}
+
+.resume {
+  padding-top: 0 !important;
+  background: #fff !important;
+}
+.resume__document {
+  border-top: none !important;
+  box-shadow: none !important;
+}
