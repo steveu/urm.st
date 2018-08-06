@@ -14,7 +14,6 @@ import PropTypes from 'prop-types'
 // Components
 import Header from './components/Header'
 import Footer from './components/Footer'
-import Schema from './components/Schema'
 
 // Styles
 import './app.scss'
@@ -129,15 +128,12 @@ const AnimatedRoutes = getContext({
 
 const App = () => (
   <Router>
-    <div>
-      <div className="container">
-        <Header />
-        <div className="content">
-          <Routes component={AnimatedRoutes} />
-        </div>
-        <Footer />
+    <div className="container">
+      <Header />
+      <div className="content">
+        <Routes component={AnimatedRoutes} />
       </div>
-      <Schema />
+      <Footer />
     </div>
   </Router>
 )
