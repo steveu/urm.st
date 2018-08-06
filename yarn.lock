@@ -7495,6 +7495,13 @@ react-static@^5.9.7:
     webpack-flush-chunks "^1.2.3"
     webpack-node-externals "^1.6.0"
 
+react-structured-data@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/react-structured-data/-/react-structured-data-0.0.9.tgz#7a959cc2c8b652fc39da956b1e4ad15a9d0ba8e4"
+  dependencies:
+    prop-types "^15.6.0"
+    react "^16.2.0"
+
 react-universal-component@^2.8.1:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/react-universal-component/-/react-universal-component-2.9.0.tgz#75e8d418e6611e43cdbabe5a6c5dab8870c12e30"
@@ -7502,7 +7509,7 @@ react-universal-component@^2.8.1:
     hoist-non-react-statics "^2.2.1"
     prop-types "^15.5.10"
 
-react@^16, react@^16.0.0:
+react@^16, react@^16.0.0, react@^16.2.0:
   version "16.4.2"
   resolved "https://registry.yarnpkg.com/react/-/react-16.4.2.tgz#2cd90154e3a9d9dd8da2991149fdca3c260e129f"
   dependencies:
