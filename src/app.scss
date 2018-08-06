@@ -202,7 +202,7 @@ h1, h2, h3, h4, h5 {
 
 }
 
-// @media print {
+@media print {
   header, footer {
     display: none !important;
   }
@@ -245,4 +245,4 @@ h1, h2, h3, h4, h5 {
     box-shadow: none !important;
   }
 
-// }
+}
