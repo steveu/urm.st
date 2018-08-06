@@ -1,5 +1,5 @@
 import React from 'react'
-import { Router, Route, cleanPath, Head } from 'react-static'
+import { Router, Route, cleanPath } from 'react-static'
 import Routes from 'react-static-routes'
 
 // Hot loading development
@@ -128,18 +128,12 @@ const AnimatedRoutes = getContext({
 
 const App = () => (
   <Router>
-    <div>
-      <Head>
-        <title>Steven Urmston | Digital Product Designer</title>
-        <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
-      </Head>
-      <div className="container">
-        <Header />
-        <div className="content">
-          <Routes component={AnimatedRoutes} />
-        </div>
-        <Footer />
+    <div className="container">
+      <Header />
+      <div className="content">
+        <Routes component={AnimatedRoutes} />
       </div>
+      <Footer />
     </div>
   </Router>
 )

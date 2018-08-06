@@ -1,3 +1,4 @@
+import React from 'react'
 import { reloadRoutes } from 'react-static/node'
 import jdown from 'jdown'
 import chokidar from 'chokidar'
@@ -10,6 +11,18 @@ chokidar.watch('content').on('all', () => reloadRoutes())
 
 export default {
   siteRoot: 'https://urm.st/',
+  prefetchRate: 5,
+  Document: ({ Html, Head, Body, children, siteData, renderMeta }) => (
+    <Html lang="en-US">
+      <Head>
+        <meta charSet="UTF-8" />
+        <title>Steven Urmston | Digital Product Designer</title>
+        <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <Body>{children}</Body>
+    </Html>
+  ),
   getSiteData: () => ({
     title: 'Steven Urmston - Digital Product Designer',
   }),
