@@ -7,6 +7,23 @@ import ExtractTextPlugin from 'extract-text-webpack-plugin'
 
 import resumeJson from './data/resume.json'
 
+const personSchema = {
+  "@context": "http://schema.org/",
+  "@type": "Person",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "GB",
+    "addressLocality": "York",
+    "postalCode": "YO10 4QE",
+    "streetAddress": "The Coach House, Fulford Park",
+    "name": "Steve Urmston"
+  },
+  "email": "steve@urm.st",
+  "familyName": "Urmston",
+  "givenName": "Steve",
+  "jobTitle": "Full Stack Digital Product Designer"
+}
+
 chokidar.watch('content').on('all', () => reloadRoutes())
 
 export default {
@@ -20,7 +37,10 @@ export default {
         <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <Body>{children}</Body>
+      <Body>
+        {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
+      </Body>
     </Html>
   ),
   getSiteData: () => ({
