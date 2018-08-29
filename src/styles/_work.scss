@@ -123,10 +123,26 @@
     }
   }
 
-  @include width-below($phablet) {
+  @include width-below($tablet) {
     &__details {
       display: block;
     }
+    &__figure {
+      padding-right: 0;
+      @include vr(
+        $padding-bottom: 0
+      );
+    }
+    &__description {
+      padding-left: 0;
+      // @include vr(
+      //   $line-height: 1.5,
+      //   $margin-bottom: 0
+      // );
+    }
+  }
+
+  @include width-below($phablet) {
     &__figure {
       padding-right: 0;
       @include vr(
