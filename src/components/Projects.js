@@ -9,8 +9,6 @@ class Projects extends PureComponent {
   render () {
     let { isFeatured } = this.props
     let projects = this.props.projects.sort((a, b) => a.order > b.order)
-
-    console.log(projects);
     if (isFeatured) {
       projects = projects.filter(function(project) { return project.feature; })
     }
