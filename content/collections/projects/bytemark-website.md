@@ -9,7 +9,7 @@ link: https://www.bytemark.co.uk/
 screenshot: /projects/bytemark-website-hero.png
 order: 2
 start: 2014
-end: Present
+end: 2017
 tags:
   - UX Design
   - Web Design
