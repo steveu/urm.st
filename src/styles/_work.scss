@@ -1,14 +1,30 @@
 .work {
-  display: flex;
+  // display: flex;
   // flex-direction: row-reverse;
+
+  &__title {
+    text-align: center;
+    @include vr(
+      $margin-top: 0,
+      $margin-bottom: 0.15
+    );
+  }
+  &__roles {
+    text-align: center;
+    opacity: 0.8;
+    @include vr(
+      $margin-top: 0,
+      $margin-bottom: 1
+    );
+  }
   &__figure {
     display: block;
-    flex: 0 0 60%;
+    flex: 0 0 100%;
     margin: 0;
     padding: 0;
-    @include vr(
-      $padding-right: 0.6
-    );
+    // @include vr(
+    //   $padding-right: 0.6
+    // );
     padding-bottom: 6px;
     overflow: hidden;
     box-sizing: border-box;
@@ -30,11 +46,50 @@
     }
   }
 
+  &__images {
+    display: flex;
+    @include vr(
+      $margin-left: -1
+    );
+    figure {
+      flex: 0 0 33.3333333333%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      @include vr(
+        $padding-left: 1
+      );
+      img {
+        display: block;
+        max-width: 100%;
+      }
+    }
+  }
+
+  &__details {
+    display: flex;
+  }
+
+  &__dates {
+    flex: 0 0 33.33333333%;
+    p {
+      @include vr(
+        $margin-bottom: 0.25,
+      );
+    }
+    p + p {
+      @include vr(
+        $margin-top: 0.25,
+      );
+    }
+  }
+
   &__description {
-    flex: 0 0 40%;
+    flex: 0 0 66.66666666%;
 
     @include vr(
-      $padding-left: 0.75
+      $padding-right: 1.5,
+      $padding-left: 0.5
     );
     h2 {
       margin-top: 0;
@@ -69,15 +124,18 @@
   }
 
   @include width-below($phablet) {
-    display: block;
+    &__details {
+      display: block;
+    }
     &__figure {
       padding-right: 0;
       @include vr(
-        $padding-bottom: 1
+        $padding-bottom: 0
       );
     }
     &__description {
       padding-left: 0;
+      padding-right: 0;
     }
   }
 }

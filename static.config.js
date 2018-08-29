@@ -76,13 +76,13 @@ export default {
         getData: () => ({
           projects,
         }),
-        // children: projects.map(project => ({
-        //   path: `${project.slug}`,
-        //   component: 'src/containers/CaseStudy',
-        //   getData: () => ({
-        //     project,
-        //   }),
-        // })),
+        children: projects.filter((project) => { return project.case_study; }).map(project => ({
+          path: `${project.slug}`,
+          component: 'src/containers/CaseStudy',
+          getData: () => ({
+            project,
+          }),
+        })),
       },
       {
         is404: true,

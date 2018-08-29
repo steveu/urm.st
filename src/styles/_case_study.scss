@@ -1,0 +1,64 @@
+.case_study {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1em 40em 1em 1fr 1fr;
+
+  p, ul, h2, h3, h4, h5 {
+    grid-column: 4;
+    margin-top: 0;
+  }
+
+  &__header {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1em 40em 1em 1fr 1fr;
+    background: #004ea4 url('/assets/images/clouds.png') bottom center no-repeat;
+    background-size: 80%;
+    border-top: 1px solid rgba(#000, 0.5);
+    @include vr(
+      $offset-top: 1px,
+      $margin-bottom: 2
+    );
+
+    h1 {
+      text-align: center;
+      color: #fff;
+      grid-column: 4;
+      font-weight: 300;
+      @include vr(
+        $font-size: 4,
+        $padding-top: 3,
+        $padding-bottom: 3
+      );
+      padding-left: 0;
+      padding-right: 0;
+      margin: 0;
+    }
+
+    svg {
+      width: 290px;
+      height: 37px;
+      fill: #fff;
+    }
+  }
+
+  h2 {
+    @include vr(
+      $line-height: 1.7
+    );
+  }
+
+  figure {
+    grid-column: 2 / -2;
+    @include vr(
+      $margin-bottom: 1
+    );
+    img {
+      max-width: 100%;
+    }
+  }
+
+
+  .aside {
+    grid-column: 6;
+  }
+}

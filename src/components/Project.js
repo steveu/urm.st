@@ -5,7 +5,7 @@ import WindowChrome from './WindowChrome'
 
 class Project extends PureComponent {
 
-  renderFigure(project) {
+  renderFigure(project, image) {
     switch(project.type) {
       case 'video':
         return (
@@ -36,19 +36,10 @@ class Project extends PureComponent {
       default:
         return (
           <figure className="work__figure">
-            {project.case_study ? (
-              <Link to={`/work/${project.slug}/`}>
-                <WindowChrome
-                  image={project.image}
-                  frame_class={project.frame_class}
-                />
-              </Link>
-            ) : (
-              <WindowChrome
-                image={project.image}
-                frame_class={project.frame_class}
-              />
-            )}
+            <WindowChrome
+              image={project.screenshot}
+              frame_class={project.frame_class}
+            />
           </figure>
         )
     }
@@ -56,35 +47,66 @@ class Project extends PureComponent {
 
   render () {
     const { project } = this.props
+    const { renderFigure } = this
     return (
       <section className={project.class} key={project.slug}>
         <div className="grid-wrapper">
           <div className="work">
-            {this.renderFigure(project)}
-            <aside className="work__description">
-              <h2>{project.title}</h2>
-              <p className="subtitle">{project.subtitle}</p>
-              {project.description.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-              {project.link && (
-                <p>
-                  <a href={project.link}>
-                    {project.link}
+            <h2 className="work__title">{project.title}</h2>
+            {project.tags && (
+              <p className="work__roles">
+                {project.tags.join(' / ')}
+              </p>
+            )}
+            {renderFigure(project)}
+            {project.images && (
+              <div className="work__images">
+                {project.images.map((image, index) => (
+                  <figure key={`work-${project.slug}-${index}`}>
+                    <img src={image} />
+                  </figure>
+                ))}
+              </div>
+            )}
+
+            <div className="work__details">
+              <aside className="work__description">
+                {project.description.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </aside>
+
+              <div className="work__dates">
+                {project.start && (
+                  <p>
+                    {!project.end && (
+                      <span>Completed: </span>
+                    )}
+                    {project.start}
+                    {project.end && (
+                      <span>&thinsp;&#8211;&thinsp;{project.end}</span>
+                    )}
+                  </p>
+                )}
+                {project.link && (
+                  <p>
+                    <a href={project.link}>
+                      {project.link}
+                    </a>
+                  </p>
+                )}
+                {project.case_study && (
+                  <Link className="button" to={`/work/${project.slug}/`}>
+                    Read case study
+                  </Link>
+                )}
+                {project.download && (
+                  <a className="button" href={project.download}>
+                    Download the PDF
                   </a>
-                </p>
-              )}
-              {project.case_study && (
-                <Link className="button" to={`/work/${project.slug}/`}>
-                  Read case study
-                </Link>
-              )}
-              {project.download && (
-                <a className="button" href={project.download}>
-                  Download the PDF
-                </a>
-              )}
-            </aside>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
