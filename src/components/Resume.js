@@ -1,5 +1,5 @@
 import React from 'react'
-import Moment from 'react-moment'
+import dateFormat from 'dateformat'
 
 // Helpers
 import { slugify } from '../helpers/global'
@@ -52,11 +52,11 @@ const Resume = (props) => {
                     )}
                   </div>
                   <div className="resume__right isDates">
-                    <Moment format="MMM YYYY" date={work.startDate} />
+                    {dateFormat(work.startDate, "mmm yyyy")}
                     &#8201;&#8211;&#8201;
                     {work.endDate ? (
                       <span>
-                        <Moment format="MMM YYYY" date={work.endDate} />
+                        {dateFormat(work.endDate, "mmm yyyy")}
                       </span>
                     ) : (
                       <span>Present</span>
@@ -88,11 +88,11 @@ const Resume = (props) => {
                     )}
                   </div>
                   <div className="resume__right isDates">
-                    <Moment format="YYYY" date={education.startDate} />
+                    {dateFormat(education.startDate, "yyyy")}
                     &#8201;&#8211;&#8201;
                     {education.endDate ? (
                       <span>
-                        <Moment format="YYYY" date={education.endDate} />
+                        {dateFormat(education.endDate, "yyyy")}
                       </span>
                     ) : (
                       <span>Present</span>
