@@ -2,9 +2,6 @@ import React from 'react'
 import { Router } from 'react-static'
 import Routes from 'react-static-routes'
 
-// Hot loading development
-import { hot } from 'react-hot-loader'
-
 // Components
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -24,4 +21,4 @@ const App = () => (
   </Router>
 )
 
-export default hot(module)(App)
+export default App
