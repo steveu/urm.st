@@ -96,8 +96,6 @@ export default {
 
     let loaders = []
 
-    console.log(stage);
-
     if (stage === 'dev') {
       loaders = [
         { loader: 'style-loader' },
@@ -169,16 +167,18 @@ export default {
       },
     ]
 
-    config.plugins.push(
-      new UglifyJsPlugin({
-        compress: {
-          drop_console: true
-        }
-      }),
-      new webpack.DefinePlugin({
-        'process.env.NODE_ENV': JSON.stringify('production')
-      })
-    )
+    if (stage === 'prod') {
+      config.plugins.push(
+        new UglifyJsPlugin({
+          compress: {
+            drop_console: true
+          }
+        }),
+        new webpack.DefinePlugin({
+          'process.env.NODE_ENV': JSON.stringify('production')
+        })
+      )
+    }
 
     return config
   },

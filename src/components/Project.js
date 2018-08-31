@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Link } from 'react-static'
+import convert from 'htmr'
 
 import WindowChrome from './WindowChrome'
 
@@ -71,9 +72,7 @@ class Project extends PureComponent {
 
             <div className="work__details">
               <aside className="work__description">
-                {project.description.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                {convert(project.contents)}
               </aside>
 
               <div className="work__dates">

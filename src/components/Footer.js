@@ -4,7 +4,7 @@ const Footer = (props) => (
   <footer>
     <div className="grid-wrapper">
       <p>
-        Find me on
+        Find me on&nbsp;
         <a href="https://twitter.com/steveu">Twitter</a>,&nbsp;
         <a href="https://github.com/steveu">GitHub</a> and&nbsp;
         <a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a>. Send email to&nbsp;
