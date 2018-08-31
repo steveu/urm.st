@@ -1,14 +1,16 @@
 .work {
+  font-weight: 300;
   &__title {
     text-align: center;
+
     @include vr(
+      $line-height: 1,
       $margin-top: 0,
-      $margin-bottom: 0.15
+      $margin-bottom: 0.5
     );
   }
   &__roles {
     text-align: center;
-    opacity: 0.8;
     @include vr(
       $margin-top: 0,
       $margin-bottom: 1
@@ -97,7 +99,6 @@
       margin-top: 0;
     }
     p {
-      font-weight: 300;
     }
 
     a:not(.button) {
@@ -133,6 +134,11 @@
   }
 
   @include width-below($phablet) {
+    &__title {
+      @include vr(
+        $margin-bottom: 0.25
+      );
+    }
     &__figure {
       padding-right: 0;
       @include vr(
