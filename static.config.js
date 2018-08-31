@@ -4,7 +4,6 @@ import jdown from 'jdown'
 import chokidar from 'chokidar'
 import path from 'path'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
-import UglifyJsPlugin from 'uglifyjs-webpack-plugin'
 const webpack = require('webpack')
 
 import resumeJson from './data/resume.json'
@@ -169,14 +168,15 @@ export default {
 
     if (stage === 'prod') {
       config.plugins.push(
-        new UglifyJsPlugin({
+        new webpack.optimize.UglifyJsPlugin({
           compress: {
             drop_console: true
           }
         }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify('production')
-        })
+        }),
+        new webpack.optimize.ModuleConcatenationPlugin()
       )
     }
 
