@@ -1,4 +1,5 @@
 header {
+
   @include vr(
     $padding-top: 1,
     $offset-bottom: 1
@@ -110,8 +111,8 @@ header {
     nav {
       a {
         @include vr(
-          $padding-left: 1.1,
-          $padding-right: 1.1,
+          $padding-left: 1,
+          $padding-right: 1,
           $padding-top: 0.5,
           $padding-bottom: 0.5
         );

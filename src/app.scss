@@ -38,10 +38,9 @@ $purple: adjust-hue($orange, -90deg);
 body {
   font-family: $font-family;
   background: #F7F7F7 url('/assets/images/80-70-3.png');
-  overscroll-behavior: none;
   color: $text-color;
+  overscroll-behavior-x: none;
 }
-
 
 div.container {
   display: flex;
