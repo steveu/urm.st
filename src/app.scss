@@ -36,7 +36,6 @@ $teal: adjust-hue($orange, -270deg);
 $purple: adjust-hue($orange, -90deg);
 
 body {
-  min-width: 320px;
   font-family: $font-family;
   background: #F7F7F7 url('/assets/images/80-70-3.png');
   overscroll-behavior: none;
