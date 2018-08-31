@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 
 class WindowChrome extends PureComponent {
   render () {
-    const { image, frame_class } = this.props
+    const { image, imageAlt, frame_class } = this.props
     return (
       <div className={`window ${frame_class}`}>
         <div className="window__chrome">
@@ -13,7 +13,7 @@ class WindowChrome extends PureComponent {
           </div>
         </div>
         <div className="window__contents">
-          <img src={image} />
+          <img src={image} alt={`Screenshot of ${imageAlt}`} />
         </div>
       </div>
     )

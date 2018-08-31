@@ -5,7 +5,7 @@ import Icon from '../Icon'
 
 const Header = (props) => (
   <header>
-    <div className="grid-wrapper">
+    <div className="grid-wrapper" role="navigation">
       <h1>
         <Link to="/">
           <Icon name="star" width="30" height="30" />

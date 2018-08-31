@@ -39,6 +39,7 @@ class Project extends PureComponent {
           <figure className="work__figure">
             <WindowChrome
               image={project.screenshot}
+              imageAlt={project.title}
               frame_class={project.frame_class}
             />
           </figure>

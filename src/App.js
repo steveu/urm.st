@@ -13,7 +13,7 @@ const App = () => (
   <Router>
     <div className="container">
       <Header />
-      <div className="content">
+      <div className="content" role="main">
         <Routes />
       </div>
       <Footer />
