@@ -1,6 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
+if (typeof window !== 'undefined') {
+  const registerServiceWorker = require('./registerServiceWorker');
+}
+
 // Your top level component
 import App from './App'
 
@@ -16,4 +20,8 @@ if (typeof document !== 'undefined') {
 
   // Render!
   render(App)
+
+  if (typeof window !== 'undefined') {
+    registerServiceWorker()
+  }
 }
