@@ -6,9 +6,6 @@ import path from 'path'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 const webpack = require('webpack')
 
-const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
-const PUBLIC_PATH = 'https://urm.st/'; 
-
 import resumeJson from './data/resume.json'
 
 const personSchema = {
@@ -179,17 +176,7 @@ export default {
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify('production')
         }),
-        new webpack.optimize.ModuleConcatenationPlugin(),
-        new SWPrecacheWebpackPlugin(
-          {
-            cacheId: 'urm.st',
-            dontCacheBustUrlsMatching: /\.\w{8}\./,
-            filename: 'service-worker.js',
-            minify: true,
-            navigateFallback: PUBLIC_PATH + 'index.html',
-            staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
-          }
-        ),
+        new webpack.optimize.ModuleConcatenationPlugin()
       )
     }
 
