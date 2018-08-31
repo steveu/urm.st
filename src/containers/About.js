@@ -7,13 +7,13 @@ export default withRouteData(({ about }) => (
     <Head>
       <title>Steve Urmston | About</title>
     </Head>
-    <section className="">
-      <div className="grid-wrapper about">
+    <section className="about">
+      <div className="grid-wrapper">
         <figure className="about__image">
           <picture>
-            <source media="(min-width: 34em)" srcSet="/assets/images/steve.jpg" />
-            <source media="(min-width: 0px)" srcSet="/assets/images/steve-landscape.jpg" />
-            <img src="/assets/images/steve.jpg" alt="Steve Urmston - Digital Product Designer" />
+            <source media="(min-width: 44.01em)" srcSet="/assets/images/steve-urmston.jpg" />
+            <source media="(min-width: 0px)" srcSet="/assets/images/steve-urmston.landscape.jpg" />
+            <img src="/assets/images/steve-urmston.jpg" alt="Steve Urmston - Digital Product Designer" />
           </picture>
         </figure>
         <aside>

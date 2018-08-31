@@ -1,5 +1,7 @@
 .about {
-  display: flex;
+  .grid-wrapper {
+    display: flex;
+  }
 
   figure {
     display: block;
@@ -25,8 +27,21 @@
     );
   }
 
-  @include width-below($phablet) {
-    display: block;
+  @include width-above($desktop) {
+    aside {
+      @include vr(
+        $padding-right: 0.75
+      );
+    }
+  }
+
+  @include width-below($tablet) {
+    @include vr(
+      $padding-top: 1
+    );
+    .grid-wrapper {
+      display: block;
+    }
     figure {
       padding-right: 0;
     }
@@ -34,6 +49,21 @@
       padding-left: 0;
       @include vr(
         $padding-top: 1
+      );
+    }
+  }
+
+  @include width-below($phablet) {
+    padding: 0;
+    margin-top: 1px;
+    .grid-wrapper {
+      padding: 0;
+    }
+    aside {
+      @include vr(
+        $padding-top: 1.5,
+        $padding-left: 1,
+        $padding-right: 1
       );
     }
   }
