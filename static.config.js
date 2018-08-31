@@ -4,6 +4,8 @@ import jdown from 'jdown'
 import chokidar from 'chokidar'
 import path from 'path'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
+import UglifyJsPlugin from 'uglifyjs-webpack-plugin'
+const webpack = require('webpack')
 
 import resumeJson from './data/resume.json'
 
@@ -94,6 +96,8 @@ export default {
 
     let loaders = []
 
+    console.log(stage);
+
     if (stage === 'dev') {
       loaders = [
         { loader: 'style-loader' },
@@ -111,9 +115,19 @@ export default {
           loader: 'css-loader',
           options: {
             importLoaders: 1,
-            minimize: stage === 'prod',
+            minimize: false,
             sourceMap: false,
             modules: false,
+          }
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            ident: 'postcss',
+            plugins: (loader) => [
+              require('cssnano')(),
+              require('autoprefixer')()
+            ]
           }
         },
         {
@@ -154,6 +168,18 @@ export default {
         ],
       },
     ]
+
+    config.plugins.push(
+      new UglifyJsPlugin({
+        compress: {
+          drop_console: true
+        }
+      }),
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify('production')
+      })
+    )
+
     return config
   },
   preact: true,
