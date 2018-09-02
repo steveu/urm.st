@@ -37,8 +37,7 @@ export default {
     <Html lang="en-US">
       <Head>
         <meta charSet="UTF-8" />
-        <title>Steve Urmston | Digital Product Designer</title>
-        <meta name="description" content="Full Stack Digital Product Designer based in York, UK" />
+        <title>Steve Urmston | Full Stack Digital Product Designer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <Body>
