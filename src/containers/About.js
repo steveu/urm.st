@@ -2,17 +2,24 @@ import React from 'react'
 import { withRouteData, Head } from 'react-static'
 import convert from 'htmr'
 
-import AnimatedRoute from '../components/AnimatedRoute'
-import About from '../components/About'
-const AnimatedAbout = AnimatedRoute(About);
-
 export default withRouteData(({ about }) => (
-  <div>
+  <div className="animated">
     <Head>
       <title>Steve Urmston | About</title>
     </Head>
-    <div>
-      <AnimatedAbout contents={convert(about.contents)} />
-    </div>
+    <section className="about">
+      <div className="grid-wrapper">
+        <figure className="about__image">
+          <picture>
+            <source media="(min-width: 44.01em)" srcSet="/assets/images/steve-urmston.jpg" />
+            <source media="(min-width: 0px)" srcSet="/assets/images/steve-urmston.landscape.jpg" />
+            <img src="/assets/images/steve-urmston.jpg" alt="Steve Urmston - Digital Product Designer" />
+          </picture>
+        </figure>
+        <aside>
+          {convert(about.contents)}
+        </aside>
+      </div>
+    </section>
   </div>
 ))

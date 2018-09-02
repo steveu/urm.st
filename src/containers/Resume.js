@@ -1,11 +1,11 @@
 import React from 'react'
 import { withRouteData, Head } from 'react-static'
 
+// Helpers
 import { slugify } from '../helpers/global'
 
-import AnimatedRoute from '../components/AnimatedRoute'
+// Components
 import Resume from '../components/Resume'
-const AnimatedResume = AnimatedRoute(Resume);
 
 export default withRouteData(({ resume }) => {
 
@@ -23,9 +23,8 @@ export default withRouteData(({ resume }) => {
     <div>
       <Head>
         <title>Steve Urmston | Resume</title>
-        <meta name="description" content="Resume for Steve Urmston, Digital Product Designer" />
       </Head>
-      <AnimatedResume
+      <Resume
         resume={resume}
         skills={skillTags}
       />
