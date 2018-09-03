@@ -11,8 +11,6 @@ export default withRouteData(({ about }) => (
     <Head>
       <title>Steve Urmston | About</title>
     </Head>
-    <div>
-      <AnimatedAbout contents={convert(about.contents)} />
-    </div>
+    <AnimatedAbout contents={convert(about.contents)} />
   </div>
 ))

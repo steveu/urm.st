@@ -11,8 +11,6 @@ export default withRouteData(({ projects }) => (
       <title>Steve Urmston | Work</title>
       <meta name="description" content="Digital Product Designer portfolio of Steve Urmston" />
     </Head>
-    <div>
-      <AnimatedProjects projects={projects} />
-    </div>
+    <AnimatedProjects projects={projects} />
   </div>
 ))
