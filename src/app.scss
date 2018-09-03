@@ -27,6 +27,7 @@ $heading-color: #000;
   will-change: transform, opaticy;
   transition: all 0.25s $easeOutCubic;
   transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased
 }
 
 .animated-route-out {
