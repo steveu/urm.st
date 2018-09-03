@@ -17,10 +17,22 @@ $heading-font-family: 'Merriweather', serif;
 $text-color: #333;
 $heading-color: #000;
 
-
 .animated {
   transform: translateZ(0);
   will-change: transform;
+  transition: all 0.25s $easeOutCubic;
+}
+
+.animated-route {
+  will-change: transform, opaticy;
+  transition: all 0.25s $easeOutCubic;
+  transform: translateZ(0) translateY(20px);
+  opacity: 0;
+}
+
+.animated-route-in {
+  transform: translateY(0px);
+  opacity: 1;
 }
 
 img {
