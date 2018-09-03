@@ -38,7 +38,7 @@ export default {
         <meta charSet="UTF-8" />
         <title>Steve Urmston | Full Stack Digital Product Designer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="alternate" href="urm.st" hreflang="en-gb" />
+        <link rel="alternate" href="urm.st" hrefLang="en-gb" />
       </Head>
       <Body>
         {children}
