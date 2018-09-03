@@ -13,10 +13,16 @@ header {
     );
   }
 
-  a.active {
-    color: $orange;
-    cursor: default;
+  a {
+    &:hover {
+      color: $orange;
+    }
+    &.active {
+      color: $orange;
+      cursor: default;
+    }
   }
+  
   h1 {
     margin: 0;
     font-weight: 400;
@@ -42,9 +48,6 @@ header {
       text-decoration: none;
       max-width: 12rem;
       color: $text-color;
-      &:hover {
-        color: $orange;
-      }
     }
   }
 
@@ -76,9 +79,6 @@ header {
         );
       }
 
-      &:hover {
-        color: $orange;
-      }
       &.active {
         span {
           border-color: $orange;

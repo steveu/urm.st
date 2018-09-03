@@ -1,10 +1,12 @@
-import React, { PureComponent } from 'react'
+import React, { Component } from 'react'
 
 // Components
 import Project from './Project'
 
-
-class Projects extends PureComponent {
+class Projects extends Component {
+  shouldComponentUpdate() {
+    return false;
+  }
 
   render () {
     let { isFeatured } = this.props

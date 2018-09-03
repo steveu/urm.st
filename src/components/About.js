@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 
 class About extends Component {
+  shouldComponentUpdate() {
+    return false;
+  }
   render() {
     return (
       <section className="about">

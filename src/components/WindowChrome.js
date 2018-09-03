@@ -1,6 +1,9 @@
-import React, { PureComponent } from 'react'
+import React, { Component } from 'react'
 
-class WindowChrome extends PureComponent {
+class WindowChrome extends Component {
+  shouldComponentUpdate() {
+    return false;
+  }
   render () {
     const { image, imageAlt, frame_class } = this.props
     return (

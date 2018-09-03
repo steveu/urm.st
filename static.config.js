@@ -54,14 +54,14 @@ export default {
     return [
       {
         path: '/',
-        component: 'src/containers/Home',
+        component: 'src/containers/HomeContainer',
         getData: () => ({
           projects, home,
         }),
       },
       {
         path: '/about',
-        component: 'src/containers/About',
+        component: 'src/containers/AboutContainer',
         getData: () => ({
           about,
         }),
@@ -75,7 +75,7 @@ export default {
       },
       {
         path: '/work',
-        component: 'src/containers/Work',
+        component: 'src/containers/WorkContainer',
         getData: () => ({
           projects,
         }),

@@ -1,10 +1,10 @@
-import React, { PureComponent } from 'react'
+import React, { Component } from 'react'
 import { Link } from 'react-static'
 import convert from 'htmr'
 
 import WindowChrome from './WindowChrome'
 
-class Project extends PureComponent {
+class Project extends Component {
 
   renderFigure(project, image) {
     switch(project.type) {
@@ -45,6 +45,10 @@ class Project extends PureComponent {
           </figure>
         )
     }
+  }
+
+  shouldComponentUpdate() {
+    return false;
   }
 
   render () {
