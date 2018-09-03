@@ -1,7 +1,7 @@
 ---
 title: Bytemark.co.uk
 slug: bytemark-website
-class: black
+class: inverted black
 frame_class: is-black
 feature: true
 link: https://www.bytemark.co.uk/

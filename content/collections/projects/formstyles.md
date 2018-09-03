@@ -1,7 +1,7 @@
 ---
 title: formstyl.es
 slug: formstyles
-class: green
+class: inverted green
 feature: true
 type: video
 video: /projects/formstyles.m4v

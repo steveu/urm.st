@@ -96,8 +96,10 @@ section {
     );
   }
 
-  &.black {
+  &.inverted {
     color: rgba(#fff, 0.9);
+  }
+  &.black {
     background: #363636 url('/assets/images/80-70-3.png');
     border-top: 1px solid rgba(#000, 0.05);
     @include vr(
@@ -105,17 +107,14 @@ section {
     );
   }
   &.green {
-    color: rgba(#fff, 0.95);
     background: darken(#20BA73, 5) url('/assets/images/80-70-3.png');
   }
   &.bytemark {
-    color: rgba(#fff, 0.9);
     background: #004ea4 url('/assets/images/80-70-4.png');
     border-top: 1px solid rgba(#000, 0.5);
     @include vr(
       $offset-top: 1px
     );
-
   }
 }
 

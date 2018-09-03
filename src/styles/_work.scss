@@ -1,8 +1,13 @@
 .work {
-  font-weight: 300;
-  &__title {
-    text-align: center;
+  .inverted & {
     font-weight: 300;
+  }
+  &__title {
+    .inverted & {
+      color: #fff;
+      font-weight: 300;
+    }
+    text-align: center;
     @include vr(
       $line-height: 1,
       $margin-top: 0,
@@ -11,7 +16,10 @@
   }
   &__roles {
     text-align: center;
-    color: rgba(#fff, 0.8);
+    color: rgba($text-color, 0.8);
+    .inverted & {
+      color: rgba(#fff, 0.8);
+    }
     @include vr(
       $margin-top: 0,
       $margin-bottom: 1
