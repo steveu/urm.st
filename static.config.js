@@ -23,8 +23,7 @@ const personSchema = {
     "name": "Steve Urmston"
   },
   "email": "steve@urm.st",
-  "familyName": "Urmston",
-  "givenName": "Steve",
+  "name": "Steve Urmston",
   "jobTitle": "Full Stack Digital Product Designer"
 }
 
