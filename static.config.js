@@ -170,15 +170,15 @@ export default {
 
     if (stage === 'prod') {
       config.plugins.push(
-        // new webpack.optimize.UglifyJsPlugin({
-        //   compress: {
-        //     drop_console: true
-        //   }
-        // }),
+        new webpack.optimize.UglifyJsPlugin({
+          compress: {
+            drop_console: true
+          }
+        }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify('production')
         }),
-        // new webpack.optimize.ModuleConcatenationPlugin(),
+        new webpack.optimize.ModuleConcatenationPlugin(),
         new SWPrecacheWebpackPlugin(
           {
             cacheId: 'urm.st',
