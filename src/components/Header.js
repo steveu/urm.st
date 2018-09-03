@@ -7,7 +7,7 @@ const Header = (props) => (
   <header>
     <div className="grid-wrapper" role="navigation">
       <h1>
-        <Link to="/">
+        <Link to="/" exact>
           <Icon name="star" width="30" height="30" />
           Steven Urmston
         </Link>

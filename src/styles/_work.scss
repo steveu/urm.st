@@ -2,7 +2,7 @@
   font-weight: 300;
   &__title {
     text-align: center;
-
+    font-weight: 300;
     @include vr(
       $line-height: 1,
       $margin-top: 0,
@@ -11,6 +11,7 @@
   }
   &__roles {
     text-align: center;
+    color: rgba(#fff, 0.8);
     @include vr(
       $margin-top: 0,
       $margin-bottom: 1
@@ -87,19 +88,6 @@
       $padding-right: 1.5,
       $padding-left: 0.5
     );
-    h2 {
-      margin-top: 0;
-      font-weight: 300;
-      @include vr(
-        $line-height: 1.5,
-        $margin-bottom: 0
-      );
-    }
-    .subtitle {
-      margin-top: 0;
-    }
-    p {
-    }
 
     a:not(.button) {
       color: $orange;
