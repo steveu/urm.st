@@ -6,7 +6,7 @@ export default function(ComposedComponent) {
       super(props)
       this.mountStyle = this.mountStyle.bind(this)
       this.state = {
-        show: false
+        show: (typeof document === 'undefined') ? true : false
       }
     }
 
