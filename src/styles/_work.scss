@@ -26,7 +26,7 @@
     box-sizing: border-box;
 
     .fluid-iframe {
-      @include fluid-aspect(199 163, iframe);
+      @include fluid-aspect(380 285, iframe);
 
       iframe {
         max-width: 100%;

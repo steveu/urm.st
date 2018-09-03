@@ -5,7 +5,7 @@ class: blank
 type: iframe
 download: /assets/files/game_mechanics_vle.pdf
 order: 4
-iframe: //www.slideshare.net/slideshow/embed_code/key/l4h4Y3XLrpyvrx
+iframe: //speakerdeck.com/player/1495efbba02d48c098b17a469eb706f4
 tags:
   - UI Design
   - UX Design
