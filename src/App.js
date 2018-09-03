@@ -8,6 +8,7 @@ import Footer from './components/Footer'
 
 // Styles
 import './app.scss'
+import './icons.svg'
 
 const App = () => (
   <Router>
