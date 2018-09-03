@@ -22,7 +22,7 @@ export default function(ComposedComponent) {
 
     render() {
       return (
-        <div className={`animated animated-route ${this.state.show && 'animated-route-in'}`}>
+        <div className={`animated animated-route ${this.state.show ? 'animated-route-in' : 'animated-route-out'}`}>
           <ComposedComponent {...this.props} />
         </div>
       )

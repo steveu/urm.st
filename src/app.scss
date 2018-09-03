@@ -26,6 +26,10 @@ $heading-color: #000;
 .animated-route {
   will-change: transform, opaticy;
   transition: all 0.25s $easeOutCubic;
+  transform: translateZ(0);
+}
+
+.animated-route-out {
   transform: translateZ(0) translateY(16px);
   opacity: 0;
 }
