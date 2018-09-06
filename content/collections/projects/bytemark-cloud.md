@@ -13,7 +13,7 @@ tags:
   - Product Strategy
   - UI Design
   - UX Design
-  - Frontend Development
+  - Front-end Development
 ---
 A Cloud hosting product I’ve been heavily involved with since I designed and built an influential JavaScript application (AngularJS) back in 2014.
 

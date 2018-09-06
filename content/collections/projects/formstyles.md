@@ -9,7 +9,7 @@ order: 3
 tags:
   - UI Design
   - UX Design
-  - Frontend Development
+  - Front-end Development
 start: 2012
 ---
 A prototype built in 2012 to help Web Designers generate code for highly-responsive web forms. Despite positive feedback, I didn’t understand enough about business to find a viable payment model.

@@ -25,7 +25,7 @@ $heading-color: #000;
 
 .animated-route {
   will-change: transform, opaticy;
-  transition: all 0.25s $easeOutCubic;
+  transition: all 0.2s $easeOutCubic;
   transform: translateZ(0);
   -webkit-font-smoothing: subpixel-antialiased
 }
@@ -146,6 +146,7 @@ h1, h2, h3, h4, h5 {
 @import "./styles/window.scss";
 @import "./styles/about.scss";
 @import "./styles/skills.scss";
+@import "./styles/article.scss";
 
 // extenders
 .animateButton {
@@ -215,6 +216,25 @@ h1, h2, h3, h4, h5 {
     }
   }
 
+}
+
+.fluid-iframe {
+  @include fluid-aspect(380 285, iframe);
+
+  iframe {
+    max-width: 100%;
+  }
+}
+
+.fluid-video {
+  @include fluid-aspect(80 43, video);
+
+  &.one-to-zero-six-eight {
+    @include fluid-aspect(1 0.68, video);
+  }
+  video {
+    max-width: 100%;
+  }
 }
 
 @media print {

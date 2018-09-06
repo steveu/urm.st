@@ -12,7 +12,7 @@ end: 2017
 tags:
   - UX Design
   - Web Design
-  - Frontend Development
+  - Front-end Development
 ---
 A responsive website showcasing Bytemark products, services and company. I’ve worked on several iterations since 2014, also helping to build a Styleguide and a custom static site builder behind the scenes.
 

@@ -6,7 +6,7 @@ import AnimatedRoute from '../components/AnimatedRoute'
 import Home from '../components/Home'
 const AnimatedHome = AnimatedRoute(Home);
 
- class HomeContainer extends Component {
+class HomeContainer extends Component {
   shouldComponentUpdate() {
     return false;
   }

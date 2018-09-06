@@ -50,7 +50,7 @@ export default {
   }),
   getRoutes: async () => {
     const resume = resumeJson
-    const { projects, home, about } = await jdown('content')
+    const { projects, home, about, articles } = await jdown('content')
     return [
       {
         path: '/',
@@ -84,6 +84,16 @@ export default {
           component: 'src/containers/CaseStudy',
           getData: () => ({
             project,
+          }),
+        })),
+      },
+      {
+        path: '/work',
+        children: articles.map(article => ({
+          path: `${article.slug}`,
+          component: 'src/containers/ArticleContainer',
+          getData: () => ({
+            article,
           }),
         })),
       },
