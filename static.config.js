@@ -79,13 +79,6 @@ export default {
         getData: () => ({
           projects,
         }),
-        children: projects.filter((project) => { return project.case_study; }).map(project => ({
-          path: `${project.slug}`,
-          component: 'src/containers/CaseStudy',
-          getData: () => ({
-            project,
-          }),
-        })),
       },
       {
         path: '/work',

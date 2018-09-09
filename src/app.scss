@@ -174,7 +174,7 @@ h1, h2, h3, h4, h5 {
   );
   @extend .animateButton;
 
-  .inverse & {
+  .inverted & {
     box-shadow: 3px 3px 3px 0px rgba(#000, 0.1);
     background: rgba(#fff, 0.01);
     border-color: rgba(#fff, 0.5);

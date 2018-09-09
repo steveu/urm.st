@@ -81,26 +81,40 @@ class Project extends Component {
               </aside>
 
               <div className="work__dates">
-                {project.start && (
-                  <p>
-                    {!project.end && (
-                      <span>Completed: </span>
+                <table>
+                  <tbody>
+                    <tr>
+                      <th>Date:</th>
+                      <td>
+                        {project.start && (
+                          <span>
+                            {!project.end && (
+                              <span>Completed: </span>
+                            )}
+                            {project.start}
+                            {project.end && (
+                              <span>&thinsp;&#8211;&thinsp;{project.end}</span>
+                            )}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                    {project.link && (
+                      <tr>
+                        <th>URL:</th>
+                        <td>
+                          <a href={project.link}>
+                            {project.link}
+                          </a>
+                        </td>
+                      </tr>
                     )}
-                    {project.start}
-                    {project.end && (
-                      <span>&thinsp;&#8211;&thinsp;{project.end}</span>
-                    )}
-                  </p>
-                )}
-                {project.link && (
-                  <p>
-                    <a href={project.link}>
-                      {project.link}
-                    </a>
-                  </p>
-                )}
-                {project.case_study && (
-                  <Link className="button" to={`/work/${project.slug}/`}>
+                  </tbody>
+                </table>
+                
+                
+                {project.article && (
+                  <Link className="button" to={project.article}>
                     Read case study
                   </Link>
                 )}

@@ -24,7 +24,7 @@ tags:
 
 ### Why backups?
 
-From our regular meetings and interviews with customers, Kim Witten (our Research Manager) and myself identified backups as both a consistent pain point, and an area where our product lacked coverage.
+From our regular meetings and interviews with customers, Kim Witten (Research Manager) and myself (Product Manager) identified backups as both a consistent pain point, and an area where our product lacked coverage.
 
 We often saw anxiety from customers who did not have, or were not sure they had the backups they might need in a crisis. Others had found peace of mind through custom scripting, but at the expense of ongoing maintenance and storage costs.
 
@@ -34,7 +34,7 @@ We often saw anxiety from customers who did not have, or were not sure they had 
 
 We decided to meet this opportunity by recruiting people from across the organisation for a five day [Google Ventures design sprint](http://www.gv.com/sprint/).
 
-<figure class="article__figure">
+<figure class="article__figure is-wide">
   <img src="/articles/bytemark-cloud/bytemark-cloud-sprint-roadmap.jpg" />
 </figure>
 

@@ -3,7 +3,7 @@ title: Bytemark.co.uk
 slug: bytemark-website
 class: inverted black
 frame_class: is-black
-feature: true
+feature: false
 link: https://www.bytemark.co.uk/
 screenshot: /projects/bytemark-website-hero.png
 order: 2

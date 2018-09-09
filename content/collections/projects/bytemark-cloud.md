@@ -9,6 +9,7 @@ start: 2014
 end: Present
 screenshot: /projects/bytemark-cloud/bytemark-cloud-screenshot.png
 link: https://panel.bytemark.co.uk
+article: /work/bytemark-cloud
 tags:
   - Product Strategy
   - UI Design

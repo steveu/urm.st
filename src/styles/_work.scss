@@ -80,15 +80,18 @@
 
   &__dates {
     flex: 0 0 33.33333333%;
-    p {
-      @include vr(
-        $margin-bottom: 0.25,
-      );
-    }
-    p + p {
-      @include vr(
-        $margin-top: 0.25,
-      );
+    
+    table {
+      td, th {
+        padding: 0.15rem 0;
+      }
+      th {
+        color: lighten($text-color, 25);
+        .inverted & {
+          color: rgba(#fff, 0.75);
+        }
+        padding-right: 0.5rem;
+      }
     }
   }
 
