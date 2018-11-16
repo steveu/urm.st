@@ -24,27 +24,29 @@ tags:
 
 ### Why backups?
 
-From our regular meetings and interviews with customers, Kim Witten (Research Manager) and myself (Product Manager) identified backups as both a consistent pain point, and an area where our product lacked coverage.
+From regular customer interviews, the Product team at Bytemark identified server backups as a both consistent pain point, and an area where our Cloud hosting product was lacking.
 
-We often saw anxiety from customers who did not have, or were not sure they had the backups they might need in a crisis. Others had found peace of mind through custom scripting, but at the expense of ongoing maintenance and storage costs.
+We often saw anxiety from customers who did not have, or were unsure if they *actually* had the backups they would need in a crisis. Some of our customers had found peace of mind using custom scripting, but at the expense of ongoing maintenance and storage costs.
 
 > “I always have that bit of doubt whether the backup is actually running”
 
+Helping our customers to feel secure at Bytemark was an opportunity too good to miss!
+
 ### A five day design sprint
 
-We decided to meet this opportunity by recruiting people from across the organisation for a five day [Google Ventures design sprint](http://www.gv.com/sprint/).
+We knew from initial research that delivering a great backup service would be a significant challenge for the company. We decided to meet this by bringing together people from across the organisation for a five day [Google Ventures design sprint](http://www.gv.com/sprint/).
 
 <figure class="article__figure is-wide">
   <img src="/articles/bytemark-cloud/bytemark-cloud-sprint-roadmap.jpg" />
 </figure>
 
-On day one, we developed our **long term goal**, and chose a narrow target of existing cloud customers, and two task to prototype; configuring backups and restoring from a backup. By day 4 we had gone through various groups design exercises and were ready to prototype and test.
+On day one, we developed our **long term goal**, and chose a narrow target of existing cloud customers, and two tasks to prototype; configuring backups and restoring from a backup. By day 4 we had completed various group design exercises and were ready to prototype and test.
 
 ### User testing a prototype
 
-Our prototype was built in a day using our existing product as a framework. Although we took plenty of shortcuts, this was tough going and our stress levels and coding skills were challenged.
+We built our prototype in a day, using our existing product as a framework and HTML/CSS and JavaScript. Although we took shortcuts, the process challenged our coding skills and ability to handle pressure.
 
-I would happily exchange this process for a prototyping tool. That said the result was good, and really helped the existing customers we recruited for user testing understand how the feature would work with their setups.
+In hindsight I would exchange this process for a prototyping tool. That said, placing the prototype within an already familiar product did help to orient our user testers.
 
 <figure class="article__figure">
   <div class="fluid-video one-to-zero-six-eight">
@@ -56,7 +58,7 @@ I would happily exchange this process for a prototyping tool. That said the resu
 
 ### Building a Beta
 
-I used the outcomes from our usability research to sketch out an interface that was both highlight configurable to account for complicated backup scheduling, whilst attempting to keep the whole process simple for customers to use without much effort.
+I used the outcomes from our usability research to sketch an interface that was both highlight configurable to account for complicated backup scheduling, whilst keeping the basic service simple enough so all customers could use the feautre with minimal effort.
 
 > Is time critical, so finding on panel is easier, "is point and click."
 
@@ -82,9 +84,11 @@ I used the outcomes from our usability research to sketch out an interface that 
 
 ### Easy backups for everyone, by default
 
-Backups were a technically demanding challenge for the Engineering team at Bytemark, and myself as an inexperienced Product Manager. We had to compromise over the feature set we could deliver to customers without proving revenue, and particularity around pricing when backups ended up being a much larger cost to the business that was ever anticipated.
+This was a challenging project for the Engineering team at Bytemark, and myself as an inexperienced Product Manager. We had to make various compromises over the feature set we could deliver to customers before proving revenue.
 
-I'm immensely proud of the simple pricing structure I developed that was fair to those customers who chose to use it fully and to the company's investment, but still provided the free service by default for all customers and 
+I’m proud of the pricing structure I developed that was fair to customers who used it extensively and to the company’s investment, but still provided a free service.
+
+By default, for all customers.
 
 
 
