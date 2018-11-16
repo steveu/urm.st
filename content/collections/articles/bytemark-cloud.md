@@ -1,5 +1,5 @@
 ---
-title: How we designed, developed and launched a backup feature for Bytemark Cloud.
+title: Bytemark Cloud Backups
 slug: bytemark-cloud
 start: 2014
 end: Present
@@ -86,11 +86,4 @@ I used the outcomes from our usability research to sketch an interface that was 
 
 This was a challenging project for the Engineering team at Bytemark, and myself as an inexperienced Product Manager. We had to make various compromises over the feature set we could deliver to customers before proving revenue.
 
-I’m proud of the pricing structure I developed that was fair to customers who used it extensively and to the company’s investment, but still provided a free service.
-
-By default, for all customers.
-
-
-
-
-
+I’m proud of the pricing structure I developed that was fair to customers who used it extensively and to the company’s investment, but still provided a free service. By default, for all customers.
