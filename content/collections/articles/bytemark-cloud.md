@@ -77,7 +77,7 @@ I used the outcomes from our usability research to sketch an interface that was 
     <img src="/articles/bytemark-cloud/clicktest.png" />
   </figure>
   <figure>
-    <img src="/articles/bytemark-cloud/terminal-prototype.png" />
+    <img src="/articles/bytemark-cloud/terminal-prototype.jpg" />
   </figure>
 
 </div>

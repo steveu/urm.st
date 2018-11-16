@@ -12,10 +12,17 @@
     background-size: cover;
     background-attachment: fixed;
     box-shadow: 0 -1px 1px -1px rgba(#000, 0.5);
+
     @include vr(
       $padding: 4 0 3 0,
       $margin-bottom: 1
     );
+    @include width-above($desktop) {
+      @include vr(
+        $padding: 5 0 4 0,
+        $margin-bottom: 1
+      );
+    }
 
     h1 {
       grid-column: 3;
