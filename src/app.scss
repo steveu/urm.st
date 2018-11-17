@@ -201,21 +201,21 @@ h1, h2, h3, h4, h5 {
   &:after {
     right: 50%;
   }
-  
-  &:hover {
-    border-color: saturate($orange, 0);
-    border-top-color: lighten($orange, 10);
-    border-left-color: lighten($orange, 10);
-    color: #fff;
-    box-shadow: 3px 3px 10px 0px rgba(#000, 0.2);
+  @media (hover) {
+    &:hover {
+      border-color: saturate($orange, 0);
+      border-top-color: lighten($orange, 10);
+      border-left-color: lighten($orange, 10);
+      color: #fff;
+      box-shadow: 3px 3px 10px 0px rgba(#000, 0.2);
 
-    &:before,
-    &:after {
-      width: 52%;
-      opacity: 1;
+      &:before,
+      &:after {
+        width: 52%;
+        opacity: 1;
+      }
     }
   }
-
 }
 
 .fluid-iframe {

@@ -19,7 +19,7 @@ tags:
 </div>
 
 <p class="article__meta">
-  How we added a major feature to Bytemark Cloud during my time as Product Manager and Product Team lead 2016/17.
+  How we added a major feature to Bytemark Cloud, during my time as Product Manager and Product Team lead 2016/17.
 </p>
 
 ### Why backups?

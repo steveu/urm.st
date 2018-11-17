@@ -58,7 +58,12 @@
 
 
   &__meta {
-    color: lighten($text-color, 35);
+    color: lighten($text-color, 15);
+    font-family: $heading-font-family;
+    @include vr(
+      $font-size: 1,
+      $line-height: 1.25
+    );
   }
 
   .article__grid {
