@@ -37,7 +37,7 @@ Helping our customers to feel secure at Bytemark was an opportunity too good to 
 We knew from initial research that delivering a great backup service would be a significant challenge for the company. We decided to meet this by bringing together people from across the organisation for a five day [Google Ventures design sprint](http://www.gv.com/sprint/).
 
 <figure class="article__figure is-wide">
-  <img src="/articles/bytemark-cloud/bytemark-cloud-sprint-roadmap.jpg" />
+  <img src="/articles/bytemark-cloud/bytemark-cloud-sprint-roadmap.jpg" alt="Design Sprint roadmap for Bytemark Cloud Backups" />
 </figure>
 
 On day one, we developed our **long term goal**, and chose a narrow target of existing cloud customers, and two tasks to prototype; configuring backups and restoring from a backup. By day 4 we had completed various group design exercises and were ready to prototype and test.
@@ -50,7 +50,7 @@ In hindsight I would exchange this process for a prototyping tool. That said, pl
 
 <figure class="article__figure">
   <div class="fluid-video one-to-zero-six-eight">
-    <video controls="true" preload="auto">
+    <video title="Video of prototype backup feature" controls="true" preload="auto">
       <source src="/articles/bytemark-cloud/backup-prototype.mp4" />
     </video>
   </div>
@@ -64,22 +64,20 @@ I used the outcomes from our usability research to sketch an interface that was 
 
 <div class="article_images">
   <figure>
-    <img src="/articles/bytemark-cloud/sketches.jpg" />
+    <img src="/articles/bytemark-cloud/sketches.jpg" alt="Initial sketches of backup feature" />
   </figure>
   <figure>
-    <img src="/articles/bytemark-cloud/prototype-screenshot3.png" />
+    <img src="/articles/bytemark-cloud/prototype-screenshot3.png" alt="Screenshot of backup prototype" />
   </figure>
   <figure>
-    <img src="/articles/bytemark-cloud/prototype-screenshot4.png" />
-  </figure>
-  
-  <figure>
-    <img src="/articles/bytemark-cloud/clicktest.png" />
+    <img src="/articles/bytemark-cloud/prototype-screenshot4.png" alt="screenshot of initial backup UI design" />
   </figure>
   <figure>
-    <img src="/articles/bytemark-cloud/terminal-prototype.jpg" />
+    <img src="/articles/bytemark-cloud/clicktest.png" alt="Screenshot of clicktest results" />
   </figure>
-
+  <figure>
+    <img src="/articles/bytemark-cloud/terminal-prototype.jpg" alt="Screenshot of a teminal backup recovery" />
+  </figure>
 </div>
 
 ### Easy backups for everyone, by default
