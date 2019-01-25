@@ -1,7 +1,7 @@
 ---
 title: Bytemark Cloud
 slug: bytemark-cloud
-class: 
+class: black inverted
 type: hero
 order: 2
 feature: true
