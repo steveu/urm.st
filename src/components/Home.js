@@ -10,16 +10,16 @@ class Home extends Component {
             {this.props.contents}
             <ul>
               <li>
-                <h4>Product Management</h4>
-                <p>Strategy, Business, Leadership</p>
+                <h4>UI & Interaction Design</h4>
+                <p>For Web and Mobile</p>
               </li>
               <li>
                 <h4>User Experience Design</h4>
                 <p>Research and User Testing</p>
               </li>
               <li>
-                <h4>UI & Interaction Design</h4>
-                <p>For Web and Mobile</p>
+                <h4>Product Management</h4>
+                <p>Strategy, Business, Leadership</p>
               </li>
               <li>
                 <h4>JavaScript Development</h4>

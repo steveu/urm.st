@@ -1,12 +1,12 @@
 ---
 title: Bytemark.co.uk
 slug: bytemark-website
-class: inverted black
+class: inverted bytemark
 frame_class: is-black
 feature: false
 link: https://www.bytemark.co.uk/
 screenshot: /projects/bytemark-website-hero.png
-order: 2
+order: 3
 start: 2014
 end: 2017
 tags:

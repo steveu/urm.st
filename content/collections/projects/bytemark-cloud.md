@@ -1,10 +1,10 @@
 ---
 title: Bytemark Cloud
 slug: bytemark-cloud
-class: bytemark inverted
-feature: true
+class: 
 type: hero
-order: 1
+order: 2
+feature: true
 start: 2014
 end: Present
 screenshot: /projects/bytemark-cloud/bytemark-cloud-screenshot.png
@@ -14,7 +14,8 @@ tags:
   - Product Strategy
   - UI Design
   - UX Design
-  - Front-end Development
+  - Frontend Dev
+  - AngularJS
 ---
 A Cloud hosting product I’ve been heavily involved with since I designed and built an influential JavaScript application (AngularJS) back in 2014.
 

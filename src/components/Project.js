@@ -12,7 +12,7 @@ class Project extends Component {
         return (
           <figure className="work__figure">
             <div className="fluid-video">
-              <video loop controls preload="auto">
+              <video loop controls preload="auto" poster={project.screenshot}>
                 <source src={project.video} />
               </video>
             </div>
