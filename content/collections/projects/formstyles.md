@@ -6,7 +6,7 @@ feature: false
 type: video
 video: /projects/formstyles.m4v
 order: 4
-screenshot: 
+screenshot: /projects/formstyles.png
 tags:
   - UI Design
   - UX Design
