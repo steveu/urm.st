@@ -80,10 +80,11 @@
 
   &__dates {
     flex: 0 0 33.33333333%;
-    
+
     table {
       td, th {
-        padding: 0.15rem 0;
+        vertical-align: top;
+        padding: 0 0 0.3rem 0;
       }
       th {
         color: lighten($text-color, 25);

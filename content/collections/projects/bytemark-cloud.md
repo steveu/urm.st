@@ -12,10 +12,14 @@ link: https://panel.bytemark.co.uk
 article: /work/bytemark-cloud
 tags:
   - Product Strategy
-  - UI Design
-  - UX Design
-  - Frontend Dev
+  - UI/UX Design
+  - Frontend Development
   - AngularJS
+tech:
+  - AngularJS
+  - Protractor
+  - Grunt
+  - Browserify
 ---
 A Cloud hosting product I’ve been heavily involved with since I designed and built an influential JavaScript application (AngularJS) back in 2014.
 

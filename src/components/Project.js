@@ -109,10 +109,18 @@ class Project extends Component {
                         </td>
                       </tr>
                     )}
+                    {project.tech && (
+                      <tr>
+                        <th>Tech:</th>
+                        <td>
+                          {project.tech.join(', ')}
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
-                
-                
+
+
                 {project.article && (
                   <Link className="button" to={project.article}>
                     Read case study
