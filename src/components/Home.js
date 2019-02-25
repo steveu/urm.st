@@ -15,7 +15,11 @@ class Home extends Component {
               </li>
               <li>
                 <h4>JavaScript Development</h4>
-                <p>React, AngularJS, Node</p>
+                <p>React/Redux, AngularJS, ES6</p>
+              </li>
+              <li>
+                <h4>Responsive Web Design</h4>
+                <p>HTML, CSS, Sass</p>
               </li>
               <li>
                 <h4>User Experience Design</h4>
@@ -24,11 +28,6 @@ class Home extends Component {
               <li>
                 <h4>Product Management</h4>
                 <p>Strategy, Business, Leadership</p>
-              </li>
-              
-              <li>
-                <h4>Responsive Web Design</h4>
-                <p>HTML, CSS, Sass</p>
               </li>
               <li>
                 <h4>Digital Marketing</h4>

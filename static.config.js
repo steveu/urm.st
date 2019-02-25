@@ -7,7 +7,7 @@ import ExtractTextPlugin from 'extract-text-webpack-plugin'
 const webpack = require('webpack')
 
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
-const PUBLIC_PATH = 'https://urm.st/'; 
+const PUBLIC_PATH = 'https://urm.st/';
 
 import resumeJson from './data/resume.json'
 
@@ -36,7 +36,7 @@ export default {
     <Html lang="en-US">
       <Head>
         <meta charSet="UTF-8" />
-        <title>Steve Urmston | Full Stack Digital Product Designer</title>
+        <title>Steve Urmston | UI Designer & Frontend Developer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="alternate" href="urm.st" hrefLang="en-gb" />
       </Head>

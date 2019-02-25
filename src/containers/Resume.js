@@ -23,7 +23,7 @@ export default withRouteData(({ resume }) => {
     <div>
       <Head>
         <title>Steve Urmston | Resume</title>
-        <meta name="description" content="Resume for Steve Urmston, Digital Product Designer" />
+        <meta name="description" content="Resume for Steve Urmston, UI Designer and Frontend Developer" />
       </Head>
       <AnimatedResume
         resume={resume}

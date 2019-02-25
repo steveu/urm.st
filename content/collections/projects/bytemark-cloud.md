@@ -20,7 +20,8 @@ tech:
   - Protractor
   - Grunt
   - Browserify
+  - Selenium
 ---
-A Cloud hosting product I’ve been heavily involved with since I designed and built an influential JavaScript application (AngularJS) back in 2014.
+A Cloud hosting product I’ve worked on since 2014 when I designed and built an influential JavaScript application using AngularJS, with Node/Grunt based tooling. The app utilises ten separate APIs and is tested in Protractor and using Selenium browser integration tests.
 
 I also led the product strategy for a period. Specifying and launching new features to drive revenue, and conducting customer & usability research to ensure it stays relevant in a competitive market.

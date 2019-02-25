@@ -16,8 +16,8 @@ class HomeContainer extends Component {
         {({ home, projects }) => (
           <div>
             <Head>
-              <title>Steve Urmston | Full Stack Digital Product Designer</title>
-              <meta name="description" content="Personal portolio of Steve Urmston, a Digital Product Designer based in York, UK" />
+              <title>Steve Urmston | UI Designer & Frontend Developer</title>
+              <meta name="description" content="Personal portolio of Steve Urmston, a Frontend Developer and UI Designer based in York, UK" />
             </Head>
             <AnimatedHome
               contents={convert(home.contents)}

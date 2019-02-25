@@ -16,7 +16,7 @@ class WorkContainer extends Component {
           <div>
             <Head>
               <title>Steve Urmston | Work</title>
-              <meta name="description" content="Digital Product Designer portfolio of Steve Urmston" />
+              <meta name="description" content="UI Design and Frontend Developer portfolio of Steve Urmston" />
             </Head>
             <AnimatedProjects projects={projects} />
           </div>
