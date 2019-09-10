@@ -1,7 +1,7 @@
 {
   "basics": {
     "name": "Steven Urmston",
-    "label": "UI Designer & Frontend Developer",
+    "label": "Frontend Developer & UI Designer",
     "picture": "",
     "email": "steve@urm.st",
     "phone": "+44 7590843170",
@@ -21,10 +21,23 @@
   },
   "work": [
     {
+      "company": "Effective Experiments",
+      "position": "Senior Frontend Engineer",
+      "website": "https://effectiveexperiments.com/",
+      "startDate": "2019-02-28",
+      "endDate": "2019-08-01",
+      "highlights": [
+        "Product team work updating the legacy core application using React/GraphQL",
+        "Built a component library to exacting design standards using React/Storybook",
+        "Work unfortunately cut short due to company funding"
+      ]
+    },
+    {
       "company": "Bytemark",
       "position": "Lead Frontend Developer",
       "website": "https://www.bytemark.co.uk",
       "startDate": "2017-11-01",
+      "endDate": "2019-02-01",
       "highlights": [
         "Senior member of an Agile (Scrum) Engineering team",
         "Led the UI design & frontend development of the core company applications"
@@ -125,6 +138,9 @@
       "keywords": [
         "JavaScript",
         "React",
+        "Redux",
+        "GraphQL",
+        "Ruby/Rails",
         "AngularJS",
         "HTML",
         "CSS"
@@ -145,15 +161,6 @@
       "keywords": [
         "UX Research",
         "User Testing"
-      ]
-    },
-    {
-      "name": "Marketing",
-      "level": "Beginner",
-      "keywords": [
-        "Analytics",
-        "CRO",
-        "SEO"
       ]
     }
   ]

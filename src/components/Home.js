@@ -15,7 +15,7 @@ class Home extends Component {
               </li>
               <li>
                 <h4>JavaScript Development</h4>
-                <p>React/Redux, AngularJS, ES6</p>
+                <p>React/Redux/GraphQL, ES6</p>
               </li>
               <li>
                 <h4>Responsive Web Design</h4>

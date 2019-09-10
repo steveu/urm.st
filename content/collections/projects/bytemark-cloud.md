@@ -3,7 +3,7 @@ title: Bytemark Cloud
 slug: bytemark-cloud
 class: black inverted
 type: hero
-order: 2
+order: 3
 feature: true
 start: 2014
 end: Present

@@ -9,9 +9,10 @@ class Project extends Component {
   renderFigure(project, image) {
     switch(project.type) {
       case 'video':
+        const videoClass = project.video_class ? "fluid-video " + project.video_class : "fluid-video";
         return (
           <figure className="work__figure">
-            <div className="fluid-video">
+            <div className={videoClass}>
               <video loop controls preload="auto" poster={project.screenshot}>
                 <source src={project.video} />
               </video>

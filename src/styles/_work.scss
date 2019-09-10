@@ -44,12 +44,15 @@
 
     .fluid-video {
       @include fluid-aspect(80 43, video);
-
+      &.ten-eighty {
+        @include fluid-aspect(16 9, video);
+      }
       &.one-to-zero-six-eight {
         @include fluid-aspect(1 0.68, video);
       }
       video {
         max-width: 100%;
+        min-width: 100%;
       }
     }
   }

@@ -4,20 +4,21 @@ import React, { Component } from 'react'
 import Project from './Project'
 
 class Projects extends Component {
-  shouldComponentUpdate() {
-    return false;
+  shouldComponentUpdate () {
+    return false
   }
 
   render () {
-    let { isFeatured } = this.props
-    let projects = this.props.projects.sort((a, b) => a.order > b.order)
+    const { isFeatured } = this.props
+    let projects = this.props.projects.sort((a, b) => (a.order > b.order) ? 1 : -1)
+
     if (isFeatured) {
-      projects = projects.filter(function(project) { return project.feature; })
+      projects = projects.filter(project => project.feature)
     }
 
     return (
       <div>
-        {projects.map((project, index) => (
+        {projects.map(project => (
           <Project
             key={`project-${project.slug}`}
             project={project}
