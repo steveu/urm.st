@@ -93,7 +93,7 @@ class Project extends Component {
                               <span>Completed: </span>
                             )}
                             {project.start}
-                            {project.end && (
+                            {project.end && project.end !== project.start && (
                               <span>&thinsp;&#8211;&thinsp;{project.end}</span>
                             )}
                           </span>

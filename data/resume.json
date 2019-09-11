@@ -1,7 +1,8 @@
 {
   "basics": {
     "name": "Steven Urmston",
-    "label": "Frontend Developer & UI Designer",
+    "label": "UI Designer & Frontend Developer",
+    "summary": "A passionate hybrid Designer/Developer with excellent communication. Along with core strengths in Frontend Development and UI Design, I have a broad range of skills particularly suited to working in cross-functional product teams.",
     "picture": "",
     "email": "steve@urm.st",
     "phone": "+44 7590843170",
@@ -27,9 +28,8 @@
       "startDate": "2019-02-28",
       "endDate": "2019-08-01",
       "highlights": [
-        "Product team work updating the legacy core application using React/GraphQL",
-        "Built a component library to exacting design standards using React/Storybook",
-        "Work unfortunately cut short due to company funding"
+        "Worked in a product team rebuilding a legacy application in React/GraphQL",
+        "Built a React component library to exacting design standards using Storybook"
       ]
     },
     {

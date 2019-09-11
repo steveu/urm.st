@@ -36,6 +36,21 @@ class Resume extends Component {
             </div>
 
             <div className="resume__section">
+
+              <div className="resume__grid">
+                <div className="resume__left">
+                  <h4 className="resume__section-heading">Profile</h4>
+                  <p>{resume.basics.summary}</p>
+                </div>
+                <div className="resume__right isProfile">
+                  <figure>
+                    <img src="/assets/images/avatar.jpg" alt="Steve Urmston - Digital Product Designer" />
+                  </figure>
+                </div>
+              </div>
+            </div>
+
+            <div className="resume__section">
               <h4 className="resume__section-heading">Experience</h4>
 
               {resume.work.map((work, index) => (

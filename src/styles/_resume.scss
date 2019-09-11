@@ -47,6 +47,10 @@
       border-bottom: none;
       padding-bottom: 0;
     }
+
+    &.isProfile {
+      padding-right: 11em;
+    }
   }
 
   &__grid {
@@ -63,6 +67,24 @@
 
     &.isDates {
       max-width: 10em;
+    }
+
+    &.isProfile {
+      // max-width: 8em;
+      // min-width: 8em;
+      padding: 1em 0 0 5em;
+      figure {
+        width: 6em;
+        height: 6em;
+        margin: 0;
+
+        display: block;
+        img {
+          max-width: 100%;
+          border-radius: 50%;
+          border: 6px solid #efefef;
+        }
+      }
     }
   }
 

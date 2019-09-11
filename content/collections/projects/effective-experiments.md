@@ -16,13 +16,13 @@ tags:
   - React+GraphQL
 tech:
   - React (CRA)
-  - GraphQL (Apollo)
+  - GraphQL (React-Apollo)
   - webpack
   - ES6
   - Enzyme
   - Jest
   - Storybook
 ---
-I led the frontend development of a rebuild of the legacy company product using React and GraphQL (Apollo).
+I led the frontend rebuild of a legacy Conversion Rate Optimisation product using React and GraphQL. This project was sadly cut short due to company funding issues.
 
-The app was built to exacting design standards using a component library I developed in Storybook. The component library was used in a React/GraghQL application (React-Apollo), which also also featured an integrated staff administration tool built using table and form components from config files.
+The app was built to exacting design standards around a component library (React/Storybook) which I developed. This library was then used in a React application using a GraphQL API. The fledgling app also featured integrated staff administration, automatically built from config files.
