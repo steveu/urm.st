@@ -7,6 +7,12 @@ import { slugify } from '../helpers/global'
 import Icon from '../Icon'
 
 class Resume extends Component {
+  componentDidMount() {
+    const bodyElement = document.getElementsByTagName("body")[0];
+    if (this.props.isPrint) {
+      bodyElement.classList.add("is-print");
+    }
+  }
   shouldComponentUpdate() {
     return false;
   }

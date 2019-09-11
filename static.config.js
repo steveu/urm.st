@@ -74,6 +74,13 @@ export default {
         }),
       },
       {
+        path: '/cv',
+        component: 'src/containers/CV',
+        getData: () => ({
+          resume,
+        }),
+      },
+      {
         path: '/work',
         component: 'src/containers/WorkContainer',
         getData: () => ({

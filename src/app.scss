@@ -277,3 +277,59 @@ h1, h2, h3, h4, h5 {
   }
 
 }
+
+.is-print {
+  header, footer {
+    display: none !important;
+  }
+  body {
+    background: transparent !important;
+  }
+
+  div.container:before, .container:after {
+    display: none !important;
+  }
+  .resume {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .resume h3 {
+    font-size: 24px;
+  }
+  .resume h4 {
+    font-size: 17px;
+  }
+  .resume h5 {
+    font-size: 17px !important;
+  }
+
+  .resume ul {
+    font-size: 15.5px;
+    margin-left: -1rem !important;
+    margin-right: 0 !important;
+  }
+
+  strong {
+    font-weight: normal;
+    color: #000;
+  }
+
+  .resume a {
+    color: #000;
+  }
+
+  .grid-wrapper {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .resume__document {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 2rem;
+    padding-bottom: 0;
+    border-top: 8px solid $orange;
+    box-shadow: none !important;
+  }
+}
