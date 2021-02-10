@@ -22,6 +22,16 @@
   },
   "work": [
     {
+      "company": "Pierbridge",
+      "position": "UX/Frontend Developer",
+      "website": "https://pierbridge.com/",
+      "startDate": "2019-09-01",
+      "highlights": [
+        "Led the frontend re-architecture of a parcel TMS product using React/TypeScript",
+        "Provided UX and concept design for a data mapping application"
+      ]
+    },
+    {
       "company": "Effective Experiments",
       "position": "Senior Frontend Engineer",
       "website": "https://effectiveexperiments.com/",

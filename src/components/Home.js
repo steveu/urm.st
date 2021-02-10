@@ -11,27 +11,15 @@ class Home extends Component {
             <ul>
               <li>
                 <h4>UI & Interaction Design</h4>
-                <p>For Web and Mobile</p>
+                <p>I've led the UI design for digital products alongside being a design-hero developer within product teams.</p>
               </li>
               <li>
-                <h4>JavaScript Development</h4>
-                <p>React/Redux/GraphQL, ES6</p>
-              </li>
-              <li>
-                <h4>Responsive Web Design</h4>
-                <p>HTML, CSS, Sass</p>
+                <h4>Frontend Development</h4>
+                <p>Razor sharp frontend development skills with a specialty in building component driven UIs using JavaScript/TypeScript and React.</p>
               </li>
               <li>
                 <h4>User Experience Design</h4>
-                <p>Research and User Testing</p>
-              </li>
-              <li>
-                <h4>Product Management</h4>
-                <p>Strategy, Business, Leadership</p>
-              </li>
-              <li>
-                <h4>Digital Marketing</h4>
-                <p>Analytics, CRO and SEO</p>
+                <p>Adept at wireframes and digital product design. Wider experience in product management, digital marketing and user research. </p>
               </li>
             </ul>
           </div>
