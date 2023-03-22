@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Meals Ingredients Map</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8" />
+    <style>
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            color: #555;
+            max-width: 300px;
+        }
+
+        #panel h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #panel h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #panel p {
+            margin: 0 20px 1em 0;
+            font-size: 14px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            margin: 5px;
+            border-top: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .legend-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .legend-distance {
+            font-size: 14px;
+            margin-left: auto;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="panel">
+        <h1>My Favourite Food Miles</h1>
+        <p>These are my favourite meals and the miles to took for me to eat them. I built this with help from an AI
+            called ChatGPT (and a little from my Dad).</p>
+        <div id="legend">
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5-PUAz4t3u97oWdypx1k6KWg3kgUPOqg&callback=initMap&libraries=geometry"
+        type="text/javascript"></script>
+    <script type="text/javascript">
+        // Define the ingredients and their origins, titles, images, and meal colors
+        var ingredients = [
+            {
+                name: "Porridge Oats",
+                origin: { lat: 54.5973, lng: -5.9301 },
+                title: "Breakfast: Porridge Oats from Northern Ireland",
+                image: "https://source.unsplash.com/400x400/?oats",
+                meal: "Breakfast",
+                color: "#FF0000",
+            },
+            {
+                name: "Banana",
+                origin: { lat: 4.5709, lng: -74.2973 },
+                title: "Breakfast: Bananas from Columbia",
+                image: "https://source.unsplash.com/400x400/?banana",
+                meal: "Breakfast",
+                color: "#FF0000",
+            },
+            {
+                name: "Maple Syrup",
+                origin: { lat: 56.1304, lng: -106.3468 },
+                title: "Lunch: Maple Syrup from Canada",
+                image: "https://source.unsplash.com/400x400/?maple-syrup",
+                meal: "Lunch",
+                color: "#2E9763",
+            },
+            {
+                name: "Raisins",
+                origin: { lat: 38.9637, lng: 35.2433 },
+                title: "Lunch: Raisins from Turkey",
+                image: "https://source.unsplash.com/400x400/?raisins",
+                meal: "Lunch",
+                color: "#2E9763",
+            },
+            {
+                name: "Milk",
+                origin: { lat: 54.1419, lng: -1.5486 },
+                title: "Dinner: Milk from North Yorkshire",
+                image: "https://source.unsplash.com/400x400/?milk",
+                meal: "Dinner",
+                color: "#1A17C6",
+            },
+        ];
+
+        function toggleMeal(meal) {
+            var isChecked = document.getElementById(meal + "-checkbox").checked;
+            ingredients.forEach(function (ingredient) {
+                if (ingredient.meal === meal) {
+                    ingredient.marker.setVisible(isChecked);
+                    ingredient.line.setVisible(isChecked);
+                }
+            });
+        }
+
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 53.959055, lng: -1.081536 },
+                zoom: 6,
+            });
+
+            // Define the home-shaped marker icon
+            var homeIcon = {
+                url: "https://maps.google.com/mapfiles/kml/pal2/icon10.png",
+                scaledSize: new google.maps.Size(32, 32),
+            };
+
+            // Add marker for your house in Fulford, York with the home icon
+            var myHouse = new google.maps.Marker({
+                position: { lat: 53.9539, lng: -1.0883 },
+                map: map,
+                title: "My House in Fulford, York",
+                icon: homeIcon,
+            });
+
+            function updateLegendDistances() {
+                var mealDistances = {};
+
+                // Calculate the total distance travelled for each meal
+                ingredients.forEach(function (ingredient) {
+                    if (mealDistances[ingredient.meal] === undefined) {
+                        mealDistances[ingredient.meal] = 0;
+                    }
+
+                    var distance = google.maps.geometry.spherical.computeDistanceBetween(ingredient.origin, myHouse.getPosition()) / 1609.34;
+                    mealDistances[ingredient.meal] += distance;
+                });
+
+                // Update the legend items with the distance values
+                Object.keys(mealDistances).forEach(function (meal) {
+                    var distance = mealDistances[meal].toFixed(2) + ' mi';
+                    var legendItem = document.getElementById(meal + '-legend-item');
+                    legendItem.querySelector('.legend-distance').textContent = distance;
+                });
+            }
+
+            // Add markers and lines for the ingredients
+            var bounds = new google.maps.LatLngBounds(); // create a new bounds object
+            var legend = document.getElementById("legend");
+            var mealColors = {};
+
+            ingredients.forEach(function (ingredient) {
+                var marker = new google.maps.Marker({
+                    position: ingredient.origin,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: ingredient.color,
+                        fillOpacity: 1,
+                        strokeColor: ingredient.color,
+                        strokeOpacity: 1,
+                        strokeWeight: 1,
+                    },
+                });
+
+                // Create a title and image for the marker
+                var title = "<div class='marker-title'>" + ingredient.title + "</div>";
+                var image = "<img class='marker-image' src='" + ingredient.image + "' />";
+
+                // Add a popup window to the marker
+                var infowindow = new google.maps.InfoWindow({
+                    content: title + image,
+                });
+
+                // Show the popup when the marker is clicked
+                marker.addListener("click", function () {
+                    infowindow.open(map, marker);
+                });
+
+                // Add a line between the ingredient and your house in Fulford, York
+                var line = new google.maps.Polyline({
+                    path: [ingredient.origin, myHouse.getPosition()],
+                    geodesic: true,
+                    strokeColor: ingredient.color,
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                });
+                line.setMap(map);
+
+                google.maps.event.addListener(line, 'click', function () {
+                    var distance = google.maps.geometry.spherical.computeDistanceBetween(ingredient.origin, myHouse.getPosition()) / 1609.34;
+                    var label = new google.maps.Marker({
+                        position: google.maps.geometry.spherical.interpolate(ingredient.origin, myHouse.getPosition(), 0.5),
+                        map: map,
+                        label: distance.toFixed(2) + ' mi'
+                    });
+                });
+
+                // Extend the bounds to include the marker and line positions
+                bounds.extend(marker.getPosition());
+
+                // Create legend items
+                if (!mealColors[ingredient.meal]) {
+                    var div = document.createElement("div");
+                    div.classList.add("legend-item");
+                    div.id = ingredient.meal + "-legend-item";
+
+                    var title = "<div class='legend-title'><span style='color:" +
+                        ingredient.color +
+                        "; font-weight: bold; font-size: 30px'>■</span>" + ingredient.meal + "</div>";
+                    div.innerHTML += title;
+
+                    var distance = "<div class='legend-distance'></div>";
+                    div.innerHTML += distance;
+
+                    var checkbox = "<input type='checkbox' id='" +
+                        ingredient.meal +
+                        "-checkbox' checked />";
+                    div.innerHTML += checkbox;
+
+                    div.onclick = function () {
+                        var checkbox = document.getElementById(ingredient.meal + "-checkbox");
+                        checkbox.checked = !checkbox.checked;
+                        toggleMeal(ingredient.meal);
+                        updateLegendDistances();
+                    };
+
+                    legend.appendChild(div);
+
+                    mealColors[ingredient.meal] = true;
+                }
+
+
+                // Store the marker and line in the ingredient object
+                ingredient.marker = marker;
+                ingredient.line = line;
+            });
+
+            // Fit the map viewport to the bounds of all the markers and lines
+            map.fitBounds(bounds);
+
+            // Add the legend to the map
+            document.getElementById("panel").appendChild(legend);
+
+            // Call updateLegendDistances after the map is initialized
+            google.maps.event.addListenerOnce(map, 'idle', updateLegendDistances);
+        }
+    </script>
+</body>
+
+</html>
