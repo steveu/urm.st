@@ -1,1 +1,1 @@
-# Hello :) I'm Steve, a Frontend Developer and UI Designer from York. I love working in agile, interdisciplinary teams, building products that make a difference in peoples' lives.
+# Hello :) I’m Steve — a Frontend Developer and UI Designer from York. I enjoy working in agile, cross-functional teams to build thoughtful, user-focused products that make a real difference.

@@ -50,6 +50,9 @@
       &.one-to-zero-six-eight {
         @include fluid-aspect(1 0.68, video);
       }
+      &.has-border {
+        border: 5px solid rgba(#000, 0.5);
+      }
       video {
         max-width: 100%;
         min-width: 100%;

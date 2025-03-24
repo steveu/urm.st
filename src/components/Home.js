@@ -10,16 +10,16 @@ class Home extends Component {
             {this.props.contents}
             <ul>
               <li>
-                <h4>UI & Interaction Design</h4>
-                <p>I've led the UI design for digital products alongside being a design-hero developer within product teams.</p>
+                <h4>User Interface Design</h4>
+                <p>I’ve led UI design for multiple digital products while also being a design-focused developer—bringing ideas to life with precision and empathy for the user experience.</p>
               </li>
               <li>
                 <h4>Frontend Development</h4>
-                <p>Razor sharp frontend development skills with a specialty in building component driven UIs using JavaScript/TypeScript and React.</p>
+                <p>Expert in building scalable, component-driven UIs with JavaScript, TypeScript, and React. Strong focus on performance, accessibility, and maintainable code.</p>
               </li>
               <li>
                 <h4>User Experience Design</h4>
-                <p>Adept at wireframes and digital product design. Wider experience in product management, digital marketing and user research. </p>
+                <p>Skilled in wireframing, interaction flows, and end-to-end product design. Backed by experience in product management, user research, and digital strategy.</p>
               </li>
             </ul>
           </div>

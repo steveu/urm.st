@@ -116,6 +116,13 @@ section {
       $offset-top: 1px
     );
   }
+  &.grey {
+    background: #eeeeee url('/assets/images/80-70-2.png');
+    border-top: 1px solid rgba(#000, 0.025);
+    @include vr(
+      $offset-top: 1px
+    );
+  }
   &.white {
     background: #fff url('/assets/images/80-70-4.png');
     border-top: 1px solid rgba(#000, 0.25);
@@ -126,6 +133,7 @@ section {
   &.ee {
     background: #345fcf url('/assets/images/80-70-4.png');
   }
+
 }
 
 a {

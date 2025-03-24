@@ -23,6 +23,6 @@ tech:
   - Jest
   - Storybook
 ---
-I led the frontend rebuild of a legacy Conversion Rate Optimisation product using React and GraphQL. This project was sadly cut short due to company funding issues.
+I led the frontend rebuild of a legacy Conversion Rate Optimisation product, modernising it with React and GraphQL. I designed and developed a component library using React and Storybook, built to a high design standard, which served as the foundation for the new application.
 
-The app was built to exacting design standards around a component library (React/Storybook) which I developed. This library was then used in a React application using a GraphQL API. The fledgling app also featured integrated staff administration, automatically built from config files.
+The app included integration with a GraphQL API and auto-generated staff admin tools driven by config files. While the product didn’t reach full launch due to changes in company direction, the work delivered a solid and scalable foundation for future development.

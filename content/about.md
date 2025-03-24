@@ -1,9 +1,9 @@
 # I Heart Product
 
-Hello, I’m Steve Urmston, a Frontend Developer and UI Designer. I’ve been lucky enough to spend 15 years working across Design, UX, Software Development and Product Management, developing a skill-set particularly suited to cross-functional Product Teams.
+Hi, I’m Steve Urmston — a Frontend Developer and UI Designer with over 20 years’ experience spanning Design, UX, Software Development, and Product Management. My background makes me particularly effective in cross-functional product teams, where design and engineering meet.
 
-Using core strengths in Interface Design, Interaction Design and Frontend Development (JavaScript/TypeScript, React, Angular, HTML & CSS); I deliver elegant and effortless web-based products.
+With strengths in Interface Design, Interaction Design, and Frontend Development (JavaScript/TypeScript, HTML, CSS), I focus on delivering elegant, intuitive web-based products that feel effortless to use.
 
-I live with my beautiful wife Sarah and boys Hugo & Fraser in our home city of York. I love playing golf to a high level, am a committed foodie and have been known to DJ a decent party.
+I live in my hometown of York with my amazing wife Sarah and our two boys, Hugo and Fraser. Outside of work, I’m into hand-tool woodworking, playing competitive golf, and hunting down great food.
 
-Say hello at [steve@urm.st](mailto:steve@urm.st) or buzz me on [LinkedIn](https://www.linkedin.com/in/steveurmston/) to connect :)
+Say hello at [steve@urm.st](mailto:steve@urm.st) or connect with me on [LinkedIn](https://www.linkedin.com/in/steveurmston/) :)

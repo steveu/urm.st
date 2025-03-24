@@ -2,7 +2,7 @@
   "basics": {
     "name": "Steven Urmston",
     "label": "UI Designer & Frontend Developer",
-    "summary": "A passionate hybrid Designer/Developer with excellent communication. Along with core strengths in Frontend Development and UI Design, I have a broad range of skills particularly suited to working in cross-functional product teams.",
+    "summary": "A passionate hybrid Designer/Developer with strong communication skills. Alongside core strengths in Frontend Development and UI Design, I bring a broad skill set well-suited to cross-functional product teams.",
     "picture": "",
     "email": "steve@urm.st",
     "phone": "+44 7590843170",
@@ -22,13 +22,25 @@
   },
   "work": [
     {
+      "company": "Hublsoft",
+      "position": "Senior Frontend Engineer",
+      "website": "https://hublsoft.com/",
+      "startDate": "2021-03-01",
+      "endDate": "2025-02-01",
+      "highlights": [
+        "Senior member of the engineering team building a decision intelligence platform.",
+        "Key contributor to an Innovate UK-funded project, integrating AI capabilities into the product."
+      ]
+    },
+    {
       "company": "Pierbridge",
       "position": "UX/Frontend Developer",
       "website": "https://pierbridge.com/",
       "startDate": "2019-09-01",
+      "endDate": "2021-03-01",
       "highlights": [
-        "Led the frontend re-architecture of a parcel TMS product using React/TypeScript",
-        "Provided UX and concept design for a data mapping application"
+        "Led the frontend re-architecture of a parcel TMS product using React and TypeScript.",
+        "Delivered UX and concept design for a data mapping tool to streamline workflows."
       ]
     },
     {
@@ -38,8 +50,8 @@
       "startDate": "2019-02-28",
       "endDate": "2019-08-01",
       "highlights": [
-        "Worked in a product team rebuilding a legacy application in React/GraphQL",
-        "Built a React component library to exacting design standards using Storybook"
+        "Worked in a product team rebuilding a legacy application in React/GraphQL.",
+        "Built a React component library to exacting design standards using Storybook."
       ]
     },
     {
@@ -49,8 +61,8 @@
       "startDate": "2017-11-01",
       "endDate": "2019-02-01",
       "highlights": [
-        "Senior member of an Agile (Scrum) Engineering team",
-        "Led the UI design & frontend development of the core company applications"
+        "Senior member of an Agile (Scrum) Engineering team.",
+        "Led UI design and frontend development of the company’s core applications."
       ]
     },
     {
@@ -60,9 +72,8 @@
       "startDate": "2016-06-01",
       "endDate": "2017-11-01",
       "highlights": [
-        "Helped implement customer-driven product strategy, marketing and vision",
-        "Provided Leadership and Management for a cross-functional Product Team",
-        "Revenue per customer grew by 35% and overall customer growth by 15%"
+        "Drove customer-led product strategy, marketing, and vision.",
+        "Led a cross-functional team; increased revenue per customer by 35% and customer base by 15%."
       ]
     },
     {
@@ -72,7 +83,7 @@
       "startDate": "2014-01-01",
       "endDate": "2016-06-01",
       "highlights": [
-        "Introduced a UX and Design focus to an engineering-led company"
+        "Introduced a UX and design focus to an engineering-led environment, shaping early product experiences."
       ]
     },
     {
@@ -81,7 +92,7 @@
       "startDate": "2012-10-01",
       "endDate": "2014-01-01",
       "highlights": [
-        "Delivered value for a variety of businesses from day one"
+        "Delivered design and frontend development across diverse client projects, providing immediate impact."
       ]
     },
     {
@@ -91,8 +102,8 @@
       "startDate": "2005-06-01",
       "endDate": "2012-09-01",
       "highlights": [
-        "Visual design, client relations and full-stack development (PHP) for web agency",
-        "Won two major awards for websites I designed and developed"
+        "Led visual design, client relationships, and full-stack development (PHP) for a web agency.",
+        "Won two major industry awards for websites designed and developed in-house."
       ]
     },
     {
@@ -102,7 +113,7 @@
       "startDate": "2003-10-01",
       "endDate": "2005-12-01",
       "highlights": [
-        "Built a business providing Web design and development services"
+        "Founded and ran a web design and development business, delivering end-to-end digital solutions for clients."
       ]
     }
   ],
@@ -147,8 +158,8 @@
       "level": "Master",
       "keywords": [
         "JavaScript",
+        "TypeScript",
         "React",
-        "Redux",
         "GraphQL",
         "Ruby/Rails",
         "AngularJS",
