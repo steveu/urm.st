@@ -6,7 +6,7 @@ frame_class: is-black
 feature: false
 link: https://www.bytemark.co.uk/
 screenshot: /projects/bytemark-website-hero.png
-order: 4
+order: 5
 start: 2014
 end: 2017
 tags:

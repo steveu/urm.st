@@ -7,7 +7,7 @@ type: video
 video: /projects/effective-experiments.mp4
 video_class: ten-eighty
 screenshot: /projects/effective-experiments.png
-order: 1
+order: 2
 start: 2019
 end: 2019
 link:
