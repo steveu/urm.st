@@ -1,6 +1,7 @@
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
-@import '@fontsource-variable/newsreader';
+@import '@fontsource-variable/merriweather';
+@import '@fontsource-variable/mulish';
 
 :root {
   /* Ground and ink */
@@ -24,7 +25,9 @@
 
   --font-sans: 'Geist Variable', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-serif: 'Newsreader Variable', Georgia, serif;
+  --font-serif: 'Merriweather Variable', Georgia, serif;
+  /* The original site's pair: Merriweather headings, Muli (now Mulish) UI */
+  --font-ui: 'Mulish Variable', 'Helvetica Neue', Arial, sans-serif;
 
   --page-max: 1240px;
   --gutter: clamp(16px, 4vw, 32px);

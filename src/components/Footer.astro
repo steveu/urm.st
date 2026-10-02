@@ -21,6 +21,7 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
+    font-family: var(--font-ui);
     border-top: 1px solid var(--line);
     margin-top: 96px;
   }
@@ -37,10 +38,11 @@ const year = new Date().getFullYear();
   .email {
     color: var(--text);
     text-decoration: none;
-    font-size: clamp(30px, 4vw, 52px);
-    font-weight: 500;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 3.6vw, 46px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
   }
 
   .email span {
@@ -64,8 +66,8 @@ const year = new Date().getFullYear();
     margin: 0;
     padding: 0;
     list-style: none;
-    font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 15px;
+    font-weight: 600;
   }
 
   .links a {
