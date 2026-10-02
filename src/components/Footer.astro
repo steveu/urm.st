@@ -1,0 +1,101 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap inner">
+    <a class="email" href="mailto:steve@urm.st">steve@urm.st <span aria-hidden="true">→</span></a>
+    <ul class="links">
+      <li><a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a></li>
+      <li><a href="https://github.com/steveu">GitHub</a></li>
+      <li><a href="/steven-urmston-resume.pdf">Résumé (PDF)</a></li>
+    </ul>
+  </div>
+  <div class="wrap">
+    <div class="small">
+      <span>© {year} Steve Urmston · York, UK</span>
+      <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    margin-top: 96px;
+  }
+
+  .inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-block: 64px 32px;
+  }
+
+  .email {
+    color: var(--text);
+    text-decoration: none;
+    font-size: clamp(30px, 4vw, 52px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .email span {
+    color: var(--orange);
+    display: inline-block;
+    transition: transform 0.25s var(--ease-out);
+  }
+
+  .email:hover {
+    color: var(--text);
+  }
+
+  .email:hover span {
+    transform: translateX(6px);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .links a {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .small {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-block: 18px 40px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .small a {
+    color: var(--faint);
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .small a:hover {
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,238 @@
+---
+type Project = {
+  name: string;
+  swatch: string;
+  status: string;
+  state: 'live' | 'beta' | 'soon';
+  commits?: number;
+  href?: string;
+};
+
+// Commit counts as of 2 Oct 2026. Case-study pages will own this data once they exist.
+const projects: Project[] = [
+  { name: 'eddy', swatch: 'var(--eddy)', status: 'live · in daily use since April 2026', state: 'live', commits: 418, href: '/work' },
+  { name: 'one-thought', swatch: 'var(--one-thought)', status: 'TestFlight · iOS + watchOS, build 7', state: 'beta', commits: 155, href: '/work' },
+  { name: 'hublsoft', swatch: 'transparent', status: 'in progress · AI-directed data analysis · case study soon', state: 'soon' },
+];
+---
+
+<section class="hero wrap" aria-labelledby="hero-title">
+  <div class="intro">
+    <p class="eyebrow">Steve Urmston — AI product engineer</p>
+    <h1 id="hero-title">Twenty years of design and frontend. Now shipping with a team of agents.</h1>
+    <p class="lede">
+      I specify the product, design the experience, build the evals and review the code. Agents do the typing.
+      These are the products running in the real world right now.
+    </p>
+  </div>
+
+  <table class="projects">
+    <caption class="visually-hidden">Current projects</caption>
+    <thead>
+      <tr>
+        <th scope="col">Project</th>
+        <th scope="col">Status</th>
+        <th scope="col" class="num">Commits</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        projects.map((p) => (
+          <tr class:list={[{ muted: p.state === 'soon', linked: !!p.href }]}>
+            <th scope="row">
+              <span class="swatch" style={`--swatch: ${p.swatch}`} aria-hidden="true" />
+              {p.href ? <a href={p.href}>{p.name}</a> : p.name}
+            </th>
+            <td>
+              <span class:list={['dot', p.state]} aria-hidden="true" />
+              {p.status}
+            </td>
+            <td class="num">{p.commits ?? '—'}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</section>
+
+<style>
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    padding-block: clamp(64px, 10vw, 112px) 0;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 980px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+
+  h1 {
+    font-weight: 500;
+    font-size: clamp(42px, 6.4vw, 88px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 640px;
+    font-size: clamp(17px, 1.6vw, 19px);
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  /* Entrance: one orchestrated reveal, nothing else moves */
+  .intro > *,
+  .projects {
+    animation: rise 0.7s var(--ease-out) both;
+  }
+  .intro > :nth-child(2) { animation-delay: 0.08s; }
+  .intro > :nth-child(3) { animation-delay: 0.16s; }
+  .projects { animation-delay: 0.26s; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .projects {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--panel);
+  }
+
+  .projects th,
+  .projects td {
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 400;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+
+  .projects tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .projects thead th {
+    padding-block: 12px;
+    background: var(--surface);
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 12px;
+  }
+
+  .projects tbody th {
+    width: 180px;
+    white-space: nowrap;
+  }
+
+  .projects .num {
+    width: 110px;
+    text-align: right;
+  }
+
+  /* Whole-row link: the anchor stretches over its row */
+  .projects tbody tr {
+    position: relative;
+    transition: background 0.2s ease;
+  }
+
+  .projects tr.linked:hover {
+    background: var(--bg);
+  }
+
+  .projects a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .projects a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .projects tr.linked:hover a {
+    color: var(--accent);
+  }
+
+  .projects tr.muted {
+    color: var(--faint);
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    border-radius: 3px;
+    background: var(--swatch);
+    vertical-align: -1px;
+  }
+
+  .muted .swatch {
+    border: 1px solid var(--faint);
+  }
+
+  .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 10px;
+    border-radius: 50%;
+    vertical-align: 1px;
+  }
+
+  .dot.live { background: var(--live); }
+  .dot.beta { background: var(--orange); }
+  .dot.soon { border: 1px solid var(--faint); }
+
+  @media (max-width: 640px) {
+    .projects,
+    .projects tbody,
+    .projects tr,
+    .projects th,
+    .projects td {
+      display: block;
+    }
+
+    .projects thead,
+    .projects .num {
+      display: none;
+    }
+
+    .projects tbody th {
+      width: auto;
+      padding: 14px 16px 4px;
+      border-bottom: 0;
+    }
+
+    .projects tbody td {
+      padding: 0 16px 14px;
+    }
+
+    .projects tbody tr:not(:last-child) {
+      border-bottom: 1px solid var(--line);
+    }
+  }
+</style>

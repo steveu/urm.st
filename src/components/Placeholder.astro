@@ -1,0 +1,33 @@
+---
+// Holding content for routes the rebuild hasn't reached yet.
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<section class="wrap placeholder">
+  <h1>{title}</h1>
+  <p><slot>This page is being rebuilt.</slot></p>
+</section>
+
+<style>
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-block: clamp(64px, 10vw, 112px) 0;
+  }
+
+  h1 {
+    font-weight: 500;
+    font-size: clamp(36px, 5vw, 56px);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  p {
+    font-size: 18px;
+    color: var(--muted);
+  }
+</style>

@@ -1,0 +1,125 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/newsreader';
+
+:root {
+  /* Ground and ink */
+  --bg: #f6f5f2;
+  --surface: #efede8;
+  --panel: #ffffff;
+  --line: #dfdbd3;
+  --text: #1f1d1a;
+  --muted: #5e5a54;
+  --faint: #6e6a63;
+
+  /* Orange: the decorative bar, and a darker shade for text on the light ground */
+  --orange: #de7719;
+  --accent: #a9550c;
+  --accent-hover: #7e3f08;
+
+  /* Project swatches */
+  --eddy: #3d6b6b;
+  --one-thought: #c7a14e;
+  --live: #2e8a57;
+
+  --font-sans: 'Geist Variable', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-serif: 'Newsreader Variable', Georgia, serif;
+
+  --page-max: 1240px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  border-top: 6px solid var(--orange);
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.wrap {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  padding: 10px 14px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 6px;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: 12px;
+  color: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

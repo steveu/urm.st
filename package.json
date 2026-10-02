@@ -1,41 +1,23 @@
 {
   "name": "urm.st",
-  "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
+  "version": "2.0.0",
+  "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "react-static start",
-    "stage": "react-static build --staging",
-    "build": "react-static build",
-    "serve": "serve dist -p 3000"
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check"
   },
   "dependencies": {
-    "chokidar": "^2.0.4",
-    "dateformat": "^3.0.3",
-    "htmr": "^0.7.0",
-    "jdown": "^0.6.4",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-hot-loader": "^4.3.4",
-    "react-move": "^2.7.0",
-    "react-router": "^4.2.0",
-    "react-static": "^5.9.7",
-    "sass-easing": "^1.0.3",
-    "svg-sprite-loader": "^3.8.0",
-    "vertical-rhythm-reset": "^1.1.1"
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "astro": "^7.3.5"
   },
   "devDependencies": {
-    "eslint-config-react-tools": "1.x.x",
-    "extract-text-webpack-plugin": "^3.0.2",
-    "node-sass": "^4.7.2",
-    "postcss-loader": "^3.0.0",
-    "sass-loader": "^6.0.6",
-    "serve": "^6.1.0",
-    "sw-precache-webpack-plugin": "^0.11.5"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 10"
-  ]
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
 }

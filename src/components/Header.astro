@@ -1,0 +1,127 @@
+---
+import Star from './Star.astro';
+
+const nav = [
+  { href: '/work', label: 'Work' },
+  { href: '/process', label: 'Process' },
+  { href: '/about', label: 'About' },
+  { href: '/resume', label: 'Résumé' },
+];
+
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-current={path === '/' ? 'page' : undefined}>
+      <Star size={26} />
+      <span>Steve Urmston</span>
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                <span>{item.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 76px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-family: var(--font-serif);
+    font-size: 23px;
+    line-height: 1;
+    min-height: 44px;
+  }
+
+  .brand :global(svg) {
+    color: var(--orange);
+    flex-shrink: 0;
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .brand:hover :global(svg) {
+    transform: rotate(72deg);
+  }
+
+  .brand:hover {
+    color: var(--text);
+  }
+
+  ul {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  nav a span {
+    padding: 4px 2px;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  nav a:hover span {
+    color: var(--accent);
+  }
+
+  nav a[aria-current='page'] span {
+    border-color: var(--orange);
+  }
+
+  nav li:last-child a {
+    padding-right: 0;
+  }
+
+  @media (max-width: 640px) {
+    .bar {
+      flex-direction: column;
+      gap: 4px;
+      padding-block: 14px 6px;
+    }
+
+    nav a {
+      padding: 0 12px;
+    }
+
+    nav li:last-child a {
+      padding-right: 12px;
+    }
+  }
+</style>
