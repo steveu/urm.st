@@ -1,0 +1,68 @@
+---
+// Weekly commit bars from the activity snapshot (scripts/activity.mjs).
+interface Props {
+  weeks: number[];
+  last?: string;
+  colour: string;
+}
+
+const { weeks, last, colour } = Astro.props;
+const W = 182;
+const H = 30;
+const gap = 2;
+const bar = (W - gap * (weeks.length - 1)) / weeks.length;
+const max = Math.max(...weeks, 1);
+// Square-root scale so a 100-commit week doesn't flatten everything else
+const h = (n: number) => (n === 0 ? 1 : Math.max(3, Math.sqrt(n / max) * H));
+const total = weeks.reduce((a, b) => a + b, 0);
+const lastLabel = last
+  ? new Date(`${last}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  : undefined;
+const label = `${total} commits over the last ${weeks.length} weeks${lastLabel ? `, most recently on ${lastLabel}` : ''}`;
+---
+
+<div class="activity">
+  <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} style={`--bar: ${colour}`}>
+    {
+      weeks.map((n, i) => (
+        <rect
+          x={i * (bar + gap)}
+          y={H - h(n)}
+          width={bar}
+          height={h(n)}
+          rx="1"
+          class={n === 0 ? 'empty' : undefined}
+        />
+      ))
+    }
+  </svg>
+  <span class="caption" aria-hidden="true">{total} commits{lastLabel && ` · last ${lastLabel}`}</span>
+</div>
+
+<style>
+  .activity {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  svg :global(rect) {
+    fill: var(--bar);
+  }
+
+  svg :global(rect.empty) {
+    fill: var(--line);
+  }
+
+  .caption {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+</style>

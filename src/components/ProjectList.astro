@@ -1,0 +1,237 @@
+---
+import Activity from './Activity.astro';
+import { projects, activityMeta } from '../data/projects';
+
+const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+---
+
+<section class="projects" aria-labelledby="projects-title">
+  <div class="head" aria-hidden="true">
+    <span>Project</span>
+    <span>Status</span>
+    <span>Last {activityMeta.weeks} weeks</span>
+  </div>
+  <h2 id="projects-title" class="visually-hidden">Current projects</h2>
+  <ul>
+    {
+      projects.map((p) => (
+        <li class:list={['row', { muted: p.state === 'soon', linked: !!p.href }]}>
+          <div class="about">
+            <h3>
+              <span class="swatch" style={`--swatch: ${p.swatch}`} aria-hidden="true" />
+              {p.href ? <a href={p.href}>{p.name}</a> : p.name}
+            </h3>
+            <p class="desc">{p.description}</p>
+            {(p.role || p.platform) && <p class="meta">{[p.role, p.platform].filter(Boolean).join(' · ')}</p>}
+          </div>
+          <p class="status">
+            <span class:list={['dot', p.state]} aria-hidden="true" />
+            <span>
+              <strong>{p.status}</strong>
+              {p.since && <span class="since">{p.since}</span>}
+            </span>
+          </p>
+          <div class="chart">
+            {p.activity ? (
+              <Activity weeks={p.activity.weeks} last={p.activity.last} colour={p.swatch} />
+            ) : (
+              <span class="private">Work project, not tracked here</span>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="note">Commit activity as of {asOf}.</p>
+</section>
+
+<style>
+  .projects {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+
+  .head,
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 210px 200px;
+    gap: 32px;
+  }
+
+  .head {
+    padding: 0 22px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .row {
+    position: relative;
+    align-items: center;
+    padding: 22px;
+    transition: background 0.2s ease;
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+
+  .row.linked:hover {
+    background: #fbfaf8;
+  }
+
+  .about {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 620px;
+  }
+
+  h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  h3 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  /* Whole-row link: the anchor stretches over its row */
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .row.linked:hover h3 a {
+    color: var(--accent);
+  }
+
+  .swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    background: var(--swatch);
+    flex-shrink: 0;
+  }
+
+  .muted .swatch {
+    border: 1px solid var(--faint);
+  }
+
+  .desc {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .status {
+    display: flex;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .status strong {
+    display: block;
+    font-weight: 500;
+  }
+
+  .since {
+    display: block;
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot.live { background: var(--live); }
+  .dot.beta { background: var(--orange); }
+  .dot.soon { border: 1px solid var(--faint); }
+
+  .muted h3,
+  .muted .status strong {
+    color: var(--muted);
+  }
+
+  .private {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .note {
+    align-self: flex-end;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--faint);
+  }
+
+  @media (max-width: 860px) {
+    .head {
+      display: none;
+    }
+
+    .row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'about about'
+        'status chart';
+      gap: 18px 24px;
+      align-items: end;
+      padding: 20px;
+    }
+
+    .about { grid-area: about; }
+    .status { grid-area: status; }
+    .chart { grid-area: chart; }
+  }
+
+  @media (max-width: 480px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'about' 'status' 'chart';
+      gap: 14px;
+    }
+
+    .note {
+      align-self: flex-start;
+    }
+  }
+</style>
