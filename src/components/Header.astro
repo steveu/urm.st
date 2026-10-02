@@ -17,6 +17,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     <a class="brand" href="/" aria-current={path === '/' ? 'page' : undefined}>
       <Star size={26} />
       <span>Steve Urmston</span>
+      <span class="role">AI Product Engineer</span>
     </a>
     <nav aria-label="Main">
       <ul>
@@ -72,6 +73,24 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 
   .brand:hover {
     color: var(--text);
+  }
+
+  /* Scoped styles don't reach spans here (same as the hero heading), so go through .brand */
+  .brand :global(.role) {
+    margin-left: 6px;
+    padding-left: 16px;
+    border-left: 1px solid var(--line);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
+    color: var(--faint);
+  }
+
+  @media (max-width: 860px) {
+    .brand :global(.role) {
+      display: none;
+    }
   }
 
   ul {
