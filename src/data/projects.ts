@@ -9,13 +9,15 @@ export type Project = {
   state: ProjectState;
   status: string;
   swatch: string;
+  /** Text-safe version of the swatch, for marks and labels */
+  ink: string;
   /** iOS app icon, 96px square, under public/ */
   icon?: string;
   href?: string;
   activity?: (typeof activity.projects)[keyof typeof activity.projects];
 };
 
-export const activityMeta = { generatedAt: activity.generatedAt, weeks: activity.weeks };
+export const activityMeta = { generatedAt: activity.generatedAt };
 
 export const projects: Project[] = [
   {
@@ -25,6 +27,7 @@ export const projects: Project[] = [
     state: 'live',
     status: 'Live',
     swatch: 'var(--eddy)',
+    ink: 'var(--eddy)',
     icon: '/icons/eddy.png',
     href: '/work',
     activity: activity.projects.eddy,
@@ -36,6 +39,7 @@ export const projects: Project[] = [
     state: 'beta',
     status: 'TestFlight',
     swatch: 'var(--one-thought)',
+    ink: '#7a5f2b',
     icon: '/icons/one-thought.png',
     href: '/work',
     activity: activity.projects['one-thought'],
@@ -47,5 +51,6 @@ export const projects: Project[] = [
     state: 'soon',
     status: 'In progress',
     swatch: 'transparent',
+    ink: 'var(--faint)',
   },
 ];

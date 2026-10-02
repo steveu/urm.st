@@ -2,7 +2,8 @@
 project: eddy
 number: 3
 title: One notification channel
-date: 2026-05-16
+date: 2026-04-13
+written: 2026-05-16
 summary: Every notification goes through one channel and one function, and a new technology replaces the old one rather than joining it.
 amended: [2026-09-19]
 ---

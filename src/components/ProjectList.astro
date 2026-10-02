@@ -1,20 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
-import Activity from './Activity.astro';
-import { projects, activityMeta } from '../data/projects';
+import { projects } from '../data/projects';
 
 const decisions = await getCollection('decisions');
-const decisionCount = (key: string) => decisions.filter((d) => d.data.project === key).length;
+const decisionsFor = (key: string) => decisions.filter((d) => d.data.project === key);
+const lastDecided = (key: string) => {
+  const dates = decisionsFor(key).map((d) => d.data.date.getTime());
+  return dates.length ? new Date(Math.max(...dates)) : undefined;
+};
+const shortDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 ---
 
 <section class="projects" aria-labelledby="projects-title">
   <h2 id="projects-title" class="visually-hidden">Current projects</h2>
-  <div class="head" aria-hidden="true">
-    <span>Project</span>
-    <span>Status</span>
-    <span>Activity</span>
-    <span></span>
-  </div>
   <ul>
     {
       projects.map((p) => (
@@ -34,16 +32,14 @@ const decisionCount = (key: string) => decisions.filter((d) => d.data.project ==
             <span class:list={['dot', p.state]} aria-hidden="true" />
             {p.status}
           </p>
-          <div class="chart">
-            {p.activity && (
-              <Activity weeks={p.activity.weeks} last={p.activity.last} asOf={activityMeta.generatedAt} colour={p.swatch} />
-            )}
-          </div>
           <div class="more">
-            {decisionCount(p.key) > 0 && (
-              <a class="decisions" href={`/work/${p.key}/decisions`}>
-                {decisionCount(p.key)} decisions →
-              </a>
+            {decisionsFor(p.key).length > 0 && (
+              <>
+                <a class="decisions" href={`/work/${p.key}/decisions`}>
+                  {decisionsFor(p.key).length} decisions →
+                </a>
+                <span class="last">last decided {shortDate(lastDecided(p.key)!)}</span>
+              </>
             )}
           </div>
         </li>
@@ -66,21 +62,11 @@ const decisionCount = (key: string) => decisions.filter((d) => d.data.project ==
     border-top: 1px solid var(--line);
   }
 
-  .head,
   .row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 120px 150px 120px;
+    grid-template-columns: minmax(0, 1fr) 120px 150px;
     gap: 28px;
     align-items: center;
-  }
-
-  .head {
-    padding: 0 4px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--faint);
   }
 
   .row {
@@ -174,7 +160,16 @@ const decisionCount = (key: string) => decisions.filter((d) => d.data.project ==
   }
 
   .more {
-    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .last {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--faint);
   }
 
   /* Sits above the row's stretched link */
@@ -205,22 +200,17 @@ const decisionCount = (key: string) => decisions.filter((d) => d.data.project ==
   }
 
   @media (max-width: 640px) {
-    .head {
-      display: none;
-    }
-
     .row {
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas:
         'about status'
-        'chart more';
+        'more more';
       gap: 12px 16px;
       padding: 16px 2px;
     }
 
     .about { grid-area: about; }
     .status { grid-area: status; align-self: start; padding-top: 3px; }
-    .chart { grid-area: chart; }
-    .more { grid-area: more; align-self: end; }
+    .more { grid-area: more; flex-direction: row; align-items: baseline; justify-content: space-between; }
   }
 </style>

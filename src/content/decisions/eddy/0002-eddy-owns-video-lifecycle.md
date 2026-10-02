@@ -2,7 +2,8 @@
 project: eddy
 number: 2
 title: Eddy owns the video lifecycle; Plex and nginx only read
-date: 2026-05-16
+date: 2026-04-13
+written: 2026-05-16
 summary: Eddy downloads, names and deletes its own files, so its own rules (like saved videos never being recycled) can’t be overridden by another tool.
 ---
 

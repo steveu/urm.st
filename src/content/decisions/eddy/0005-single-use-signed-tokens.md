@@ -2,7 +2,8 @@
 project: eddy
 number: 5
 title: Single-use signed tokens for notification actions
-date: 2026-05-16
+date: 2026-04-13
+written: 2026-05-16
 summary: Every action button in a notification carries a short-lived signed token that works exactly once, so a second tap, a screenshot or a stolen phone can’t replay it.
 ---
 

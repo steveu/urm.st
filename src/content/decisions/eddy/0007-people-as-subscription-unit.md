@@ -2,7 +2,8 @@
 project: eddy
 number: 7
 title: People are the subscription unit
-date: 2026-05-16
+date: 2026-04-16
+written: 2026-05-16
 summary: You follow a person, not a channel, so one follow covers everything they make and everything they recommend carries their name.
 ---
 

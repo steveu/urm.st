@@ -34,7 +34,8 @@ const base = `/work/${project}/decisions`;
       <h1>{entry.data.title}</h1>
       <p class="summary">{entry.data.summary}</p>
       <p class="meta">
-        <span>{entry.data.retroactive ? 'Decided' : 'Recorded'} {formatDate(entry.data.date)}</span>
+        <span>Decided {formatDate(entry.data.date)}</span>
+        {entry.data.written && <span>Written up {formatDate(entry.data.written)}</span>}
         {entry.data.amended && <span>Amended {entry.data.amended.map(formatDate).join(', ')}</span>}
       </p>
       {

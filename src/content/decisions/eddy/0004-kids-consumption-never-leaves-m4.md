@@ -2,7 +2,8 @@
 project: eddy
 number: 4
 title: Kids’ viewing never leaves the house
-date: 2026-05-16
+date: 2026-04-13
+written: 2026-05-16
 summary: All AI that touches what the kids watch runs on a local model at home, even though frontier models are better at the task.
 ---
 

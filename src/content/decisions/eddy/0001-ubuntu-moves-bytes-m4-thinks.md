@@ -2,7 +2,8 @@
 project: eddy
 number: 1
 title: Ubuntu moves bytes, M4 thinks
-date: 2026-05-16
+date: 2026-04-13
+written: 2026-05-16
 summary: One codebase split across two machines by what the hardware is good at, not by service boundaries.
 ---
 

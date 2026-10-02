@@ -2,7 +2,8 @@
 project: eddy
 number: 6
 title: Agents are infrastructure, not interface
-date: 2026-05-16
+date: 2026-04-29
+written: 2026-05-16
 summary: No chat in front of the kids. AI works inside existing features or as calm, infrequent interjections; conversation is only for adults doing admin.
 ---
 

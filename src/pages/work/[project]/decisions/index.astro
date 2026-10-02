@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
+import { projects } from '../../../../data/projects';
 import { projectInfo, formatDate, byDecided, slugOf, type ProjectKey } from '../../../../data/projectNames';
 
 export async function getStaticPaths() {
@@ -13,8 +14,30 @@ const project = Astro.params.project as ProjectKey;
 const info = projectInfo[project];
 const decisions = (await getCollection('decisions', (d) => d.data.project === project)).sort(byDecided);
 const retroCount = decisions.filter((d) => d.data.retroactive).length;
+const commitsByMonth: Record<string, number> = projects.find((p) => p.key === project)?.activity?.months ?? {};
 const first = decisions[0]?.data.date;
 const last = decisions.at(-1)?.data.date;
+
+// One entry per calendar month, from the first sign of activity to the last,
+// so quiet months stay visible rather than being skipped.
+const monthKey = (d: Date) => d.toISOString().slice(0, 7);
+const keys = [...decisions.map((d) => monthKey(d.data.date)), ...Object.keys(commitsByMonth)].sort();
+const months: { key: string; label: string; commits: number; items: typeof decisions }[] = [];
+if (keys.length) {
+  const [y0, m0] = keys[0].split('-').map(Number);
+  const [y1, m1] = keys.at(-1)!.split('-').map(Number);
+  for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1); m === 12 ? ((m = 1), y++) : m++) {
+    const key = `${y}-${String(m).padStart(2, '0')}`;
+    months.push({
+      key,
+      label: new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }),
+      commits: commitsByMonth[key] ?? 0,
+      items: decisions.filter((d) => monthKey(d.data.date) === key),
+    });
+  }
+}
+const plural = (n: number, word: string) => `${n === 0 ? 'No' : n} ${word}${n === 1 ? '' : 's'}`;
+const dayMonth = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 ---
 
 <Base title={`${info.name} decisions`} description={`The ${decisions.length} decisions behind ${info.name}: what was chosen, why, and what was rejected.`}>
@@ -23,7 +46,7 @@ const last = decisions.at(-1)?.data.date;
       <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> {info.name}</p>
       <h1>How {info.name} was decided</h1>
       <p class="lede">
-        {decisions.length} decisions, in the order they were made{first && last && <>, from {formatDate(first)} to {formatDate(last)}</>}.
+        {decisions.length} decisions, month by month{first && last && <>, from {formatDate(first)} to {formatDate(last)}</>}.
         Each one names what was chosen, why, and what was turned down. They’re what the agents building {info.name} read
         before touching the code.
         {retroCount > 0 && <> {retroCount} were written up afterwards, reconstructed from the plan, design notes and commit history.</>}
@@ -34,27 +57,41 @@ const last = decisions.at(-1)?.data.date;
       </p>
     </header>
 
-    <ol class="log">
+    <div class="journal">
       {
-        decisions.map((d) => (
-          <li>
-            <a href={`/work/${project}/decisions/${slugOf(d.id)}`}>
-              <span class="date">{formatDate(d.data.date)}</span>
-              <span class="body">
-                <span class="title">{d.data.title}</span>
-                <span class="summary">{d.data.summary}</span>
-                {(d.data.retroactive || d.data.amended) && (
-                  <span class="tags">
-                    {d.data.retroactive && <span class="tag">written up afterwards</span>}
-                    {d.data.amended && <span class="tag amended">amended</span>}
-                  </span>
-                )}
-              </span>
-            </a>
-          </li>
+        months.map((m) => (
+          <section class:list={['month', { quiet: m.items.length === 0 }]} aria-labelledby={`m-${m.key}`}>
+            <header class="month-head">
+              <h2 id={`m-${m.key}`}>{m.label}</h2>
+              <p class="tally">
+                {plural(m.items.length, 'decision')} · {plural(m.commits, 'commit')}
+              </p>
+            </header>
+            {m.items.length > 0 ? (
+              <ol class="entries">
+                {m.items.map((d) => (
+                  <li>
+                    <a href={`/work/${project}/decisions/${slugOf(d.id)}`}>
+                      <span class="day">{dayMonth(d.data.date)}</span>
+                      <span class="title">{d.data.title}</span>
+                      <span class="summary">{d.data.summary}</span>
+                      {(d.data.retroactive || d.data.amended) && (
+                        <span class="tags">
+                          {d.data.retroactive && <span class="tag">written up afterwards</span>}
+                          {d.data.amended && <span class="tag amended">amended</span>}
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div class="entries empty" aria-hidden="true" />
+            )}
+          </section>
         ))
       }
-    </ol>
+    </div>
   </article>
 </Base>
 
@@ -63,7 +100,7 @@ const last = decisions.at(-1)?.data.date;
     padding-block: clamp(56px, 8vw, 96px) 0;
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    gap: 56px;
   }
 
   .intro {
@@ -106,49 +143,98 @@ const last = decisions.at(-1)?.data.date;
     border-left: 3px solid var(--swatch);
   }
 
-  .log {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  /* Months: a sticky label on the left, decisions hanging off a rule on the right */
+  .month {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 40px;
     border-top: 1px solid var(--line);
   }
 
-  .log li {
-    border-bottom: 1px solid var(--line);
+  .month-head {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding-block: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .log a {
+  .month-head h2 {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .tally {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .quiet .month-head {
+    padding-block: 14px;
+  }
+
+  .quiet h2 {
+    font-size: 16px;
+    color: var(--muted);
+  }
+
+  .entries {
+    margin: 0;
+    padding: 12px 0 12px 28px;
+    list-style: none;
+    border-left: 2px solid color-mix(in srgb, var(--swatch) 45%, transparent);
+  }
+
+  .entries.empty {
+    padding: 0;
+    min-height: 100%;
+  }
+
+  .entries li {
+    position: relative;
+  }
+
+  /* The node on the rule */
+  .entries li::before {
+    content: '';
+    position: absolute;
+    left: -35px;
+    top: 26px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 0 0 3px var(--bg);
+  }
+
+  .entries a {
     display: grid;
-    grid-template-columns: 110px minmax(0, 1fr);
-    gap: 24px;
-    align-items: baseline;
-    padding: 22px 8px;
+    gap: 6px;
+    padding: 18px 12px;
+    margin-inline: -12px;
+    border-radius: 8px;
     color: var(--text);
     text-decoration: none;
     transition: background 0.2s ease;
   }
 
-  .log a:hover {
+  .entries a:hover {
     background: var(--panel);
   }
 
-  .log a:hover .title {
+  .entries a:hover .title {
     color: var(--accent);
   }
 
-  .date {
+  .day {
     font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 500;
     color: var(--ink);
-    white-space: nowrap;
-  }
-
-  .body {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-width: 760px;
   }
 
   .title {
@@ -160,6 +246,7 @@ const last = decisions.at(-1)?.data.date;
   }
 
   .summary {
+    max-width: 680px;
     font-size: 15px;
     line-height: 1.55;
     color: var(--muted);
@@ -170,7 +257,7 @@ const last = decisions.at(-1)?.data.date;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .tag {
@@ -186,11 +273,36 @@ const last = decisions.at(-1)?.data.date;
     color: var(--accent);
   }
 
-  @media (max-width: 640px) {
-    .log a {
+  @media (max-width: 760px) {
+    .month {
       grid-template-columns: minmax(0, 1fr);
-      gap: 6px;
-      padding: 18px 4px;
+      gap: 0;
+    }
+
+    .month-head {
+      position: static;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding-block: 18px 6px;
+    }
+
+    .quiet .month-head {
+      padding-block: 12px;
+    }
+
+    .entries {
+      margin-left: 6px;
+      padding-left: 22px;
+    }
+
+    .entries.empty {
+      display: none;
+    }
+
+    .entries li::before {
+      left: -29px;
     }
   }
 </style>
