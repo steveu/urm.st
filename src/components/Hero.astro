@@ -19,10 +19,13 @@ const projects: Project[] = [
 <section class="hero wrap" aria-labelledby="hero-title">
   <div class="intro">
     <p class="eyebrow">Steve Urmston — AI product engineer</p>
-    <h1 id="hero-title">Twenty years of design and frontend. Now shipping with a team of agents.</h1>
+    <h1 id="hero-title">
+      <span class="then">I’ve designed, built and managed products since&nbsp;1999.</span>
+      <span class="now">Now I ship them with a team of&nbsp;agents.</span>
+    </h1>
     <p class="lede">
-      I specify the product, design the experience, build the evals and review the code. Agents do the typing.
-      These are the products running in the real world right now.
+      UX, interface design, frontend engineering and product management, often all at once. Today I specify the
+      product, design the experience, build the evals and review the code. The agents do the typing.
     </p>
   </div>
 
@@ -83,6 +86,16 @@ const projects: Project[] = [
     line-height: 0.98;
     letter-spacing: -0.035em;
     text-wrap: balance;
+  }
+
+  /* Spans in the heading don't receive Astro's scope attribute, so reach them through h1 */
+  h1 :global(span) {
+    display: block;
+    text-wrap: balance;
+  }
+
+  h1 :global(.then) {
+    color: var(--faint);
   }
 
   .lede {
