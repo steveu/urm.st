@@ -6,12 +6,11 @@ export type Project = {
   key: string;
   name: string;
   description: string;
-  role?: string;
-  platform?: string;
   state: ProjectState;
   status: string;
-  since?: string;
   swatch: string;
+  /** iOS app icon, 96px square, under public/ */
+  icon?: string;
   href?: string;
   activity?: (typeof activity.projects)[keyof typeof activity.projects];
 };
@@ -22,26 +21,22 @@ export const projects: Project[] = [
   {
     key: 'eddy',
     name: 'Eddy',
-    description: 'A self-hosted family video app. A local model checks every shared link, and a short daily feed ends on purpose.',
-    role: 'Product, design, engineering, evals',
-    platform: 'Web + iOS · Gemma on a Mac mini',
+    description: 'A family video app where a local model checks every link.',
     state: 'live',
     status: 'Live',
-    since: 'in daily use since Apr 2026',
     swatch: 'var(--eddy)',
+    icon: '/icons/eddy.png',
     href: '/work',
     activity: activity.projects.eddy,
   },
   {
     key: 'one-thought',
     name: 'One Thought',
-    description: 'A golf app for carrying one thought round the course, counted with a button in your pocket.',
-    role: 'Product, design, engineering',
-    platform: 'iOS + watchOS · designed in Claude Design',
+    description: 'A golf app that counts one thought with a button in your pocket.',
     state: 'beta',
     status: 'TestFlight',
-    since: 'since Sep 2026',
     swatch: 'var(--one-thought)',
+    icon: '/icons/one-thought.png',
     href: '/work',
     activity: activity.projects['one-thought'],
   },
@@ -51,7 +46,6 @@ export const projects: Project[] = [
     description: 'AI-directed data analysis for a decision-intelligence platform.',
     state: 'soon',
     status: 'In progress',
-    since: 'case study soon',
     swatch: 'transparent',
   },
 ];

@@ -1,61 +1,55 @@
 ---
-import Activity from './Activity.astro';
 import { getCollection } from 'astro:content';
+import Activity from './Activity.astro';
 import { projects, activityMeta } from '../data/projects';
 
 const decisions = await getCollection('decisions');
 const decisionCount = (key: string) => decisions.filter((d) => d.data.project === key).length;
-
-const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateString('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
 ---
 
 <section class="projects" aria-labelledby="projects-title">
+  <h2 id="projects-title" class="visually-hidden">Current projects</h2>
   <div class="head" aria-hidden="true">
     <span>Project</span>
     <span>Status</span>
-    <span>Last {activityMeta.weeks} weeks</span>
+    <span>Activity</span>
+    <span></span>
   </div>
-  <h2 id="projects-title" class="visually-hidden">Current projects</h2>
   <ul>
     {
       projects.map((p) => (
         <li class:list={['row', { muted: p.state === 'soon', linked: !!p.href }]}>
           <div class="about">
             <h3>
-              <span class="swatch" style={`--swatch: ${p.swatch}`} aria-hidden="true" />
+              {p.icon ? (
+                <img class="icon" src={p.icon} width="32" height="32" alt="" loading="lazy" decoding="async" />
+              ) : (
+                <span class="icon placeholder" aria-hidden="true" />
+              )}
               {p.href ? <a href={p.href}>{p.name}</a> : p.name}
             </h3>
             <p class="desc">{p.description}</p>
-            {(p.role || p.platform) && <p class="meta">{[p.role, p.platform].filter(Boolean).join(' · ')}</p>}
           </div>
           <p class="status">
             <span class:list={['dot', p.state]} aria-hidden="true" />
-            <span>
-              <strong>{p.status}</strong>
-              {p.since && <span class="since">{p.since}</span>}
-              {decisionCount(p.key) > 0 && (
-                <a class="decisions" href={`/work/${p.key}/decisions`}>
-                  {decisionCount(p.key)} decisions →
-                </a>
-              )}
-            </span>
+            {p.status}
           </p>
           <div class="chart">
-            {p.activity ? (
-              <Activity weeks={p.activity.weeks} last={p.activity.last} colour={p.swatch} />
-            ) : (
-              <span class="private">Not public yet</span>
+            {p.activity && (
+              <Activity weeks={p.activity.weeks} last={p.activity.last} asOf={activityMeta.generatedAt} colour={p.swatch} />
+            )}
+          </div>
+          <div class="more">
+            {decisionCount(p.key) > 0 && (
+              <a class="decisions" href={`/work/${p.key}/decisions`}>
+                {decisionCount(p.key)} decisions →
+              </a>
             )}
           </div>
         </li>
       ))
     }
   </ul>
-  <p class="note">Commit activity as of {asOf}.</p>
 </section>
 
 <style>
@@ -69,23 +63,21 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
     margin: 0;
     padding: 0;
     list-style: none;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--panel);
+    border-top: 1px solid var(--line);
   }
 
   .head,
   .row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 210px 200px;
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) 120px 150px 120px;
+    gap: 28px;
+    align-items: center;
   }
 
   .head {
-    padding: 0 22px;
+    padding: 0 4px;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--faint);
@@ -93,32 +85,29 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
 
   .row {
     position: relative;
-    align-items: center;
-    padding: 22px;
+    padding: 18px 4px;
+    border-bottom: 1px solid var(--line);
     transition: background 0.2s ease;
   }
 
-  .row + .row {
-    border-top: 1px solid var(--line);
-  }
-
   .row.linked:hover {
-    background: #fbfaf8;
+    background: var(--panel);
   }
 
   .about {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-width: 620px;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
   }
 
   h3 {
+    flex: 0 0 180px;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 19px;
+    gap: 12px;
+    font-size: 17px;
     font-weight: 500;
     letter-spacing: -0.01em;
   }
@@ -139,69 +128,38 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
     color: var(--accent);
   }
 
-  .swatch {
-    width: 11px;
-    height: 11px;
-    border-radius: 3px;
-    background: var(--swatch);
+  /* iOS-style tile: corner radius ≈ 22% of the side */
+  .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
     flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.08);
   }
 
-  .muted .swatch {
-    border: 1px solid var(--faint);
+  .icon.placeholder {
+    box-shadow: none;
+    border: 1px dashed var(--faint);
   }
 
   .desc {
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.45;
     color: var(--muted);
     text-wrap: pretty;
   }
 
-  .meta {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--faint);
-  }
-
   .status {
     display: flex;
-    gap: 10px;
-    font-size: 15px;
-    line-height: 1.4;
-  }
-
-  .status strong {
-    display: block;
-    font-weight: 500;
-  }
-
-  /* Sits above the row's stretched link */
-  .decisions {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    margin-top: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: none;
-  }
-
-  .decisions:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .since {
-    display: block;
-    font-size: 13px;
-    color: var(--faint);
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    white-space: nowrap;
   }
 
   .dot {
-    width: 8px;
-    height: 8px;
-    margin-top: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -211,24 +169,42 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
   .dot.soon { border: 1px solid var(--faint); }
 
   .muted h3,
-  .muted .status strong {
+  .muted .status {
     color: var(--muted);
   }
 
-  .private {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--faint);
+  .more {
+    text-align: right;
   }
 
-  .note {
-    align-self: flex-end;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--faint);
+  /* Sits above the row's stretched link */
+  .decisions {
+    position: relative;
+    z-index: 1;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
   }
 
-  @media (max-width: 860px) {
+  .decisions:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 900px) {
+    .about {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    h3 {
+      flex-basis: auto;
+    }
+  }
+
+  @media (max-width: 640px) {
     .head {
       display: none;
     }
@@ -236,27 +212,15 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
     .row {
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas:
-        'about about'
-        'status chart';
-      gap: 18px 24px;
-      align-items: end;
-      padding: 20px;
+        'about status'
+        'chart more';
+      gap: 12px 16px;
+      padding: 16px 2px;
     }
 
     .about { grid-area: about; }
-    .status { grid-area: status; }
+    .status { grid-area: status; align-self: start; padding-top: 3px; }
     .chart { grid-area: chart; }
-  }
-
-  @media (max-width: 480px) {
-    .row {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-areas: 'about' 'status' 'chart';
-      gap: 14px;
-    }
-
-    .note {
-      align-self: flex-start;
-    }
+    .more { grid-area: more; align-self: end; }
   }
 </style>
