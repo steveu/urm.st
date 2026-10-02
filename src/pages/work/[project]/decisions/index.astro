@@ -1,0 +1,195 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../../layouts/Base.astro';
+import { projectInfo, formatDate, pad, type ProjectKey } from '../../../../data/projectNames';
+
+export async function getStaticPaths() {
+  const all = await getCollection('decisions');
+  const projects = [...new Set(all.map((d) => d.data.project))];
+  return projects.map((project) => ({ params: { project } }));
+}
+
+const project = Astro.params.project as ProjectKey;
+const info = projectInfo[project];
+const decisions = (await getCollection('decisions', (d) => d.data.project === project)).sort(
+  (a, b) => a.data.number - b.data.number,
+);
+const first = decisions[0]?.data.date;
+const last = decisions.at(-1)?.data.date;
+---
+
+<Base title={`${info.name} decisions`} description={`The ${decisions.length} decision records behind ${info.name}: what was chosen, why, and what was rejected.`}>
+  <article class="wrap page" style={`--swatch: ${info.swatch}`}>
+    <header class="intro">
+      <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> {info.name}</p>
+      <h1>How {info.name} was decided</h1>
+      <p class="lede">
+        {decisions.length} decision records, written as the product was built
+        {first && last && <> between {formatDate(first)} and {formatDate(last)}</>}. Each one names what was chosen, why,
+        and what was turned down. They're what the agents building {info.name} read before touching the code.
+      </p>
+      <p class="edit-note">
+        Lightly edited for publication: household details, private hostnames and internal issue numbers are removed.
+        The reasoning is unchanged.
+      </p>
+    </header>
+
+    <ol class="log">
+      {
+        decisions.map((d) => (
+          <li>
+            <a href={`/work/${project}/decisions/${d.id.split('/')[1]}`}>
+              <span class="num">{pad(d.data.number)}</span>
+              <span class="body">
+                <span class="title">{d.data.title}</span>
+                <span class="summary">{d.data.summary}</span>
+              </span>
+              <span class="date">
+                {formatDate(d.data.date)}
+                {d.data.amended && <span class="amended">amended</span>}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </article>
+</Base>
+
+<style>
+  .page {
+    padding-block: clamp(56px, 8vw, 96px) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 760px;
+  }
+
+  .crumbs {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .crumbs span {
+    margin-inline: 6px;
+  }
+
+  h1 {
+    font-weight: 500;
+    font-size: clamp(36px, 5vw, 60px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    font-size: clamp(17px, 1.6vw, 19px);
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .edit-note {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--faint);
+    padding-left: 14px;
+    border-left: 3px solid var(--swatch);
+  }
+
+  .log {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .log li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .log a {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 130px;
+    gap: 24px;
+    align-items: baseline;
+    padding: 22px 8px;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+
+  .log a:hover {
+    background: var(--panel);
+  }
+
+  .log a:hover .title {
+    color: var(--accent);
+  }
+
+  .num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--swatch);
+    font-weight: 500;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 720px;
+  }
+
+  .title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    transition: color 0.2s ease;
+  }
+
+  .summary {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .date {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .amended {
+    color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    .log a {
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 4px 12px;
+      padding: 18px 4px;
+    }
+
+    .date {
+      grid-column: 2;
+      text-align: left;
+      flex-direction: row;
+      gap: 10px;
+      margin-top: 4px;
+    }
+  }
+</style>

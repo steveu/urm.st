@@ -1,0 +1,169 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../../layouts/Base.astro';
+import { projectInfo, formatDate, pad, type ProjectKey } from '../../../../data/projectNames';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('decisions')).sort((a, b) => a.data.number - b.data.number);
+  return all.map((entry) => {
+    const siblings = all.filter((d) => d.data.project === entry.data.project);
+    const i = siblings.indexOf(entry);
+    const link = (d?: (typeof all)[number]) =>
+      d && { href: d.id.split('/')[1], number: d.data.number, title: d.data.title };
+    return {
+      params: { project: entry.data.project, slug: entry.id.split('/')[1] },
+      props: { entry, prev: link(siblings[i - 1]), next: link(siblings[i + 1]), count: siblings.length },
+    };
+  });
+}
+
+const { entry, prev, next } = Astro.props;
+const project = entry.data.project as ProjectKey;
+const info = projectInfo[project];
+const { Content } = await render(entry);
+const base = `/work/${project}/decisions`;
+---
+
+<Base title={`${entry.data.title} · ${info.name}`} description={entry.data.summary}>
+  <article class="wrap page" style={`--swatch: ${info.swatch}`}>
+    <header class="intro">
+      <p class="crumbs">
+        <a href="/work">Work</a> <span aria-hidden="true">/</span>
+        <a href={base}>{info.name} decisions</a> <span aria-hidden="true">/</span>
+        {pad(entry.data.number)}
+      </p>
+      <h1>{entry.data.title}</h1>
+      <p class="summary">{entry.data.summary}</p>
+      <p class="meta">
+        <span>Decision {entry.data.number}</span>
+        <span>Recorded {formatDate(entry.data.date)}</span>
+        {entry.data.amended && <span>Amended {entry.data.amended.map(formatDate).join(', ')}</span>}
+      </p>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <nav class="pager" aria-label="More decisions">
+      {
+        prev ? (
+          <a class="prev" href={`${base}/${prev.href}`}>
+            <span class="dir">← {pad(prev.number)}</span>
+            <span>{prev.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a class="next" href={`${base}/${next.href}`}>
+            <span class="dir">{pad(next.number)} →</span>
+            <span>{next.title}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .page {
+    padding-block: clamp(56px, 8vw, 96px) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .intro,
+  .prose,
+  .pager {
+    max-width: 720px;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .crumbs {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .crumbs span {
+    margin-inline: 6px;
+  }
+
+  h1 {
+    font-weight: 500;
+    font-size: clamp(32px, 4.4vw, 52px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .summary {
+    font-size: clamp(18px, 1.8vw, 21px);
+    line-height: 1.5;
+    color: var(--muted);
+    text-wrap: pretty;
+    padding-left: 16px;
+    border-left: 3px solid var(--swatch);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .pager a {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .pager a:hover {
+    color: var(--accent);
+  }
+
+  .pager .next {
+    text-align: right;
+  }
+
+  .dir {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  @media (max-width: 560px) {
+    .pager {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pager .next {
+      text-align: left;
+    }
+  }
+</style>

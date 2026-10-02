@@ -1,6 +1,10 @@
 ---
 import Activity from './Activity.astro';
+import { getCollection } from 'astro:content';
 import { projects, activityMeta } from '../data/projects';
+
+const decisions = await getCollection('decisions');
+const decisionCount = (key: string) => decisions.filter((d) => d.data.project === key).length;
 
 const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateString('en-GB', {
   day: 'numeric',
@@ -33,13 +37,18 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
             <span>
               <strong>{p.status}</strong>
               {p.since && <span class="since">{p.since}</span>}
+              {decisionCount(p.key) > 0 && (
+                <a class="decisions" href={`/work/${p.key}/decisions`}>
+                  {decisionCount(p.key)} decisions →
+                </a>
+              )}
             </span>
           </p>
           <div class="chart">
             {p.activity ? (
               <Activity weeks={p.activity.weeks} last={p.activity.last} colour={p.swatch} />
             ) : (
-              <span class="private">Work project, not tracked here</span>
+              <span class="private">Not public yet</span>
             )}
           </div>
         </li>
@@ -165,6 +174,22 @@ const asOf = new Date(`${activityMeta.generatedAt}T12:00:00Z`).toLocaleDateStrin
   .status strong {
     display: block;
     font-weight: 500;
+  }
+
+  /* Sits above the row's stretched link */
+  .decisions {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .decisions:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .since {
