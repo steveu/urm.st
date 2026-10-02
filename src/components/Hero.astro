@@ -18,7 +18,6 @@ const projects: Project[] = [
 
 <section class="hero wrap" aria-labelledby="hero-title">
   <div class="intro">
-    <p class="eyebrow">Steve Urmston — AI product engineer</p>
     <h1 id="hero-title">
       <span class="then">I’ve designed, built and managed products since&nbsp;1999.</span>
       <span class="now">Now I build them with&nbsp;AI.</span>
@@ -73,13 +72,6 @@ const projects: Project[] = [
     max-width: 980px;
   }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    color: var(--accent);
-  }
-
   h1 {
     font-weight: 500;
     font-size: clamp(42px, 6.4vw, 88px);
@@ -111,9 +103,8 @@ const projects: Project[] = [
   .projects {
     animation: rise 0.7s var(--ease-out) both;
   }
-  .intro > :nth-child(2) { animation-delay: 0.08s; }
-  .intro > :nth-child(3) { animation-delay: 0.16s; }
-  .projects { animation-delay: 0.26s; }
+  .intro > :nth-child(2) { animation-delay: 0.1s; }
+  .projects { animation-delay: 0.2s; }
 
   @keyframes rise {
     from { opacity: 0; transform: translateY(10px); }
