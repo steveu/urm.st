@@ -25,7 +25,7 @@ const base = `/work/${project}/decisions`;
 ---
 
 <Base title={`${entry.data.title} · ${info.name}`} description={entry.data.summary}>
-  <article class="wrap page" style={`--swatch: ${info.swatch}`}>
+  <article class="wrap page" style={`--swatch: ${info.swatch}; --ink: ${info.ink}`}>
     <header class="intro">
       <p class="crumbs">
         <a href="/work">Work</a> <span aria-hidden="true">/</span>
@@ -36,9 +36,17 @@ const base = `/work/${project}/decisions`;
       <p class="summary">{entry.data.summary}</p>
       <p class="meta">
         <span>Decision {entry.data.number}</span>
-        <span>Recorded {formatDate(entry.data.date)}</span>
+        <span>{entry.data.retroactive ? 'Decided' : 'Recorded'} {formatDate(entry.data.date)}</span>
         {entry.data.amended && <span>Amended {entry.data.amended.map(formatDate).join(', ')}</span>}
       </p>
+      {
+        entry.data.retroactive && (
+          <p class="retro">
+            Written up afterwards. This decision was made during the build but not recorded at the time; it’s
+            reconstructed from the plan, design notes and commit history.
+          </p>
+        )
+      }
     </header>
 
     <div class="prose">
@@ -122,6 +130,15 @@ const base = `/work/${project}/decisions`;
     font-family: var(--font-mono);
     font-size: 12px;
     color: var(--faint);
+  }
+
+  .retro {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--surface);
   }
 
   .pager {

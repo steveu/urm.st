@@ -14,45 +14,66 @@ const info = projectInfo[project];
 const decisions = (await getCollection('decisions', (d) => d.data.project === project)).sort(
   (a, b) => a.data.number - b.data.number,
 );
-const first = decisions[0]?.data.date;
-const last = decisions.at(-1)?.data.date;
+const recorded = decisions.filter((d) => !d.data.retroactive);
+const retroactive = decisions.filter((d) => d.data.retroactive);
+const first = recorded[0]?.data.date;
+const last = recorded.at(-1)?.data.date;
+const groups = [
+  { key: 'recorded', heading: undefined, intro: undefined, items: recorded },
+  {
+    key: 'retroactive',
+    heading: 'Written up afterwards',
+    intro: `Decisions made during the build but never recorded at the time, reconstructed from the plan, design notes and commit history.`,
+    items: retroactive,
+  },
+].filter((g) => g.items.length);
 ---
 
 <Base title={`${info.name} decisions`} description={`The ${decisions.length} decision records behind ${info.name}: what was chosen, why, and what was rejected.`}>
-  <article class="wrap page" style={`--swatch: ${info.swatch}`}>
+  <article class="wrap page" style={`--swatch: ${info.swatch}; --ink: ${info.ink}`}>
     <header class="intro">
       <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> {info.name}</p>
       <h1>How {info.name} was decided</h1>
       <p class="lede">
-        {decisions.length} decision records, written as the product was built
+        {recorded.length} decision records, written as the product was built
         {first && last && <> between {formatDate(first)} and {formatDate(last)}</>}. Each one names what was chosen, why,
         and what was turned down. They're what the agents building {info.name} read before touching the code.
       </p>
       <p class="edit-note">
-        Lightly edited for publication: household details, private hostnames and internal issue numbers are removed.
+        Lightly edited for publication: personal details, places, private hostnames and internal references are removed.
         The reasoning is unchanged.
       </p>
     </header>
 
-    <ol class="log">
-      {
-        decisions.map((d) => (
-          <li>
-            <a href={`/work/${project}/decisions/${d.id.split('/')[1]}`}>
-              <span class="num">{pad(d.data.number)}</span>
-              <span class="body">
-                <span class="title">{d.data.title}</span>
-                <span class="summary">{d.data.summary}</span>
-              </span>
-              <span class="date">
-                {formatDate(d.data.date)}
-                {d.data.amended && <span class="amended">amended</span>}
-              </span>
-            </a>
-          </li>
-        ))
-      }
-    </ol>
+    {
+      groups.map((g) => (
+        <section class="group" aria-label={g.heading ?? 'Recorded at the time'}>
+          {g.heading && (
+            <header class="group-head">
+              <h2>{g.heading}</h2>
+              <p>{g.intro}</p>
+            </header>
+          )}
+          <ol class="log">
+            {g.items.map((d) => (
+              <li>
+                <a href={`/work/${project}/decisions/${d.id.split('/')[1]}`}>
+                  <span class="num">{pad(d.data.number)}</span>
+                  <span class="body">
+                    <span class="title">{d.data.title}</span>
+                    <span class="summary">{d.data.summary}</span>
+                  </span>
+                  <span class="date">
+                    {formatDate(d.data.date)}
+                    {d.data.amended && <span class="amended">amended</span>}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))
+    }
   </article>
 </Base>
 
@@ -104,6 +125,31 @@ const last = decisions.at(-1)?.data.date;
     border-left: 3px solid var(--swatch);
   }
 
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .group-head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 720px;
+  }
+
+  .group-head h2 {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .group-head p {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
   .log {
     margin: 0;
     padding: 0;
@@ -137,7 +183,7 @@ const last = decisions.at(-1)?.data.date;
   .num {
     font-family: var(--font-mono);
     font-size: 13px;
-    color: var(--swatch);
+    color: var(--ink);
     font-weight: 500;
   }
 

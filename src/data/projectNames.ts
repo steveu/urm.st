@@ -1,7 +1,8 @@
 // Display names and swatches for projects that have decision logs.
 export const projectInfo = {
-  eddy: { name: 'Eddy', swatch: 'var(--eddy)' },
-  'one-thought': { name: 'One Thought', swatch: 'var(--one-thought)' },
+  // swatch: decorative fills; ink: the same hue dark enough for text on the light ground
+  eddy: { name: 'Eddy', swatch: 'var(--eddy)', ink: 'var(--eddy)' },
+  'one-thought': { name: 'One Thought', swatch: 'var(--one-thought)', ink: '#7a5f2b' },
 } as const;
 
 export type ProjectKey = keyof typeof projectInfo;

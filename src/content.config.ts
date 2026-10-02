@@ -13,6 +13,8 @@ const decisions = defineCollection({
     date: z.coerce.date(),
     summary: z.string(),
     amended: z.array(z.coerce.date()).optional(),
+    // Written up after the fact from plans, design notes and commits, not recorded at the time
+    retroactive: z.boolean().optional(),
   }),
 });
 
