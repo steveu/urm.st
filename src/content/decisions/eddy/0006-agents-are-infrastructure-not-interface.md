@@ -23,4 +23,4 @@ The affirmed half: smart features go *inside* existing features — the guard's 
 ## Deferred
 
 - **Reasoning loops instead of one-shot inference.** The guard and discovery score items in batches. A future feature might benefit from multi-step loops (search, evaluate, search again). Revisit when a specific feature hits a wall that one-shot inference can't clear.
-- **The local model's ceiling.** This assumes Gemma-class models keep improving on consumer hardware. If that bet sours, frontier escalation for the guard is the existing fallback, reconciled with [decision 4](./0004-kids-consumption-never-leaves-m4) case by case.
+- **The local model's ceiling.** This assumes Gemma-class models keep improving on consumer hardware. If that bet sours, frontier escalation for the guard is the existing fallback, reconciled with [“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4) case by case.

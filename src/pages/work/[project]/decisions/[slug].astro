@@ -1,17 +1,17 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
-import { projectInfo, formatDate, pad, type ProjectKey } from '../../../../data/projectNames';
+import { projectInfo, formatDate, byDecided, slugOf, type ProjectKey } from '../../../../data/projectNames';
 
 export async function getStaticPaths() {
-  const all = (await getCollection('decisions')).sort((a, b) => a.data.number - b.data.number);
+  const all = (await getCollection('decisions')).sort(byDecided);
   return all.map((entry) => {
     const siblings = all.filter((d) => d.data.project === entry.data.project);
     const i = siblings.indexOf(entry);
     const link = (d?: (typeof all)[number]) =>
-      d && { href: d.id.split('/')[1], number: d.data.number, title: d.data.title };
+      d && { href: slugOf(d.id), date: d.data.date, title: d.data.title };
     return {
-      params: { project: entry.data.project, slug: entry.id.split('/')[1] },
+      params: { project: entry.data.project, slug: slugOf(entry.id) },
       props: { entry, prev: link(siblings[i - 1]), next: link(siblings[i + 1]), count: siblings.length },
     };
   });
@@ -29,13 +29,11 @@ const base = `/work/${project}/decisions`;
     <header class="intro">
       <p class="crumbs">
         <a href="/work">Work</a> <span aria-hidden="true">/</span>
-        <a href={base}>{info.name} decisions</a> <span aria-hidden="true">/</span>
-        {pad(entry.data.number)}
+        <a href={base}>{info.name} decisions</a>
       </p>
       <h1>{entry.data.title}</h1>
       <p class="summary">{entry.data.summary}</p>
       <p class="meta">
-        <span>Decision {entry.data.number}</span>
         <span>{entry.data.retroactive ? 'Decided' : 'Recorded'} {formatDate(entry.data.date)}</span>
         {entry.data.amended && <span>Amended {entry.data.amended.map(formatDate).join(', ')}</span>}
       </p>
@@ -57,7 +55,7 @@ const base = `/work/${project}/decisions`;
       {
         prev ? (
           <a class="prev" href={`${base}/${prev.href}`}>
-            <span class="dir">← {pad(prev.number)}</span>
+            <span class="dir">← {formatDate(prev.date)}</span>
             <span>{prev.title}</span>
           </a>
         ) : (
@@ -67,7 +65,7 @@ const base = `/work/${project}/decisions`;
       {
         next && (
           <a class="next" href={`${base}/${next.href}`}>
-            <span class="dir">{pad(next.number)} →</span>
+            <span class="dir">{formatDate(next.date)} →</span>
             <span>{next.title}</span>
           </a>
         )

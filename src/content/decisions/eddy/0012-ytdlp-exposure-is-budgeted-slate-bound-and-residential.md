@@ -7,7 +7,7 @@ summary: After a multi-day block, downloads only happen when a video is actually
 amended: [2026-07-20, 2026-07-23]
 ---
 
-After [decision 11](./0011-discovery-metadata-via-data-api) moved metadata to the Data API, downloads were the only meaningful yt-dlp traffic leaving the house. A July incident showed the remaining machinery still lost to a determined block. The flag survived three days, a yt-dlp update, the latest anti-bot token stack and a change of home IP — while the escalating cooldown's probe loop, one probe every twelve hours, each re-tripping the block, at best delayed recovery and at worst kept the flag warm.
+After [“Discovery metadata moves to the YouTube Data API”](./discovery-metadata-via-data-api) moved metadata to the Data API, downloads were the only meaningful yt-dlp traffic leaving the house. A July incident showed the remaining machinery still lost to a determined block. The flag survived three days, a yt-dlp update, the latest anti-bot token stack and a change of home IP — while the escalating cooldown's probe loop, one probe every twelve hours, each re-tripping the block, at best delayed recovery and at worst kept the flag warm.
 
 The database showed the real demand. About 25 downloads a day were going into a pool of around 1,000 ready videos — far more than the household could ever watch — and 65 of the 78 downloads stuck behind the block were eager fetches of uploads from followed channels that nobody had asked for.
 

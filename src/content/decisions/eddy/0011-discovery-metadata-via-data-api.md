@@ -25,8 +25,8 @@ That comes to about **3,900 of the 10,000** free units — comfortable headroom.
 ## Consequences
 
 - **When the quota runs out, discovery skips and warns. It does not fall back to scraping.** Falling back would defeat the point, which is to keep requests off the home IP.
-- **Downloads stay on yt-dlp, unconditionally.** Eddy still owns its files ([decision 2](./0002-eddy-owns-video-lifecycle)).
-- **The privacy boundary doesn't move.** Search terms already left the house under yt-dlp; this changes the transport, not what leaves. API calls carry a search string or an id, nothing about who's asking ([decision 4](./0004-kids-consumption-never-leaves-m4)).
+- **Downloads stay on yt-dlp, unconditionally.** Eddy still owns its files ([“Eddy owns the video lifecycle; Plex and nginx only read”](./eddy-owns-video-lifecycle)).
+- **The privacy boundary doesn't move.** Search terms already left the house under yt-dlp; this changes the transport, not what leaves. API calls carry a search string or an id, nothing about who's asking ([“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4)).
 - **A new secret,** required only when the flag is on: a read-only key for public data.
 - **Reversible** with no code change; the yt-dlp adapter is kept, not deleted.
 

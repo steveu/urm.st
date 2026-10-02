@@ -10,7 +10,7 @@ The guard's long-term shape is a small local classifier — one head per **Rubri
 
 The household can't produce them. One parent labelling one family's traffic yields hundreds, skewed to whatever the kids are into this term, and a model trained on that learns their topics rather than the parent's standards. So training labels come from a **frontier model acting as an offline teacher**, labelling a **public pool** of YouTube videos against the rubric. I audit a sample of the teacher's labels, and the rubric is revised until we agree.
 
-**The pool never touches Eddy's data.** It's sampled from public YouTube, seeded from generic genre lists and public research datasets — never from anything derived from a household member. The pool builder can't even import Eddy's database client; the boundary is enforced by the code's dependency graph, not by convention. What reaches the frontier model is public metadata about public videos, with nothing about who in the house might watch them. That's why this sits outside [decision 4](./0004-kids-consumption-never-leaves-m4) rather than bending it.
+**The pool never touches Eddy's data.** It's sampled from public YouTube, seeded from generic genre lists and public research datasets — never from anything derived from a household member. The pool builder can't even import Eddy's database client; the boundary is enforced by the code's dependency graph, not by convention. What reaches the frontier model is public metadata about public videos, with nothing about who in the house might watch them. That's why this sits outside [“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4) rather than bending it.
 
 **Household decisions are evaluation data, never training data.** Parent escalations and spot checks measure every guard configuration — today's Gemma prompt, off-the-shelf baseline models, the trained classifier — and may later serve as retrieved precedents. They're never sent to the teacher and never used to train. A held-out slice is never used as precedent either, so the whole stack can be scored honestly.
 
@@ -19,7 +19,7 @@ The household can't produce them. One parent labelling one family's traffic yiel
 ## Consequences
 
 - **The training data has to match what the guard sees live.** Transcripts only exist for videos that have been downloaded, so the classifier needs a metadata-only path for candidates and a metadata-plus-transcript path after download.
-- **The pool fetches no transcripts.** That would add download traffic from the home IP ([decision 12](./0012-ytdlp-exposure-is-budgeted-slate-bound-and-residential)). Transcripts come only from public datasets that already include them.
+- **The pool fetches no transcripts.** That would add download traffic from the home IP ([“Downloads are budgeted, demand-driven and residential”](./ytdlp-exposure-is-budgeted-slate-bound-and-residential)). Transcripts come only from public datasets that already include them.
 - **The rubric becomes load-bearing.** The guard prompt, the teacher prompt, the parent's reason chips and the classifier's outputs all read one versioned rubric. Changing it means relabelling, so every label records its rubric version.
 - **"No frontier model anywhere in Eddy" stops being true.** The accurate claim is: no frontier model ever sees household data, and none runs at request time.
 

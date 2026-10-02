@@ -11,3 +11,10 @@ export const formatDate = (d: Date) =>
   d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 export const pad = (n: number) => String(n).padStart(4, '0');
+
+// Chronological order: by the date decided, then ADR number for same-day decisions
+export const byDecided = (a: { data: { date: Date; number: number } }, b: { data: { date: Date; number: number } }) =>
+  a.data.date.getTime() - b.data.date.getTime() || a.data.number - b.data.number;
+
+// Public URL slug: the filename without its ADR number (files keep numbers to match the source repos)
+export const slugOf = (id: string) => id.split('/')[1].replace(/^\d{4}-/, '');

@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
-import { projectInfo, formatDate, pad, type ProjectKey } from '../../../../data/projectNames';
+import { projectInfo, formatDate, byDecided, slugOf, type ProjectKey } from '../../../../data/projectNames';
 
 export async function getStaticPaths() {
   const all = await getCollection('decisions');
@@ -11,33 +11,22 @@ export async function getStaticPaths() {
 
 const project = Astro.params.project as ProjectKey;
 const info = projectInfo[project];
-const decisions = (await getCollection('decisions', (d) => d.data.project === project)).sort(
-  (a, b) => a.data.number - b.data.number,
-);
-const recorded = decisions.filter((d) => !d.data.retroactive);
-const retroactive = decisions.filter((d) => d.data.retroactive);
-const first = recorded[0]?.data.date;
-const last = recorded.at(-1)?.data.date;
-const groups = [
-  { key: 'recorded', heading: undefined, intro: undefined, items: recorded },
-  {
-    key: 'retroactive',
-    heading: 'Written up afterwards',
-    intro: `Decisions made during the build but never recorded at the time, reconstructed from the plan, design notes and commit history.`,
-    items: retroactive,
-  },
-].filter((g) => g.items.length);
+const decisions = (await getCollection('decisions', (d) => d.data.project === project)).sort(byDecided);
+const retroCount = decisions.filter((d) => d.data.retroactive).length;
+const first = decisions[0]?.data.date;
+const last = decisions.at(-1)?.data.date;
 ---
 
-<Base title={`${info.name} decisions`} description={`The ${decisions.length} decision records behind ${info.name}: what was chosen, why, and what was rejected.`}>
+<Base title={`${info.name} decisions`} description={`The ${decisions.length} decisions behind ${info.name}: what was chosen, why, and what was rejected.`}>
   <article class="wrap page" style={`--swatch: ${info.swatch}; --ink: ${info.ink}`}>
     <header class="intro">
       <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> {info.name}</p>
       <h1>How {info.name} was decided</h1>
       <p class="lede">
-        {recorded.length} decision records, written as the product was built
-        {first && last && <> between {formatDate(first)} and {formatDate(last)}</>}. Each one names what was chosen, why,
-        and what was turned down. They're what the agents building {info.name} read before touching the code.
+        {decisions.length} decisions, in the order they were made{first && last && <>, from {formatDate(first)} to {formatDate(last)}</>}.
+        Each one names what was chosen, why, and what was turned down. They’re what the agents building {info.name} read
+        before touching the code.
+        {retroCount > 0 && <> {retroCount} were written up afterwards, reconstructed from the plan, design notes and commit history.</>}
       </p>
       <p class="edit-note">
         Lightly edited for publication: personal details, places, private hostnames and internal references are removed.
@@ -45,35 +34,27 @@ const groups = [
       </p>
     </header>
 
-    {
-      groups.map((g) => (
-        <section class="group" aria-label={g.heading ?? 'Recorded at the time'}>
-          {g.heading && (
-            <header class="group-head">
-              <h2>{g.heading}</h2>
-              <p>{g.intro}</p>
-            </header>
-          )}
-          <ol class="log">
-            {g.items.map((d) => (
-              <li>
-                <a href={`/work/${project}/decisions/${d.id.split('/')[1]}`}>
-                  <span class="num">{pad(d.data.number)}</span>
-                  <span class="body">
-                    <span class="title">{d.data.title}</span>
-                    <span class="summary">{d.data.summary}</span>
+    <ol class="log">
+      {
+        decisions.map((d) => (
+          <li>
+            <a href={`/work/${project}/decisions/${slugOf(d.id)}`}>
+              <span class="date">{formatDate(d.data.date)}</span>
+              <span class="body">
+                <span class="title">{d.data.title}</span>
+                <span class="summary">{d.data.summary}</span>
+                {(d.data.retroactive || d.data.amended) && (
+                  <span class="tags">
+                    {d.data.retroactive && <span class="tag">written up afterwards</span>}
+                    {d.data.amended && <span class="tag amended">amended</span>}
                   </span>
-                  <span class="date">
-                    {formatDate(d.data.date)}
-                    {d.data.amended && <span class="amended">amended</span>}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ))
-    }
+                )}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
   </article>
 </Base>
 
@@ -125,31 +106,6 @@ const groups = [
     border-left: 3px solid var(--swatch);
   }
 
-  .group {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .group-head {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 720px;
-  }
-
-  .group-head h2 {
-    font-size: 24px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-
-  .group-head p {
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--muted);
-  }
-
   .log {
     margin: 0;
     padding: 0;
@@ -163,7 +119,7 @@ const groups = [
 
   .log a {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1fr) 130px;
+    grid-template-columns: 110px minmax(0, 1fr);
     gap: 24px;
     align-items: baseline;
     padding: 22px 8px;
@@ -180,18 +136,19 @@ const groups = [
     color: var(--accent);
   }
 
-  .num {
+  .date {
     font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--ink);
+    font-size: 12px;
     font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
   }
 
   .body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    max-width: 720px;
+    max-width: 760px;
   }
 
   .title {
@@ -209,33 +166,31 @@ const groups = [
     text-wrap: pretty;
   }
 
-  .date {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--faint);
-    text-align: right;
+  .tags {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
   }
 
-  .amended {
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--muted);
+  }
+
+  .tag.amended {
     color: var(--accent);
   }
 
   @media (max-width: 640px) {
     .log a {
-      grid-template-columns: 48px minmax(0, 1fr);
-      gap: 4px 12px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
       padding: 18px 4px;
-    }
-
-    .date {
-      grid-column: 2;
-      text-align: left;
-      flex-direction: row;
-      gap: 10px;
-      margin-top: 4px;
     }
   }
 </style>

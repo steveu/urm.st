@@ -16,7 +16,7 @@ Everything in the codebase calls a single `notify()` function, and that's the on
 ## Consequences
 
 - If the channel has an outage, urgent notifications wait. That's the price of the principle; a fallback channel is not the answer.
-- Every action button depends on the signed-link pattern surviving a channel swap. See [decision 5](./0005-single-use-signed-tokens).
+- Every action button depends on the signed-link pattern surviving a channel swap. See [“Single-use signed tokens for notification actions”](./single-use-signed-tokens).
 - Moving to native push means re-pointing `notify()`. The user-visible surface — events, priorities, actions — doesn't change.
 
 ## Amendment — 19 September 2026: ntfy removed, log-only until push lands
@@ -27,4 +27,4 @@ The evidence is the whole argument. Nothing in the household used ntfy after the
 
 **The interim transport is log-only.** `notify()` remains the single contract and every event is written to the structured log. Nothing is added to cover the gap — a stopgap second channel is precisely the fragmentation this decision exists to prevent.
 
-Native push becomes simply the first real transport behind `notify()` ([decision 13](./0013-native-ios-is-a-thin-shell-with-apns-push)). The sequencing follows: the guard can't go live without push, because an uncertain verdict has to reach a parent.
+Native push becomes simply the first real transport behind `notify()` ([“Native iOS is a thin shell; push is APNs”](./native-ios-is-a-thin-shell-with-apns-push)). The sequencing follows: the guard can't go live without push, because an uncertain verdict has to reach a parent.
