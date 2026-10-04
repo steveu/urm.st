@@ -1,4 +1,3 @@
-@import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
 @import '@fontsource-variable/merriweather';
 @import '@fontsource-variable/mulish';
@@ -23,11 +22,12 @@
   --one-thought: #c7a14e;
   --live: #2e8a57;
 
-  --font-sans: 'Geist Variable', 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* The original site's pair: Merriweather headings, Muli (now Mulish) for everything else */
+  --font-sans: 'Mulish Variable', 'Helvetica Neue', Arial, sans-serif;
   --font-serif: 'Merriweather Variable', Georgia, serif;
-  /* The original site's pair: Merriweather headings, Muli (now Mulish) UI */
-  --font-ui: 'Mulish Variable', 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: var(--font-sans);
+  /* Dates, counts and code only */
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
 
   --page-max: 1240px;
   --gutter: clamp(16px, 4vw, 32px);
@@ -84,6 +84,13 @@ p {
   margin: 0;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+
 .wrap {
   max-width: var(--page-max);
   margin-inline: auto;
@@ -131,9 +138,7 @@ p {
 
 .prose h2 {
   margin-top: 2.2em;
-  font-size: 22px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: 21px;
   line-height: 1.3;
 }
 
