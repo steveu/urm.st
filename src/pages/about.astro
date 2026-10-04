@@ -1,8 +1,128 @@
 ---
 import Base from '../layouts/Base.astro';
-import Placeholder from '../components/Placeholder.astro';
 ---
 
-<Base title="About">
-  <Placeholder title="About" />
+<Base title="About" description="Steve Urmston: designer, engineer and product manager since 2003, now building products with AI. Based in York, UK.">
+  <article class="wrap page">
+    <figure class="portrait">
+      <picture>
+        <source media="(min-width: 761px)" srcset="/assets/images/steve-urmston.jpg" />
+        <img src="/assets/images/steve-urmston.landscape.jpg" alt="Steve Urmston, smiling, at a riverside table" width="720" height="860" />
+      </picture>
+    </figure>
+
+    <div class="body">
+      <h1>
+        I
+        <span class="heart">
+          <span class="visually-hidden">heart</span>
+          <svg viewBox="2 2.9 20 18.5" aria-hidden="true">
+            <path d="M12 21.4 10.6 20.1C5.4 15.4 2 12.3 2 8.4 2 5.3 4.4 2.9 7.5 2.9c1.7 0 3.4.8 4.5 2.1 1.1-1.3 2.8-2.1 4.5-2.1 3.1 0 5.5 2.4 5.5 5.5 0 3.9-3.4 7-8.6 11.7z" />
+          </svg>
+        </span>
+        product
+      </h1>
+
+      <div class="copy">
+        <p>
+          Hi, I’m Steve. I started my own web design business in 2003, straight out of university. After that came seven years at a York agency, and an MSc in Human-Centred Interactive Technologies.
+        </p>
+        <p>
+          Since then I’ve worked as a UX developer, a product manager and a lead frontend engineer. I’ve never quite settled on one of them, and I’ve stopped trying.
+        </p>
+        <p>
+          I live in York with my wife and our two boys. I make furniture with hand tools. I play football, golf and padel, and the mental side of sport interests me as much as the playing.
+        </p>
+      </div>
+    </div>
+  </article>
 </Base>
+
+<style>
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+    padding-block: clamp(56px, 8vw, 96px) 0;
+  }
+
+  .portrait {
+    margin: 0;
+  }
+
+  .portrait img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 720 / 860;
+    object-fit: cover;
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 34em;
+  }
+
+  h1 {
+    font-size: clamp(32px, 4.4vw, 50px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  /* Lub-dub a few times on arrival, then rest; beats again on hover */
+  .heart svg {
+    display: inline-block;
+    /* Lowercase height, so it reads as part of the line rather than a capital */
+    width: 0.584em;
+    height: 0.54em;
+    margin-inline: 0.2em;
+    vertical-align: 0.02em;
+    /* The viewBox is cropped to the shape, so let anti-aliased edges spill over */
+    overflow: visible;
+    fill: var(--orange);
+    transform-origin: 50% 55%;
+    animation: beat 1.6s ease-in-out 0.8s 3;
+  }
+
+  h1:hover .heart svg {
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes beat {
+    0%, 40%, 100% { transform: scale(1); }
+    12% { transform: scale(1.1); }
+    22% { transform: scale(0.98); }
+    30% { transform: scale(1.06); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .heart svg {
+      animation: none;
+    }
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 760px) {
+    .page {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+
+    .portrait img {
+      aspect-ratio: 720 / 320;
+    }
+  }
+</style>
