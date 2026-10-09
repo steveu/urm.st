@@ -20,15 +20,16 @@ const LOOT_BOX_ESCALATES = [true, false, false];
 export type Verdict = 'clear-yes' | 'uncertain' | 'clear-no';
 export type Choice = 'allow' | 'unsafe' | 'not-for-us';
 
-// `saw` is the guard's short written reason, as a parent's Decisions card shows it
-export type Sample = { title: string; colour: string; dur: string; scores: number[]; lootBox?: boolean; saw: string };
+// `saw` is the guard's short written reason, as a parent's Decisions card shows it.
+// `seen` is the family's own history with the channel, from past decisions, not the guard.
+export type Sample = { title: string; channel: string; seen: string; colour: string; dur: string; scores: number[]; lootBox?: boolean; saw: string };
 
 export const SAMPLES: Sample[] = [
-  { title: 'How do volcanoes actually work?', dur: '14:02', colour: '#c9653a', scores: [0, 0, 1, 0, 0, 0, 0, 0], saw: 'A science explainer. One short eruption clip, nothing graphic.' },
-  { title: 'Losing it at the final boss', dur: '18:20', colour: '#4f7a8a', scores: [2, 0, 0, 0, 0, 0, 0, 1], saw: 'Gameplay with regular swearing when the player loses, mostly mild.' },
-  { title: 'Opening 50 mystery packs!!', dur: '22:41', colour: '#8b5fa6', scores: [1, 0, 0, 0, 0, 0, 2, 1], lootBox: true, saw: 'Opens paid card packs, loot-box style, with constant hype about rare pulls.' },
-  { title: 'Parkour roof run, POV', dur: '8:15', colour: '#5e7f5a', scores: [0, 0, 1, 0, 0, 2, 0, 1], saw: 'Rooftop running filmed first-person, with jumps between buildings that kids copy.' },
-  { title: 'Scariest things caught on camera at 3am', dur: '11:37', colour: '#3f4a5a', scores: [1, 1, 3, 0, 0, 0, 0, 1], saw: 'Clips edited to frighten, with jump scares and creepy music throughout.' },
+  { title: 'How do volcanoes actually work?', channel: 'Magma Desk', seen: '3 allowed', dur: '14:02', colour: '#c9653a', scores: [0, 0, 1, 0, 0, 0, 0, 0], saw: 'A science explainer. One short eruption clip, nothing graphic.' },
+  { title: 'Losing it at the final boss', channel: 'Boss Rush Benny', seen: '1 allowed, 1 not for us', dur: '18:20', colour: '#4f7a8a', scores: [2, 0, 0, 0, 0, 0, 0, 1], saw: 'Gameplay with regular swearing when the player loses, mostly mild.' },
+  { title: 'Opening 50 mystery packs!!', channel: 'Pack Party', seen: '2 not for us', dur: '22:41', colour: '#8b5fa6', scores: [1, 0, 0, 0, 0, 0, 2, 1], lootBox: true, saw: 'Opens paid card packs, loot-box style, with constant hype about rare pulls.' },
+  { title: 'Parkour roof run, POV', channel: 'Rooftop Crew', seen: 'New channel', dur: '8:15', colour: '#5e7f5a', scores: [0, 0, 1, 0, 0, 2, 0, 1], saw: 'Rooftop running filmed first-person, with jumps between buildings that kids copy.' },
+  { title: 'Scariest things caught on camera at 3am', channel: 'After Midnight Files', seen: 'New channel', dur: '11:37', colour: '#3f4a5a', scores: [1, 1, 3, 0, 0, 0, 0, 1], saw: 'Clips edited to frighten, with jump scares and creepy music throughout.' },
 ];
 
 export const START = { sample: 3, band: 1 };
@@ -107,15 +108,27 @@ const CHOICES: [Choice, string][] = [
   ['not-for-us', 'Not for us'],
 ];
 
-// The parent's Decisions card, with what the guard saw; quiet when the guard was sure
+// Eddy's app icon, small, for the notification
+const APP_ICON = `<svg class="app" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="115" fill="#1b2a41"/><rect x="40" y="40" width="432" height="432" rx="105" fill="#21405a"/><rect x="88" y="88" width="336" height="336" rx="92" fill="#2b6377"/><rect x="136" y="136" width="240" height="240" rx="72" fill="#4e9ca0"/><path d="M228 208V304L308 256Z" fill="#faf6ec" stroke="#faf6ec" stroke-width="20" stroke-linejoin="round"/></svg>`;
+
+// The parent's push notification, long-pressed as on iOS 27: the notification lifts out
+// of the stack and the three answers open beneath it. Quiet when the guard was sure.
 export function parentHtml(s: Sample, band: number, choice?: Choice) {
   const d = decide(s, band);
   if (d.verdict === 'clear-yes') return '<p class="quiet">Never reaches a parent. The guard was sure.</p>';
   if (d.verdict === 'clear-no') return '<p class="quiet">Only reaches a parent if the kid asks for it.</p>';
-  return `<div class="pcard">
-      <div class="row"><span class="thumb" style="background:${s.colour}"><span class="dur">${s.dur}</span></span><span><span class="t">${esc(s.title)}</span><span class="m">A kid asked · ${BANDS[band]}</span></span></div>
-      <p class="saw">${esc(s.saw)}</p>
-      <div class="choices${choice ? ' chosen' : ''}">${CHOICES.map(([k, label]) => `<button type="button" data-choice="${k}" aria-pressed="${choice === k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${label}</button>`).join('')}</div>
+  return `<div class="ios">
+      <div class="note">
+        ${APP_ICON}
+        <div class="body">
+          <p class="head">Alex asked to watch</p>
+          <p class="v">${esc(s.title)}</p>
+          <p class="ch">${esc(s.channel)} · ${s.seen}</p>
+          <p class="saw">${esc(s.saw)}</p>
+        </div>
+        <span class="thumb" style="background:${s.colour}"><span class="dur">${s.dur}</span></span>
+      </div>
+      <div class="actions${choice ? ' chosen' : ''}">${CHOICES.map(([k, label]) => `<button type="button" data-choice="${k}" aria-pressed="${choice === k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${label}</button>`).join('')}</div>
     </div>
     ${choice ? `<p class="means">${MEANS[choice]}</p>` : ''}`;
 }
@@ -134,20 +147,15 @@ export function kidState(s: Sample, band: number, choice?: Choice) {
   return { tone: 'wait', label: 'Waiting for a grown-up', reason: '' };
 }
 
-// The kid's Feed: their ask on top, then the day's short Today, which ends
+// The kid's Feed card for what they asked for, and where it stands
 export function kidHtml(s: Sample, band: number, choice?: Choice) {
   const k = kidState(s, band, choice);
   const play = k.tone === 'yes' ? '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2v6l5-3z" fill="currentColor"/></svg>' : '';
-  return `<p class="sec">You asked</p>
-    <div class="kcard ${k.tone}">
+  return `<div class="kcard ${k.tone}">
       <span class="thumb" style="background:${s.colour}">${play}<span class="dur">${s.dur}</span></span>
       <span><span class="t">${esc(s.title)}</span><span class="m"><span class="pill">You asked</span> <span class="st">${k.label}</span></span></span>
     </div>
-    ${k.reason ? `<p class="reason">${k.reason}</p>` : ''}
-    <p class="sec">Today</p>
-    <div class="kcard"><span class="thumb" style="background:#b0884a"><span class="dur">12:05</span></span><span><span class="t">Why bridges don’t fall down</span><span class="m">Bridge Lab</span></span></div>
-    <div class="kcard"><span class="thumb" style="background:#7d6aa8"><span class="dur">9:30</span></span><span><span class="t">The smallest working engine</span><span class="m">Tiny Machines</span></span></div>
-    <p class="end">That’s Today.</p>`;
+    ${k.reason ? `<p class="reason">${k.reason}</p>` : ''}`;
 }
 
 export function announce(s: Sample, band: number, choice?: Choice) {

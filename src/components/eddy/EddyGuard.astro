@@ -100,7 +100,7 @@ const limits = limitsFor(START.band);
         </div>
       </div>
     </div>
-    <p class="note">Example links and scores.</p>
+    <p class="note">Example names, links and scores.</p>
 
     <div class="close">
       <p>
@@ -204,14 +204,21 @@ const limits = limitsFor(START.band);
       }
     });
 
-    // The first time the band is seen, the rings slide in from the right, the icon lands
-    // on them. Scripts off or reduced motion: it's just there.
+    // The first time the band is seen, the icon comes in from the right with the rings
+    // trailing it, then the starting link’s verdict ripples out. Scripts off or reduced
+    // motion: it's just there.
     if (!reduce) {
+      // Start each piece just past the page edge, so it travels the real distance
+      const from = () => art.style.setProperty('--from', `${innerWidth - art.getBoundingClientRect().left + 24}px`);
+      from();
       art.classList.add('ready');
       new IntersectionObserver((entries, io) => {
         if (!entries[0].isIntersecting) return;
         io.disconnect();
+        from();
         art.classList.add('in');
+        // Once it has landed, the selected link gets its check
+        setTimeout(() => pulse(decide(SAMPLES[sample], band).verdict), 1100);
       }, { threshold: 0.35 }).observe(art);
     }
   }
@@ -307,21 +314,25 @@ const limits = limitsFor(START.band);
     35% { opacity: calc(var(--o) + 0.08); }
   }
 
-  /* Entrance: the rings slide in from the right, outermost first, decelerating like
-     something with weight; the icon follows and settles on a slight spring. Larger
-     rings travel a touch slower. Off-screen until the band is seen. */
+  /* Entrance: the icon leads in from just past the right edge and the rings trail it
+     like a wake, inner first, so they spread out on the way in and close up behind it.
+     One spring for all four, so they read as one object with follow-through. --from is
+     the distance to the page edge, set by the script. */
   .art.ready:not(.in) > * {
-    transform: translateX(100vw);
+    transform: translateX(var(--from, 100vw));
   }
 
-  .art.in .b1 { animation: enter 1.15s cubic-bezier(0.16, 1, 0.3, 1) both, breathe 7s ease-in-out 1.2s infinite; }
-  .art.in .b2 { animation: enter 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both, breathe 7s ease-in-out 0.6s infinite; }
-  .art.in .b3 { animation: enter 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both, breathe 7s ease-in-out infinite; }
-  .art.in .icon { animation: enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both; }
-  .art.in .icon { animation: enter 0.95s linear(0, 0.023, 0.0812, 0.1614, 0.2535, 0.3497, 0.4447, 0.5347, 0.6174, 0.6914, 0.7561, 0.8116, 0.8584, 0.897, 0.9282, 0.953, 0.9723, 0.9869, 0.9976, 1.0051, 1.0101, 1.0132, 1.0147, 1.0152, 1.0148, 1.0139, 1.0127, 1.0113, 1.0098, 1.0084, 1.007, 1.0058, 1.0047, 1.0037, 1.0028, 1.0021, 1.0016, 1.0011, 1.0007, 1.0004, 1) 0.32s both; }
+  .art.in > * {
+    will-change: transform;
+  }
+
+  .art.in .icon { animation: enter 1.1s linear(0, 0.0175, 0.0633, 0.1288, 0.2069, 0.2917, 0.3788, 0.4646, 0.5466, 0.6231, 0.6928, 0.7552, 0.8101, 0.8574, 0.8975, 0.931, 0.9583, 0.9801, 0.9971, 1.0099, 1.0191, 1.0254, 1.0292, 1.0311, 1.0315, 1.0308, 1.0292, 1.027, 1.0245, 1.0218, 1.019, 1.0163, 1.0138, 1.0114, 1.0093, 1.0073, 1.0057, 1.0042, 1.003, 1.002, 1.0012, 1.0005, 1, 0.9996, 0.9993, 0.9992, 0.9991, 0.999, 1) both; }
+  .art.in .b3 { animation: enter 1.1s linear(0, 0.0175, 0.0633, 0.1288, 0.2069, 0.2917, 0.3788, 0.4646, 0.5466, 0.6231, 0.6928, 0.7552, 0.8101, 0.8574, 0.8975, 0.931, 0.9583, 0.9801, 0.9971, 1.0099, 1.0191, 1.0254, 1.0292, 1.0311, 1.0315, 1.0308, 1.0292, 1.027, 1.0245, 1.0218, 1.019, 1.0163, 1.0138, 1.0114, 1.0093, 1.0073, 1.0057, 1.0042, 1.003, 1.002, 1.0012, 1.0005, 1, 0.9996, 0.9993, 0.9992, 0.9991, 0.999, 1) 0.07s both, breathe 7s ease-in-out 1.2s infinite; }
+  .art.in .b2 { animation: enter 1.1s linear(0, 0.0175, 0.0633, 0.1288, 0.2069, 0.2917, 0.3788, 0.4646, 0.5466, 0.6231, 0.6928, 0.7552, 0.8101, 0.8574, 0.8975, 0.931, 0.9583, 0.9801, 0.9971, 1.0099, 1.0191, 1.0254, 1.0292, 1.0311, 1.0315, 1.0308, 1.0292, 1.027, 1.0245, 1.0218, 1.019, 1.0163, 1.0138, 1.0114, 1.0093, 1.0073, 1.0057, 1.0042, 1.003, 1.002, 1.0012, 1.0005, 1, 0.9996, 0.9993, 0.9992, 0.9991, 0.999, 1) 0.14s both, breathe 7s ease-in-out 1.8s infinite; }
+  .art.in .b1 { animation: enter 1.1s linear(0, 0.0175, 0.0633, 0.1288, 0.2069, 0.2917, 0.3788, 0.4646, 0.5466, 0.6231, 0.6928, 0.7552, 0.8101, 0.8574, 0.8975, 0.931, 0.9583, 0.9801, 0.9971, 1.0099, 1.0191, 1.0254, 1.0292, 1.0311, 1.0315, 1.0308, 1.0292, 1.027, 1.0245, 1.0218, 1.019, 1.0163, 1.0138, 1.0114, 1.0093, 1.0073, 1.0057, 1.0042, 1.003, 1.002, 1.0012, 1.0005, 1, 0.9996, 0.9993, 0.9992, 0.9991, 0.999, 1) 0.21s both, breathe 7s ease-in-out 2.4s infinite; }
 
   @keyframes enter {
-    from { transform: translateX(100vw); }
+    from { transform: translateX(var(--from, 100vw)); }
   }
 
   /* Starts on the icon's own squircle and grows through the rings */
@@ -616,27 +627,21 @@ const limits = limitsFor(START.band);
     color: var(--faint);
   }
 
-  .parent :global(.pcard), .kid {
+  .kid {
     padding: 12px;
     border-radius: 14px;
     background: rgb(243 239 230 / 0.06);
     box-shadow: inset 0 0 0 1px rgb(243 239 230 / 0.08);
   }
 
-  .parent :global(.pcard) {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .stage :global(.row), .kid :global(.kcard) {
+  .kid :global(.kcard) {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 
   /* Video thumbnails, 16:9 with the running time, as in the app */
-  .stage :global(.row .thumb), .kid :global(.thumb) {
+  .kid :global(.thumb) {
     position: relative;
     flex-shrink: 0;
     display: grid;
@@ -645,10 +650,6 @@ const limits = limitsFor(START.band);
     aspect-ratio: 16 / 9;
     border-radius: 5px;
     color: var(--ink);
-  }
-
-  .stage :global(.row .thumb) {
-    width: 80px;
   }
 
   .stage :global(.dur) {
@@ -667,73 +668,162 @@ const limits = limitsFor(START.band);
     height: 12px;
   }
 
-  .stage :global(.t) {
+  .kid :global(.t) {
     display: block;
     font-size: 13px;
     line-height: 1.3;
     color: var(--ink);
   }
 
-  .stage :global(.m) {
+  .kid :global(.m) {
     display: block;
     margin-top: 2px;
     font-size: 11.5px;
     color: var(--faint);
   }
 
+  /* The parent's notification, long-pressed as on iOS 27: the notification lifts out as a
+     solid dark platter, and the answers open beneath it in a Liquid Glass menu, narrower
+     and set in under the text, icon first, no dividers, Unsafe in the destructive red */
+  .parent :global(.ios) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .parent :global(.note) {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px 28px 14px;
+    border-radius: 26px;
+    background: #1c1c1e;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  }
+
+  .parent :global(.app) {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+  }
+
+  .parent :global(.body) {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.3;
+    color: #fff;
+  }
+
+  .parent :global(.head) {
+    font-weight: 600;
+  }
+
+  /* iOS's three weights: title and subtitle bold, body regular */
+  .parent :global(.v) {
+    font-weight: 600;
+  }
+
+  .parent :global(.ch) {
+    margin-top: 2px;
+  }
+
   .parent :global(.saw) {
-    font-size: 12.5px;
-    line-height: 1.45;
-    color: var(--ink);
+    margin-top: 2px;
+  }
+
+  /* The thumbnail, as the notification's attachment */
+  .parent :global(.note .thumb) {
+    position: relative;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    margin-top: 2px;
+    border-radius: 8px;
   }
 
   .parent :global(.means) {
-    margin-top: 8px;
+    margin-top: 10px;
     font-size: 12.5px;
     line-height: 1.45;
     color: var(--soft);
   }
 
-  /* As in the app: three answers, each filled in its own colour */
-  .parent :global(.choices) {
+  /* Glass needs something to work on: it overlaps the notification's lower edge, so the
+     blur has the dark platter to refract, and carries its own light: a sheen from the
+     top, a specular spot, a rim lit from the top left, and a trace of grain */
+  .parent :global(.actions) {
+    position: relative;
+    z-index: 1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    align-self: flex-start;
+    min-width: 150px;
+    margin: -22px 0 0 44px;
+    padding: 4px;
+    border-radius: 18px;
+    background:
+      radial-gradient(120% 70% at 18% 0%, rgb(255 255 255 / 0.12), transparent 60%),
+      linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02) 55%, rgb(255 255 255 / 0.05)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"),
+      rgb(130 140 140 / 0.34);
+    backdrop-filter: blur(14px) saturate(1.4) brightness(1.06);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4) brightness(1.06);
+    box-shadow:
+      inset 0 -1px 1px rgb(255 255 255 / 0.08),
+      0 12px 32px rgb(0 0 0 / 0.3),
+      0 2px 6px rgb(0 0 0 / 0.15);
   }
 
-  .parent :global(.choices button) {
+  /* The rim: a one-pixel edge, bright where the light hits and nearly gone opposite */
+  .parent :global(.actions)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(150deg, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.08) 40%, rgb(255 255 255 / 0.03) 60%, rgb(255 255 255 / 0.16));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .parent :global(.actions button) {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-height: 28px;
-    padding: 0 10px 0 8px;
+    gap: 10px;
+    min-height: 32px;
+    padding: 0 14px 0 10px;
     border: 0;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
+    border-radius: 14px;
+    background: transparent;
+    font-size: 13.5px;
+    text-align: left;
     color: #fff;
-    transition: opacity 0.12s, filter 0.12s;
+    transition: opacity 0.12s, background-color 0.12s;
   }
 
-  .parent :global(.choices svg) {
+  .parent :global(.actions button:hover) {
+    background: rgb(255 255 255 / 0.12);
+  }
+
+  .parent :global(.actions [data-choice='unsafe']) {
+    color: #ff453a;
+  }
+
+  .parent :global(.actions svg) {
     flex-shrink: 0;
-    width: 12px;
-    height: 12px;
+    width: 15px;
+    height: 15px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 2.25;
+    stroke-width: 1.9;
     stroke-linecap: round;
     stroke-linejoin: round;
-  }
-
-  .parent :global([data-choice='allow']) { background: #3a7d5a; }
-  .parent :global([data-choice='unsafe']) { background: #a9473f; }
-  .parent :global([data-choice='not-for-us']) { background: rgb(243 239 230 / 0.16); color: var(--ink); }
-
-  .parent :global(.choices button:hover) {
-    filter: brightness(1.12);
   }
 
   /* Once answered, the other two step back */
@@ -741,22 +831,14 @@ const limits = limitsFor(START.band);
     opacity: 0.35;
   }
 
+  .parent :global(.chosen [aria-pressed='true']) {
+    font-weight: 600;
+  }
+
   .kid {
     display: flex;
     flex-direction: column;
     gap: 8px;
-  }
-
-  .kid :global(.sec) {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--faint);
-  }
-
-  .kid :global(.sec:not(:first-child)) {
-    margin-top: 4px;
   }
 
   .kid :global(.pill) {
@@ -778,14 +860,6 @@ const limits = limitsFor(START.band);
     font-size: 12px;
     line-height: 1.45;
     color: var(--soft);
-  }
-
-  .kid :global(.end) {
-    padding-top: 6px;
-    border-top: 1px dashed var(--hair);
-    text-align: center;
-    font: italic 12px var(--font-serif);
-    color: var(--faint);
   }
 
   .note {
