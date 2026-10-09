@@ -4,19 +4,20 @@ number: 13
 title: Native iOS is a thin shell; push is APNs
 date: 2026-09-19
 summary: The iOS app wraps the existing web app and adds only what a web page can’t do, and push notifications carry an opaque id so nothing about the kids passes through Apple.
+amended: [2026-10-09]
 ---
 
-The native iOS app is a shell, not a second client. A web view loads the existing web app and renders every screen — feed, player, request page, profile, search. Swift owns only what a web page can't do on iOS: a share extension, an App Intent so Shortcuts and Siri can still reach Eddy, push notifications with lock-screen action buttons, deep links, a "can't reach Eddy" fallback screen, and the user's identity held in the Keychain. There's no native feed, no native player and no second design system.
+The native iOS app is a shell, not a second client. A web view loads the existing web app and renders every screen — feed, player, request page, profile, search. Swift owns only what a web page can't do on iOS: a share extension, an App Intent so Shortcuts and Siri can still reach Eddy, push notifications (lock-screen action buttons to follow), deep links, a "can't reach Eddy" fallback screen, and the user's identity held in the Keychain. There's no native feed, no native player and no second design system.
 
-The shape is the decision. A fully native interface would double every later piece of UI work, and the web app would still exist because the iPads and the Mac use it. The shell buys the four things that were genuinely missing — a real share target, real push, a real app icon, an identity that survives — and nothing else. When the feed changes, the shell doesn't.
+The shape is the decision. A fully native interface would double every later piece of UI work, and the web app would still exist because other devices use it. The shell buys the four things that were genuinely missing — a real share target, real push, a real app icon, an identity that survives — and nothing else. When the feed changes, the shell doesn't.
 
-**APNs is the first real transport behind `notify()`.** With the old channel already removed ([“One notification channel”](./one-notification-channel)), there's nothing to migrate from and no risk of double delivery. Call sites don't change, and action buttons hit the same signed links ([“Single-use signed tokens for notification actions”](./single-use-signed-tokens)).
+**APNs is the first real transport behind `notify()`.** With the old channel already removed ([“One notification channel”](./one-notification-channel)), there's nothing to migrate from and no risk of double delivery. Call sites don't change, and future action buttons follow the requirement below.
 
 **Push no longer waits for the guard; the guard waits for push.** With the transport log-only, ops alerts about a dark pipeline were reaching nobody. That's a live gap, so push comes next — and the guard can't go live without it, because an uncertain verdict has to reach a parent.
 
-**Notifications that pass through Apple carry an opaque id and generic copy, and nothing else** — no title, no channel, no name, no request detail. A Notification Service Extension wakes on delivery, fetches the real content from the home server over the private network, authenticated as that device's own user, and rewrites the notification in place. If the fetch fails it shows "Something new in Eddy", and the content is only ever seen once the app is opened. This is [“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4) applied to push: an opaque id goes out and the content is fetched back. Whether the extension can reliably reach a private-network host while the VPN is in the background was the one unproven assumption, so it was tested on a real phone before the household relied on it. It held after sixteen minutes locked on mobile data.
+**Notifications that pass through Apple carry an opaque id and generic copy, and nothing else** — no title, no channel, no name, no request detail. The id is random and means nothing off the home server. A Notification Service Extension wakes on delivery, fetches the real content from the home server over the private network, authenticated as that device's own user, and rewrites the notification in place. If the fetch fails it shows "Something new in Eddy", and the content is only ever seen once the app is opened. This is [“Kids’ viewing stays home”](./kids-consumption-stays-home) applied to push: an opaque id goes out and the content is fetched back. Whether the extension can reliably reach a private-network host while the VPN is in the background was the one unproven assumption, so it was tested on a real phone before the household relied on it.
 
-**Distribution is ad hoc, not TestFlight.** TestFlight requires testers to be 13 or over, which rules out one of the kids. So the app is signed for registered devices and installed over the air from the home server. The cost is a yearly cliff: the profile expires and every device has to be re-signed. A watchdog warns a month ahead.
+**Distribution is ad hoc, not TestFlight.** TestFlight's tester rules don't fit a family's own devices. So the app is signed for registered devices and installed over the air from the home server. The cost is a yearly cliff: the profile expires and every device has to be re-signed. A watchdog warns a month ahead.
 
 **Links use a custom scheme only.** Universal links need Apple to fetch a file from the public internet, and Eddy's server is deliberately reachable only on the private network.
 
@@ -24,10 +25,14 @@ The shape is the decision. A fully native interface would double every later pie
 
 - The real `notify()` signature had drifted from the one in the product brief. The brief was corrected and the code marked as canonical.
 - A long-unused devices table finally gets its first use, as the home for push tokens.
-- The signed token needed a target id before a lock-screen action button could work — a gap that had to close before the guard went live anyway, made visible sooner.
+- The signed action token still needs a target id, and an action route, before a lock-screen button can work. Both are owed before the first one ships.
 - The shell always loads the web app from the server and never bundles it, so every request stays same-origin.
 - The web share API disappears inside a web view unless the shell bridges it. The share tile already hides itself when it can't share, so the degradation is graceful.
 - A yearly chore: re-signing, registering any new device, and an Apple Developer account per household.
+
+## Requirement: lock-screen actions
+
+This absorbs an earlier, separate record on single-use signed tokens, because notification actions only exist through this shell. When lock-screen actions are built, every action is a signed, single-use link, the same whatever renders the button. The token carries the user, the action and the target, and the server marks it used in the same step that checks it, so a second tap, a screenshot or a replay within the hour is refused. Replay matters here in a way it usually doesn't, because the actions have real consequences. A parent who genuinely needs to act twice gets a fresh notification, not a reusable link, and used tokens are pruned on a schedule. None of the action side is built yet; the single-use token itself is, and device invites already rely on it ([“The acting user comes from a device credential”](./the-acting-user-comes-from-a-device-credential)).
 
 ## Considered and rejected
 
@@ -35,5 +40,9 @@ The shape is the decision. A fully native interface would double every later pie
 - **React Native, Capacitor or another cross-platform wrapper.** The household is iOS-only, so portability is worth nothing here, and each adds a toolchain to keep alive.
 - **TestFlight.** Cleaner, but its age limit excludes a user. A non-starter.
 - **Notifications and share extension only, with everything else in Safari.** Loses the app icon, the Keychain identity and the deep-link target.
-- **Plain push payloads with real titles.** Simpler and more reliable — and it would send kids' request titles and creator names through Apple's servers. Rejected on [“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4).
+- **Plain push payloads with real titles.** Simpler and more reliable — and it would send kids' request titles and creator names through Apple's servers. Rejected on [“Kids’ viewing stays home”](./kids-consumption-stays-home).
 - **Universal links.** They need a publicly reachable server, and Eddy's stays private.
+
+## Amendment — 9 October 2026: push shipped
+
+Push shipped and works on the household's devices; lock-screen actions haven't followed yet. The privacy design held as written: Apple carries placeholder copy and an opaque id, and the extension fetches the content from the home server, readable only by its recipient. An unknown id, someone else's id and an expired id all get the same not-found answer, so the endpoint reveals nothing about which messages exist, and messages expire after a day. The devices table is now in use, for push tokens and, since [“The acting user comes from a device credential”](./the-acting-user-comes-from-a-device-credential), for each device's credential, which replaced the identity the Keychain used to hold.

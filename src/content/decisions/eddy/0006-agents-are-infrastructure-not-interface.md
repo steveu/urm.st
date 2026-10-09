@@ -7,7 +7,7 @@ written: 2026-05-16
 summary: No chat in front of the kids. AI works inside existing features or as calm, infrequent interjections; conversation is only for adults doing admin.
 ---
 
-By 2026 the AI-native default for a smart family media product is a conversational agent — open-ended chat in front of every user, lean-forward, infinite. Eddy doesn't have that surface and isn't going to. The kids' main surface is a short daily set of cards; the adults' is the same plus a magazine-style weekly read. The only conversational surface in the system is the adults' control plane through Claude, behind the privacy filter, because conversation is the right register for admin work.
+By 2026 the AI-native default for a smart family media product is a conversational agent — open-ended chat in front of every user, lean-forward, infinite. Eddy doesn't have that surface and isn't going to. The kids' main surface is a short daily set of cards; the adults' is the same plus a magazine-style weekly read. The only conversational surface planned is the adults' control plane through Claude, behind a privacy filter, because conversation is the right register for admin work. Neither the control plane nor the filter is built yet.
 
 The principle has two halves and they're inseparable.
 
@@ -24,4 +24,4 @@ The affirmed half: smart features go *inside* existing features — the guard's 
 ## Deferred
 
 - **Reasoning loops instead of one-shot inference.** The guard and discovery score items in batches. A future feature might benefit from multi-step loops (search, evaluate, search again). Revisit when a specific feature hits a wall that one-shot inference can't clear.
-- **The local model's ceiling.** This assumes Gemma-class models keep improving on consumer hardware. If that bet sours, frontier escalation for the guard is the existing fallback, reconciled with [“Kids’ viewing never leaves the house”](./kids-consumption-never-leaves-m4) case by case.
+- **The local model's ceiling.** This assumes small local models keep improving on consumer hardware. If that bet sours, the guard's fallback is a frontier model as an offline teacher on public data ([“Guard training labels come from a frontier teacher on a public pool”](./guard-training-labels-come-from-a-frontier-teacher-on-a-public-pool)); any wider frontier use would have to be reconciled with [“Kids’ viewing stays home”](./kids-consumption-stays-home) case by case.

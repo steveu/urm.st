@@ -5,7 +5,7 @@ title: One notification channel
 date: 2026-04-13
 written: 2026-05-16
 summary: Every notification goes through one channel and one function, and a new technology replaces the old one rather than joining it.
-amended: [2026-09-19]
+amended: [2026-09-19, 2026-10-09]
 ---
 
 Eddy has one channel for every notification — guard escalations, override requests, "video ready", the weekly Drift summary, pipeline alerts to me. No email, no SMS, no Web Push, no per-event routing. When this was written the implementation was a self-hosted ntfy server; the principle is one channel, regardless of which technology delivers it.
@@ -17,7 +17,7 @@ Everything in the codebase calls a single `notify()` function, and that's the on
 ## Consequences
 
 - If the channel has an outage, urgent notifications wait. That's the price of the principle; a fallback channel is not the answer.
-- Every action button depends on the signed-link pattern surviving a channel swap. See [“Single-use signed tokens for notification actions”](./single-use-signed-tokens).
+- Every action button depends on the signed-link pattern surviving a channel swap. That requirement now lives in [“Native iOS is a thin shell; push is APNs”](./native-ios-is-a-thin-shell-with-apns-push).
 - Moving to native push means re-pointing `notify()`. The user-visible surface — events, priorities, actions — doesn't change.
 
 ## Amendment — 19 September 2026: ntfy removed, log-only until push lands
@@ -29,3 +29,11 @@ The evidence is the whole argument. Nothing in the household used ntfy after the
 **The interim transport is log-only.** `notify()` remains the single contract and every event is written to the structured log. Nothing is added to cover the gap — a stopgap second channel is precisely the fragmentation this decision exists to prevent.
 
 Native push becomes simply the first real transport behind `notify()` ([“Native iOS is a thin shell; push is APNs”](./native-ios-is-a-thin-shell-with-apns-push)). The sequencing follows: the guard can't go live without push, because an uncertain verdict has to reach a parent.
+
+## Amendment — 9 October 2026: push shipped
+
+The principle held through the swap. Push through the native app is now the one transport behind `notify()`, and it works on the household's devices. With no push key configured, `notify()` falls back to the log, as before; that's a missing transport, not a second channel.
+
+"Replace, never augment" held on the other box too. The download worker's alerts reach the same `notify()` through a signed internal relay, rather than sending anything themselves.
+
+The list of events in the first paragraph was partly aspirational. What `notify()` actually carries today: video ready, download alerts, a paused pipeline, a failure streak, a parent review, and decisions waiting. Override requests and a weekly Drift digest aren't built.

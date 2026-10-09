@@ -4,6 +4,7 @@ number: 10
 title: Kid follows are ungated; the guard at surfacing is the boundary
 date: 2026-05-31
 summary: Kids can follow creators without asking, because nothing a follow brings in reaches them without passing the guard first.
+amended: [2026-10-09]
 ---
 
 Eddy started suggesting creators to follow — people you've watched or saved but don't follow yet. For a kid's profile, that raised a question: should a kid following someone need a parent's approval? Kid safety is the top non-negotiable, and the obvious reflex is to gate the act of following.
@@ -36,3 +37,7 @@ The rule: **a kid following a creator is ungated. The per-video guard check at s
 
 - **Revisit if the guard proves insufficient in practice.** If real-world guard quality shows that following meaningfully worsens a kid's exposure despite per-video checks, model (A) is the fallback.
 - **A read-only view for parents** of who each kid follows, with an unfollow option. Compatible with this decision; not built yet.
+
+## Amendment — 9 October 2026: blocks and the guard's blind spot
+
+Two things now sit beside the clear-yes requirement at the boundary this record names. The surfacing step also excludes any channel a parent has blocked, whatever its verdict, so a block holds even for a creator the kid follows. And the guard's prompt leaves the follow out. An early version stated it as the child's own choice; in a small test on parked and rejected follow candidates, that line acted as persuasion, with one wording flipping a clear no to a clear yes. That's an observation from a small sample, not a measurement, but it fits this record: the follow reweights, and the guard judges the video without knowing about it.
