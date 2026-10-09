@@ -1,0 +1,792 @@
+---
+// Home band for Eddy: run the guard yourself. Pick a shared link and an age; the
+// model's scores stay put while the age limits move, and anything uncertain goes
+// to a grown-up's three buttons. Rendered in its starting state, so it reads the
+// same with scripts off.
+import { DIMS, BANDS, SAMPLES, START, limitsFor, verdictHtml, parentHtml, kidHtml } from './guard';
+
+const facts = [
+  { strong: '8,057', text: 'guard verdicts since April, all on hardware in the house.' },
+  { strong: '15 decisions', text: 'written down as it was built, month by month.' },
+  { strong: 'Measured, not trained', text: 'Family decisions measure the guard, never train it.' },
+];
+
+const sample = SAMPLES[START.sample];
+const limits = limitsFor(START.band);
+---
+
+<section id="eddy-live" class="band" aria-labelledby="eddy-live-title" data-guard>
+  <div class="wrap">
+    <header class="head">
+      <div class="text">
+        <p class="eyebrow">Eddy</p>
+        <h2 id="eddy-live-title">A family video app, with a feed that ends and a check on every&nbsp;video.</h2>
+        <p class="lede">
+          Kids share the videos they want, follow the people they like, and get a short feed each day that ends. Before
+          anything reaches them, a model running at home checks it against their age, and when it isn’t sure, a parent
+          decides. Try the check below.
+        </p>
+      </div>
+      <!-- The Eddy site's hero art: the app icon in wide bands that run off to the right -->
+      <div class="art" aria-hidden="true">
+        <span class="b1"></span>
+        <span class="b2"></span>
+        <span class="b3"></span>
+        <svg class="icon" viewBox="0 0 512 512">
+          <rect width="512" height="512" rx="115" fill="#1b2a41" />
+          <rect x="40" y="40" width="432" height="432" rx="105" fill="#21405a" />
+          <rect x="88" y="88" width="336" height="336" rx="92" fill="#2b6377" />
+          <rect x="136" y="136" width="240" height="240" rx="72" fill="#4e9ca0" />
+          <path d="M228 208V304L308 256Z" fill="#faf6ec" stroke="#faf6ec" stroke-width="20" stroke-linejoin="round" />
+        </svg>
+      </div>
+    </header>
+
+    <div class="flow">
+      <div class="stage">
+        <p class="step"><span>1</span> A kid shares a link</p>
+        <ul class="links" aria-label="Shared links">
+          {
+            SAMPLES.map((s, i) => (
+              <li>
+                <button type="button" data-sample={i} aria-pressed={i === START.sample ? 'true' : 'false'}>
+                  <span class="thumb" style={`background:${s.colour}`} />
+                  {s.title}
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="ages" role="group" aria-label="Kid’s age">
+          {
+            BANDS.map((b, i) => (
+              <button type="button" data-band={i} aria-pressed={i === START.band ? 'true' : 'false'}>
+                {b}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="stage">
+        <div>
+          <p class="step"><span>2</span> The model scores, code decides</p>
+          <p class="sub">The tick is the limit for this age.</p>
+        </div>
+        <ol class="bars" data-bars>
+          {
+            DIMS.map((d, i) => {
+              const over = sample.scores[i] - limits[i];
+              return (
+                <li class:list={[sample.scores[i] === 0 && 'zero', over === 1 && 'over1', over >= 2 && 'over2']} style={`--s:${sample.scores[i]};--l:${limits[i]}`}>
+                  <span class="name">{d}</span>
+                  <span class="track">
+                    <span class="fill" />
+                    <span class="tick" />
+                  </span>
+                  <span class="num">{sample.scores[i]}</span>
+                </li>
+              );
+            })
+          }
+        </ol>
+        <div class="decision" data-decision set:html={verdictHtml(sample, START.band)} />
+      </div>
+
+      <div class="stage">
+        <p class="step"><span>3</span> What each of them sees</p>
+        <div class="who">
+          <p class="label">The parent</p>
+          <div class="parent" data-parent set:html={parentHtml(sample, START.band)} />
+        </div>
+        <div class="who">
+          <p class="label">The kid</p>
+          <div class="kid" data-kid set:html={kidHtml(sample, START.band)} />
+        </div>
+      </div>
+    </div>
+    <p class="note">Illustrative links and scores. The rubric, age limits and rules are Eddy’s own.</p>
+
+    <div class="facts">
+      {
+        facts.map((f) => (
+          <p class="fact">
+            <strong>{f.strong}</strong> <span>{f.text}</span>
+          </p>
+        ))
+      }
+      <a class="primary" href="/work#eddy">Why it’s built this way →</a>
+    </div>
+  </div>
+  <p class="visually-hidden" role="status" data-status></p>
+</section>
+
+<script>
+  import { SAMPLES, START, limitsFor, verdictHtml, parentHtml, kidHtml, announce, type Choice } from './guard';
+
+  const root = document.querySelector<HTMLElement>('[data-guard]');
+  if (root) {
+    const rows = [...root.querySelectorAll<HTMLElement>('[data-bars] li')];
+    const decision = root.querySelector<HTMLElement>('[data-decision]')!;
+    const parent = root.querySelector<HTMLElement>('[data-parent]')!;
+    const kid = root.querySelector<HTMLElement>('[data-kid]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let sample = START.sample;
+    let band = START.band;
+    let choice: Choice | undefined;
+    let timer: number | undefined;
+
+    const press = (attr: string, value: number | string) =>
+      root.querySelectorAll<HTMLButtonElement>(`[${attr}]`).forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value))),
+      );
+
+    function bars() {
+      const s = SAMPLES[sample];
+      const limits = limitsFor(band);
+      rows.forEach((row, i) => {
+        const over = s.scores[i] - limits[i];
+        row.style.setProperty('--s', String(s.scores[i]));
+        row.style.setProperty('--l', String(limits[i]));
+        row.classList.toggle('zero', s.scores[i] === 0);
+        row.classList.toggle('over1', over === 1);
+        row.classList.toggle('over2', over >= 2);
+        row.querySelector('.num')!.textContent = String(s.scores[i]);
+      });
+    }
+
+    function outcome() {
+      const s = SAMPLES[sample];
+      decision.innerHTML = verdictHtml(s, band);
+      parent.innerHTML = parentHtml(s, band, choice);
+      kid.innerHTML = kidHtml(s, band, choice);
+      for (const el of [decision, parent, kid]) el.classList.remove('waiting');
+      status.textContent = announce(s, band, choice);
+    }
+
+    // A new link scores from nothing, then the code decides; a new age only moves the limits
+    function run(fresh: boolean) {
+      clearTimeout(timer);
+      choice = undefined;
+      if (reduce || !fresh) {
+        bars();
+        outcome();
+        return;
+      }
+      for (const el of [decision, parent, kid]) el.classList.add('waiting');
+      rows.forEach((row) => row.style.setProperty('--s', '0'));
+      requestAnimationFrame(() => requestAnimationFrame(bars));
+      timer = window.setTimeout(outcome, 300);
+    }
+
+    root.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLButtonElement>('button');
+      if (!b) return;
+      if (b.dataset.sample) {
+        sample = Number(b.dataset.sample);
+        press('data-sample', sample);
+        run(true);
+      } else if (b.dataset.band) {
+        band = Number(b.dataset.band);
+        press('data-band', band);
+        run(false);
+      } else if (b.dataset.choice) {
+        choice = b.dataset.choice as Choice;
+        outcome();
+        // The card repaints, so keep focus on the answer just given
+        parent.querySelector<HTMLButtonElement>(`[data-choice="${choice}"]`)?.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .band {
+    --ink: #f3efe6;
+    --soft: #c9d6d2;
+    --faint: #93a7a3;
+    --ring: #4e9ca0;
+    --hair: rgb(243 239 230 / 0.16);
+    --yes: #7fd1a3;
+    --risk: #d4786d;
+    position: relative;
+    overflow: hidden;
+    margin-top: clamp(72px, 9vw, 120px);
+    padding: clamp(40px, 5vw, 64px) 0 56px;
+    background: var(--eddy-deep);
+    color: var(--ink);
+  }
+
+  .band :focus-visible {
+    outline-color: var(--eddy-gold);
+  }
+
+  .head {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--eddy-gold);
+  }
+
+  h2 {
+    font-size: clamp(30px, 3.6vw, 46px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Every length a multiple of --u, a 600th of the art's width, as on the Eddy site.
+     Rings an even 50 out from the icon on three sides, running off to the right; corners
+     keep the icon's own proportion (115 on 512), so they read as the same squircle. */
+  .art {
+    --u: calc(100cqw / 600);
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    justify-self: end;
+    aspect-ratio: 600 / 560;
+  }
+
+  .art > * {
+    position: absolute;
+  }
+
+  .art span {
+    background: var(--ring);
+  }
+
+  .b1 { inset: 0 calc(-400 * var(--u)) 0 calc(20 * var(--u)); border-radius: calc(126 * var(--u)); opacity: 0.1; }
+  .b2 { inset: calc(50 * var(--u)) calc(-400 * var(--u)) calc(50 * var(--u)) calc(70 * var(--u)); border-radius: calc(104 * var(--u)); opacity: 0.16; }
+  .b3 { inset: calc(100 * var(--u)) calc(-400 * var(--u)) calc(100 * var(--u)) calc(120 * var(--u)); border-radius: calc(81 * var(--u)); opacity: 0.28; }
+
+  .icon {
+    left: calc(170 * var(--u));
+    top: calc(150 * var(--u));
+    width: calc(260 * var(--u));
+    height: calc(260 * var(--u));
+    filter: drop-shadow(0 calc(24 * var(--u)) calc(48 * var(--u)) rgb(0 0 0 / 0.35));
+  }
+
+  .lede {
+    max-width: 640px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  /* The four stages, left to right */
+  /* Three columns, a hairline between each */
+  .flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    margin-top: 40px;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding-inline: clamp(24px, 3vw, 40px);
+  }
+
+  .stage:first-child {
+    padding-left: 0;
+  }
+
+  .stage:last-child {
+    padding-right: 0;
+  }
+
+  .stage + .stage {
+    border-left: 1px solid var(--hair);
+  }
+
+  .sub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--faint);
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--eddy-gold);
+  }
+
+  .step span {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(224 180 106 / 0.5);
+    font: 11px var(--font-mono);
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  /* 1 · the links and the age */
+  .links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .links {
+    margin-inline: -10px;
+  }
+
+  .links button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: left;
+    color: var(--soft);
+  }
+
+  .links button:hover {
+    background: rgb(243 239 230 / 0.05);
+  }
+
+  .links button[aria-pressed='true'] {
+    background: rgb(243 239 230 / 0.1);
+    color: var(--ink);
+  }
+
+  .thumb {
+    flex-shrink: 0;
+    width: 36px;
+    height: 24px;
+    border-radius: 5px;
+  }
+
+  .ages {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 3px;
+    border-radius: 99px;
+    background: rgb(0 0 0 / 0.2);
+  }
+
+  .ages button {
+    min-height: 32px;
+    border: 0;
+    border-radius: 99px;
+    background: transparent;
+    font-size: 12.5px;
+    color: var(--soft);
+  }
+
+  .ages button[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--eddy-deep);
+    font-weight: 700;
+  }
+
+  /* 2 · scores against limits */
+  .bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .bars li {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) 12px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--soft);
+  }
+
+  .track {
+    position: relative;
+    height: 10px;
+    border-radius: 3px;
+    /* Three steps: mild, moderate, severe */
+    background:
+      linear-gradient(90deg, transparent calc(33.33% - 1px), rgb(0 0 0 / 0.3) 0 33.33%, transparent 0 calc(66.67% - 1px), rgb(0 0 0 / 0.3) 0 66.67%, transparent 0),
+      rgb(243 239 230 / 0.08);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--s) / 3 * 100%);
+    border-radius: 3px;
+    background: var(--ring);
+    transition: width 0.28s var(--ease-out), background-color 0.2s;
+  }
+
+  .over1 .fill { background: var(--eddy-gold); }
+  .over2 .fill { background: var(--risk); }
+
+  .tick {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: calc(var(--l) / 3 * 100%);
+    width: 2px;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: var(--ink);
+    transition: left 0.22s var(--ease-out);
+  }
+
+  .num {
+    font: 12px var(--font-mono);
+    text-align: right;
+    color: var(--faint);
+  }
+
+  .zero .name, .zero .num { opacity: 0.45; }
+  .over1 .num, .over1 .name { color: var(--eddy-gold); }
+  .over2 .num, .over2 .name { color: var(--risk); }
+
+  /* The verdict, under the bars it came from */
+  .decision, .parent, .kid {
+    transition: opacity 0.12s;
+  }
+
+  .waiting {
+    opacity: 0.25;
+  }
+
+  .decision :global(.verdict) {
+    display: flex;
+  }
+
+  .decision :global(.chip) {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font: 700 13px var(--font-mono);
+  }
+
+  .decision :global(.clear-yes .chip) { background: rgb(127 209 163 / 0.16); color: var(--yes); }
+  .decision :global(.uncertain .chip) { background: rgb(224 180 106 / 0.16); color: var(--eddy-gold); }
+  .decision :global(.clear-no .chip) { background: rgb(212 120 109 / 0.18); color: var(--risk); }
+
+  .decision :global(.why) {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--soft);
+  }
+
+  .decision :global(.arrow), .decision :global(.quiet) {
+    color: var(--faint);
+  }
+
+  .decision {
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+  }
+
+  /* 3 · the parent's card and the kid's feed, after the real app's */
+  .who {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .label {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .parent :global(.quiet) {
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .parent :global(.pcard), .kid {
+    padding: 12px;
+    border-radius: 14px;
+    background: rgb(243 239 230 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(243 239 230 / 0.08);
+  }
+
+  .parent :global(.pcard) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stage :global(.row), .kid :global(.kcard) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Video thumbnails, 16:9 with the running time, as in the app */
+  .stage :global(.row .thumb), .kid :global(.thumb) {
+    position: relative;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    aspect-ratio: 16 / 9;
+    border-radius: 5px;
+    color: var(--ink);
+  }
+
+  .stage :global(.row .thumb) {
+    width: 80px;
+  }
+
+  .stage :global(.dur) {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    padding: 0 3px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 0.6);
+    font: 9px/1.4 var(--font-mono);
+    color: #fff;
+  }
+
+  .kid :global(.thumb svg) {
+    width: 12px;
+    height: 12px;
+  }
+
+  .stage :global(.t) {
+    display: block;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .stage :global(.m) {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--faint);
+  }
+
+  .parent :global(.saw) {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
+  .parent :global(.means) {
+    margin-top: 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--soft);
+  }
+
+  /* As in the app: three answers, each filled in its own colour */
+  .parent :global(.choices) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .parent :global(.choices button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 10px 0 8px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #fff;
+    transition: opacity 0.12s, filter 0.12s;
+  }
+
+  .parent :global(.choices svg) {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .parent :global([data-choice='allow']) { background: #3a7d5a; }
+  .parent :global([data-choice='unsafe']) { background: #a9473f; }
+  .parent :global([data-choice='not-for-us']) { background: rgb(243 239 230 / 0.16); color: var(--ink); }
+
+  .parent :global(.choices button:hover) {
+    filter: brightness(1.12);
+  }
+
+  /* Once answered, the other two step back */
+  .parent :global(.chosen [aria-pressed='false']) {
+    opacity: 0.35;
+  }
+
+  .kid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kid :global(.sec) {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .kid :global(.sec:not(:first-child)) {
+    margin-top: 4px;
+  }
+
+  .kid :global(.pill) {
+    padding: 1px 6px;
+    border-radius: 99px;
+    background: rgb(224 180 106 / 0.18);
+    color: var(--eddy-gold);
+  }
+
+  .kid :global(.yes .st) { color: var(--yes); }
+  .kid :global(.wait .st) { color: var(--eddy-gold); }
+  .kid :global(.no .st) { color: var(--risk); }
+
+  .kid :global(.wait .thumb) { filter: grayscale(1); opacity: 0.5; }
+  .kid :global(.no .thumb) { filter: grayscale(1); opacity: 0.25; }
+  .kid :global(.no .t) { color: var(--faint); text-decoration: line-through; }
+
+  .kid :global(.reason) {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--soft);
+  }
+
+  .kid :global(.end) {
+    padding-top: 6px;
+    border-top: 1px dashed var(--hair);
+    text-align: center;
+    font: italic 12px var(--font-serif);
+    color: var(--faint);
+  }
+
+  .note {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--faint);
+  }
+
+  .facts {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 1px solid var(--hair);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .fact {
+    color: var(--soft);
+  }
+
+  .fact strong {
+    display: block;
+    margin-bottom: 4px;
+    font: 400 26px/1.25 var(--font-serif);
+    color: var(--ink);
+  }
+
+  .primary {
+    align-self: end;
+    justify-self: end;
+    font-weight: 700;
+    color: var(--eddy-gold);
+    text-decoration: none;
+  }
+
+  .primary:hover {
+    color: var(--eddy-gold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 960px) {
+    .head { grid-template-columns: minmax(0, 1fr); }
+    .art { max-width: 420px; justify-self: start; }
+  }
+
+  @media (max-width: 1180px) {
+    .facts { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 900px) {
+    .flow { grid-template-columns: minmax(0, 1fr); gap: 28px; max-width: 560px; }
+    .stage { padding-inline: 0; }
+    .stage + .stage { border-left: 0; padding-top: 28px; border-top: 1px solid var(--hair); }
+  }
+
+  @media (max-width: 640px) {
+    h2 { font-size: clamp(26px, 7vw, 42px); }
+    .facts { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .primary { justify-self: start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fill, .tick, .decision, .parent, .kid { transition: none; }
+  }
+</style>

@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
 import { projects } from '../../../../data/projects';
-import { projectInfo, formatDate, byDecided, slugOf, type ProjectKey } from '../../../../data/projectNames';
+import { projectInfo, formatDate, byDecided, type ProjectKey } from '../../../../data/projectNames';
 
 export async function getStaticPaths() {
   const all = await getCollection('decisions');
@@ -40,15 +40,15 @@ const plural = (n: number, word: string) => `${n === 0 ? 'No' : n} ${word}${n ==
 const dayMonth = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 ---
 
-<Base title={`${info.name} decisions`} description={`The ${decisions.length} decisions behind ${info.name}: what was chosen, why, and what was rejected.`}>
+<Base title={`${info.name} decisions`} description={`The ${decisions.length} decisions behind ${info.name}, month by month.`}>
   <article class="wrap page" style={`--swatch: ${info.swatch}; --ink: ${info.ink}`}>
     <header class="intro">
       <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> {info.name}</p>
       <h1>How {info.name} was decided</h1>
       <p class="lede">
         {decisions.length} decisions, month by month{first && last && <>, from {formatDate(first)} to {formatDate(last)}</>}.
-        Each one names what was chosen, why, and what was turned down. They’re what the agents building {info.name} read
-        before touching the code.
+        Each is a written record of what was chosen and why, and the agents building {info.name} read them before touching
+        the code.
         {retroCount > 0 && <> {retroCount} were written up afterwards, reconstructed from the plan, design notes and commit history.</>}
       </p>
       <p class="edit-note">
@@ -71,7 +71,7 @@ const dayMonth = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', mo
               <ol class="entries">
                 {m.items.map((d) => (
                   <li>
-                    <a href={`/work/${project}/decisions/${slugOf(d.id)}`}>
+                    <div class="entry">
                       <span class="day">{dayMonth(d.data.date)}</span>
                       <span class="title">{d.data.title}</span>
                       <span class="summary">{d.data.summary}</span>
@@ -81,7 +81,7 @@ const dayMonth = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', mo
                           {d.data.amended && <span class="tag amended">amended</span>}
                         </span>
                       )}
-                    </a>
+                    </div>
                   </li>
                 ))}
               </ol>
@@ -208,23 +208,10 @@ const dayMonth = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', mo
     box-shadow: 0 0 0 3px var(--bg);
   }
 
-  .entries a {
+  .entry {
     display: grid;
     gap: 6px;
-    padding: 18px 12px;
-    margin-inline: -12px;
-    border-radius: 8px;
-    color: var(--text);
-    text-decoration: none;
-    transition: background 0.2s ease;
-  }
-
-  .entries a:hover {
-    background: var(--panel);
-  }
-
-  .entries a:hover .title {
-    color: var(--accent);
+    padding-block: 18px;
   }
 
   .day {

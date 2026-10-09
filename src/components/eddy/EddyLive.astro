@@ -1,0 +1,527 @@
+---
+// Home band for Eddy: the guard runs itself as a log, feeding a kid's Today and a
+// parent's Decisions. The first three lines are rendered here, so it reads the
+// same with scripts off; the script below keeps it going.
+import EddyPhone from './EddyPhone.astro';
+import { seeded, todayScreen, decisionsScreen } from './sim';
+
+const facts = [
+  { strong: '8,057', text: 'guard verdicts since April, all on hardware in the house.' },
+  { strong: 'Unsafe ≠ Not for us', text: 'The guard judges safety; the family judges taste.' },
+  { strong: 'Measured, not trained', text: 'Family decisions measure the guard, never train it.' },
+];
+
+// No entrance animation on first paint
+const seed = seeded();
+const feed = seed.state.feed.map((f) => ({ ...f, isNew: false }));
+---
+
+<section id="eddy-live" class="band" aria-labelledby="eddy-live-title" data-wire>
+  <div class="inner wrap">
+    <div class="left">
+      <header class="head">
+        <p class="eyebrow"><img src="/icons/eddy.png" width="28" height="28" alt="" /> Eddy</p>
+        <h2 id="eddy-live-title">Every link a kid shares is checked by a model that never leaves the&nbsp;house.</h2>
+        <p class="lede">
+          Eddy is a family video app. Gemma, running at home, scores each shared link against a written rubric, and
+          code turns the scores into a verdict: clear yes reaches the kid’s Today, clear no doesn’t, and anything
+          uncertain waits for a parent.
+        </p>
+      </header>
+
+      <div class="log">
+        <div class="log-head">
+          <span><span class="live" aria-hidden="true"></span>guard · gemma 4 · age 10–12</span>
+          <button type="button" data-toggle hidden>Pause</button>
+        </div>
+        <ol role="log" aria-live="off" aria-label="Guard log (illustrative)" data-lines>
+          {seed.lines.map((l) => <li class={l.kind === 'parent' ? 'parent' : undefined} set:html={l.html} />)}
+        </ol>
+      </div>
+      <p class="aside" data-aside hidden>Try the parent’s buttons and watch the kid’s feed change.</p>
+    </div>
+
+    <div class="right">
+      <div class="phones">
+        <EddyPhone id="eddy-kid" label="A kid’s Today" tone="kid" html={todayScreen(feed)} />
+        <EddyPhone
+          id="eddy-parent"
+          label="The parent’s Decisions"
+          tone="parent"
+          html={decisionsScreen(seed.state.pending, undefined, { disabled: true })}
+        />
+      </div>
+      <p class="note">Illustrative links, real verdict shape.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="facts">
+      {
+        facts.map((f) => (
+          <p class="fact">
+            <strong>{f.strong}</strong> <span>{f.text}</span>
+          </p>
+        ))
+      }
+      <a class="primary" href="/work#eddy">Why it’s built this way →</a>
+    </div>
+  </div>
+  <p class="visually-hidden" role="status" data-status></p>
+</section>
+
+<script>
+  import { seeded, step, decide, finished, todayScreen, decisionsScreen, type Decision, type LogLine, type Sample } from './sim';
+
+  const root = document.querySelector<HTMLElement>('[data-wire]');
+  if (root) {
+    const list = root.querySelector<HTMLOListElement>('[data-lines]')!;
+    const toggle = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const kid = root.querySelector<HTMLElement>('#eddy-kid .eddy-screen')!;
+    const parent = root.querySelector<HTMLElement>('#eddy-parent .eddy-screen')!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    parent.tabIndex = -1;
+    // The invitation only makes sense once the buttons work
+    root.querySelector<HTMLElement>('[data-aside]')!.hidden = false;
+
+    let { state } = seeded();
+    // The server rendered the seed without entrance animations; match it so nothing repaints
+    state = { ...state, feed: state.feed.map((f) => ({ ...f, isNew: false })) };
+    let lastKid = todayScreen(state.feed);
+    let lastParent = '';
+    // The waiting card on screen, and the one that animates in (sticky, so its HTML stays stable)
+    let shownAsk: Sample | undefined = state.pending[0];
+    let enterAsk: Sample | undefined;
+    let timer: number | undefined;
+    let started = false;
+    let inView = false;
+    let userPaused = false;
+
+    const append = (l: LogLine) => {
+      const li = document.createElement('li');
+      li.className = l.kind === 'parent' ? 'parent in' : 'in';
+      li.innerHTML = l.html;
+      list.append(li);
+      while (list.children.length > 9) list.firstElementChild!.remove();
+    };
+
+    const MORE = /<p class="ep-meta ep-more">([^<]*)<\/p>/;
+
+    // Repaint only what changed, so ticks don't wipe focus or replay animations
+    function paint() {
+      const k = todayScreen(state.feed);
+      if (k !== lastKid) kid.innerHTML = lastKid = k;
+
+      const ask = state.pending[0];
+      if (!state.done && ask !== shownAsk) enterAsk = shownAsk = ask;
+      const p = decisionsScreen(state.pending, state.done, { enter: !!ask && ask === enterAsk });
+      if (p === lastParent) return clearNew();
+
+      if (lastParent && p.replace(MORE, '') === lastParent.replace(MORE, '')) {
+        // Only the "more waiting" count moved: patch it rather than repaint the card
+        const text = p.match(MORE)?.[1];
+        const el = parent.querySelector('.ep-more');
+        if (!text) el?.remove();
+        else if (el) el.textContent = text;
+        else parent.querySelector('.ep-ask')?.insertAdjacentHTML('afterend', `<p class="ep-meta ep-more">${text}</p>`);
+      } else {
+        const active = document.activeElement;
+        const had = active instanceof HTMLElement && parent.contains(active);
+        const which = had ? active.dataset.decide : undefined;
+        parent.innerHTML = p;
+        if (had) {
+          const target =
+            parent.querySelector<HTMLElement>(`[data-decide="${which}"]`) ??
+            parent.querySelector<HTMLElement>('[data-decide]') ??
+            parent;
+          target.focus({ preventScroll: true });
+        }
+      }
+      lastParent = p;
+      clearNew();
+    }
+
+    function clearNew() {
+      state = { ...state, feed: state.feed.map((f) => (f.isNew ? { ...f, isNew: false } : f)) };
+    }
+
+    function tick() {
+      const r = step(state);
+      state = r.state;
+      append(r.line);
+      paint();
+      if (r.line.kind === 'end') {
+        stop();
+        toggle.textContent = 'Replay';
+        return;
+      }
+      timer = window.setTimeout(tick, 2600);
+    }
+
+    function start() {
+      if (timer !== undefined || userPaused || finished(state)) return;
+      timer = window.setTimeout(tick, started ? 2600 : 1200);
+      started = true;
+      toggle.textContent = 'Pause';
+    }
+
+    function stop() {
+      window.clearTimeout(timer);
+      timer = undefined;
+      toggle.textContent = finished(state) ? 'Replay' : 'Play';
+    }
+
+    function replay() {
+      const s = seeded();
+      state = s.state;
+      shownAsk = enterAsk = undefined;
+      list.replaceChildren(
+        ...s.lines.map((l) => {
+          const li = document.createElement('li');
+          if (l.kind === 'parent') li.className = 'parent';
+          li.innerHTML = l.html;
+          return li;
+        }),
+      );
+      paint();
+      userPaused = false;
+      started = false;
+      start();
+    }
+
+    const SAID: Record<Decision, string> = {
+      ready: 'Allowed. Kept to measure the guard.',
+      unsafe: 'Marked unsafe. Kept to measure the guard.',
+      'not-for-us': 'Not for us. Outside the safety eval.',
+    };
+
+    parent.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-decide]');
+      // Ignore taps while the done card is showing
+      if (!b || state.done) return;
+      const d = b.dataset.decide as Decision;
+      const r = decide(state, d);
+      if (!r) return;
+      state = r.state;
+      append(r.line);
+      // Clear first so a repeated answer is still announced
+      status.textContent = '';
+      requestAnimationFrame(() => (status.textContent = SAID[d]));
+      if (reduce) {
+        state = { ...state, done: undefined };
+        paint();
+        return;
+      }
+      paint();
+      window.setTimeout(() => {
+        state = { ...state, done: undefined };
+        paint();
+      }, 1400);
+    });
+
+    if (reduce) {
+      // No ticking: run the whole queue at once and leave it there
+      while (!finished(state)) {
+        const r = step(state);
+        state = r.state;
+        append(r.line);
+      }
+      const end = step(state);
+      state = end.state;
+      append(end.line);
+      paint();
+    } else {
+      paint();
+      toggle.hidden = false;
+      toggle.addEventListener('click', () => {
+        if (finished(state) && timer === undefined) replay();
+        else if (timer !== undefined) {
+          userPaused = true;
+          stop();
+        } else {
+          userPaused = false;
+          start();
+        }
+      });
+
+      new IntersectionObserver(
+        ([entry]) => {
+          inView = entry.isIntersecting;
+          if (inView) start();
+          else stop();
+        },
+        { threshold: 0.25 },
+      ).observe(root);
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stop();
+        else if (inView) start();
+      });
+    }
+  }
+</script>
+
+<style>
+  .band {
+    position: relative;
+    overflow: hidden;
+    margin-top: clamp(72px, 9vw, 120px);
+    padding: clamp(64px, 8vw, 104px) 0 56px;
+    background: var(--eddy-deep);
+    color: #f3efe6;
+  }
+
+  /* The eddy itself: concentric rings, off to one side. Static. */
+  .band::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -25%;
+    width: 1100px;
+    aspect-ratio: 1;
+    background: repeating-radial-gradient(ellipse 60% 40% at 50% 50%, transparent 0 38px, rgb(243 239 230 / 0.06) 38px 39px);
+    pointer-events: none;
+  }
+
+  .band :focus-visible {
+    outline-color: var(--eddy-gold);
+  }
+
+  .inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 56px;
+    align-items: start;
+  }
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    min-width: 0;
+  }
+
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--eddy-gold);
+  }
+
+  .eyebrow img {
+    border-radius: 7px;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15);
+  }
+
+  h2 {
+    font-size: clamp(28px, 3.3vw, 42px);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 600px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: #c9d6d2;
+    text-wrap: pretty;
+  }
+
+  .log {
+    border-radius: 16px;
+    background: rgb(0 0 0 / 0.28);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+    font: 12.5px/1.6 var(--font-mono);
+    overflow: hidden;
+  }
+
+  .log-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 53px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgb(255 255 255 / 0.07);
+    color: #93a7a3;
+  }
+
+  .log-head > span {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .live {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #7fd1a3;
+    box-shadow: 0 0 0 3px rgb(127 209 163 / 0.2);
+  }
+
+  .log-head button {
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 99px;
+    background: transparent;
+    color: #f3efe6;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .log-head button:hover {
+    border-color: rgb(255 255 255 / 0.45);
+  }
+
+  /* Fixed height, anchored at the bottom: new lines never move anything outside the box */
+  ol {
+    margin: 0;
+    padding: 14px 16px;
+    list-style: none;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 10px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    mask-image: linear-gradient(transparent, black 30%);
+  }
+
+  ol :global(li) {
+    flex-shrink: 0;
+  }
+
+  ol :global(li.in) {
+    animation: line-in 0.4s var(--ease-out) both;
+  }
+
+  @keyframes line-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  ol :global(li.parent) {
+    padding-left: 10px;
+    border-left: 2px solid #8fa3d6;
+  }
+
+  ol :global(.ts),
+  ol :global(.dim) {
+    color: #869c97;
+  }
+
+  ol :global(.q) {
+    color: #f3efe6;
+  }
+
+  ol :global(.sc) {
+    color: #a9bab6;
+  }
+
+  ol :global(.who) {
+    color: #8fa3d6;
+  }
+
+  ol :global(.v) {
+    font-weight: 600;
+  }
+
+  ol :global(.v.clear-yes) { color: #7fd1a3; }
+  ol :global(.v.uncertain) { color: #e8b567; }
+  ol :global(.v.clear-no) { color: #f0a096; }
+  ol :global(.v.taste) { color: #c9d6d2; }
+
+  .aside {
+    font: 15px/1.5 var(--font-serif);
+    color: #c9d6d2;
+  }
+
+  .right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .phones {
+    display: flex;
+    gap: 20px;
+    color: var(--eddy-gold);
+  }
+
+  .note {
+    font-size: 13px;
+    color: #9db0ac;
+    text-align: center;
+  }
+
+  .facts {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1px solid rgb(243 239 230 / 0.16);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .fact {
+    color: #c9d6d2;
+  }
+
+  .fact strong {
+    display: block;
+    margin-bottom: 4px;
+    font: 400 26px/1.25 var(--font-serif);
+    color: #f3efe6;
+  }
+
+  .primary {
+    align-self: end;
+    justify-self: end;
+    font-weight: 700;
+    color: var(--eddy-gold);
+    text-decoration: none;
+  }
+
+  .primary:hover {
+    color: var(--eddy-gold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 1180px) {
+    .inner { grid-template-columns: minmax(0, 1fr); }
+    .facts { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    h2 { font-size: clamp(26px, 7vw, 42px); }
+    .log-head { flex-wrap: wrap; }
+    ol { height: 320px; }
+    .phones { flex-direction: column; align-items: center; }
+    .facts { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .primary { justify-self: start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ol :global(li.in) { animation: none; }
+  }
+</style>

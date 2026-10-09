@@ -1,0 +1,562 @@
+---
+// Eddy on /work: told through three of its decisions, each with a small diagram.
+// One band in the home band's palette holds the whole chapter: Eddy's app in the rings,
+// then the decisions on panels of the same teal.
+import { getCollection } from 'astro:content';
+import { formatDate } from '../../data/projectNames';
+import EddyApp from './EddyApp.astro';
+
+const FEATURED = [4, 15, 9];
+const all = await getCollection('decisions', (d) => d.data.project === 'eddy');
+const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
+---
+
+<div class="casebook">
+  <div class="band">
+    <header class="head wrap">
+      <div class="text">
+        <p class="eyebrow">
+          <img src="/icons/eddy.png" width="32" height="32" alt="" /> <span>Eddy</span><span class="status"
+            ><span class="dot"></span>In daily family use since April</span
+          >
+        </p>
+        <h2 id="eddy-title">A family video app, built around what it refuses to&nbsp;do.</h2>
+        <div class="lede">
+          <p>
+            Kids share a link from anywhere. A model running locally at home checks it against their age, and it comes back
+            in a feed that ends. There’s no chat, no endless scroll, and nothing about what they watch leaves the house.
+          </p>
+          <p class="mine">I designed and built all of it: the product, the app, the guard, and the rubric and evals that keep it honest.</p>
+          <p class="tech">Gemma 4 · Ollama · Node · SQLite · iOS</p>
+          <p class="links">
+            <a href="https://github.com/eddy-hq/eddy">Source on GitHub <span aria-hidden="true">↗</span></a>
+          </p>
+        </div>
+      </div>
+      <!-- The Eddy site's hero art: rings around the app itself -->
+      <div class="art">
+        <span class="b1"></span>
+        <span class="b2"></span>
+        <span class="b3"></span>
+        <div class="phone"><EddyApp /></div>
+      </div>
+    </header>
+
+    <div class="wrap body">
+    <div class="cases-head">
+      <p>Three decisions</p>
+      <a href="/work/eddy/decisions">All {all.length} decisions <span aria-hidden="true">→</span></a>
+    </div>
+    <ol class="cases">
+      {
+        featured.map((d) => (
+          <li>
+            <article class="case">
+              <div class="case-text">
+                <p class="when">{formatDate(d.data.date)}</p>
+                <h3>{d.data.title}</h3>
+                <p class="summary">{d.data.summary}</p>
+                {d.data.number === 15 && (
+                  <p class="visually-hidden">
+                    Of 169 videos the guard approved and a parent blocked, 86 scored zero on every dimension, and about 6
+                    of those were real safety misses.
+                  </p>
+                )}
+              </div>
+              <div class="figure" aria-hidden="true">
+                {d.data.number === 4 && (
+                  <svg viewBox="0 0 300 200" class="house">
+                    <path class="wall" d="M60 80 L150 22 L240 80 V176 H60 Z" />
+                    <rect class="box" x="84" y="96" width="132" height="34" rx="7" />
+                    <text x="150" y="117" class="lbl">At home · Gemma</text>
+                    <rect class="box soft" x="84" y="138" width="132" height="28" rx="7" />
+                    <text x="150" y="156" class="lbl small">kids’ phones</text>
+                    <path class="in" d="M4 112 H76" />
+                    <path class="arrow" d="M70 107 L77 112 L70 117" />
+                    <text x="6" y="102" class="note">video in</text>
+                    <path class="out" d="M224 150 H296" />
+                    <path class="cross" d="M252 142 L268 158 M268 142 L252 158" />
+                    <text x="298" y="196" class="note end">nothing about them out</text>
+                  </svg>
+                )}
+                {d.data.number === 15 && (
+                  <div class="split">
+                    <p class="big">51%</p>
+                    <p class="cap">
+                      Clear-yes precision when the guard was scored against every Block. Of the 169 it approved and a
+                      parent blocked:
+                    </p>
+                    <div class="bar">
+                      <span style="flex: 83" class="b-other" />
+                      <span style="flex: 80" class="b-taste" />
+                      <span style="flex: 6" class="b-safety" />
+                    </div>
+                    <ul class="key">
+                      <li><span class="b-other" />83 scored something on the rubric</li>
+                      <li><span class="b-taste" />86 scored zero everywhere, mostly taste</li>
+                      <li><span class="b-safety" />about 6 of those were real safety misses</li>
+                    </ul>
+                  </div>
+                )}
+                {d.data.number === 9 && (
+                  <div class="slate">
+                    <div class="sources">
+                      <span>people you follow</span>
+                      <span>back-catalogue</span>
+                      <span>your interests</span>
+                    </div>
+                    <svg viewBox="0 0 60 120" class="funnel" preserveAspectRatio="none">
+                      <path d="M0 15 C30 15 30 60 60 60 M0 60 H60 M0 105 C30 105 30 60 60 60" />
+                    </svg>
+                    <div class="slots">
+                      <span />
+                      <span />
+                      <span />
+                      <span class="empty" />
+                      <p class="end">That’s today.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+
+    </div>
+  </div>
+</div>
+
+<style>
+    /* The home band's palette, held still, for the whole chapter */
+  .band {
+    --ink: #f3efe6;
+    --soft: #c9d6d2;
+    --faint: #9db0ac;
+    --ring: #4e9ca0;
+    --hair: rgb(243 239 230 / 0.16);
+    --risk: #d4786d;
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(56px, 7vw, 88px) clamp(64px, 8vw, 104px);
+    background: var(--eddy-deep);
+    color: var(--ink);
+  }
+
+  .band :focus-visible {
+    outline-color: var(--eddy-gold);
+  }
+
+  .head {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--eddy-gold);
+  }
+
+  .eyebrow img {
+    border-radius: 7px;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #c9d6d2;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #7fd1a3;
+    box-shadow: 0 0 0 3px rgb(127 209 163 / 0.2);
+  }
+
+  h2 {
+    font-size: clamp(30px, 3.6vw, 46px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: #c9d6d2;
+    text-wrap: pretty;
+  }
+
+  .mine {
+    color: #f3efe6;
+  }
+
+  .tech {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid rgb(243 239 230 / 0.16);
+    font: 12.5px var(--font-mono);
+    color: #9db0ac;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .links a {
+    color: var(--eddy-gold);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The Eddy site's hero art: three squircle rings centred on the phone, which stands
+     taller than them. Every length a multiple of --u, a 600th of the art's width. */
+  .art {
+    --u: calc(100cqw / 600);
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    justify-self: end;
+    aspect-ratio: 600 / 720;
+  }
+
+  .art > span {
+    position: absolute;
+    background: #4e9ca0;
+  }
+
+  .b1 { inset: calc(60 * var(--u)) 0; border-radius: calc(176 * var(--u)); opacity: 0.12; }
+  .b2 { inset: calc(120 * var(--u)) calc(60 * var(--u)); border-radius: calc(140 * var(--u)); opacity: 0.2; }
+  .b3 { inset: calc(180 * var(--u)) calc(120 * var(--u)); border-radius: calc(106 * var(--u)); opacity: 0.34; }
+
+  .phone {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .body {
+    width: 100%;
+    margin-top: clamp(56px, 7vw, 88px);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .cases-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .cases-head p {
+    letter-spacing: 0.04em;
+    color: var(--eddy-gold);
+  }
+
+  .cases-head a {
+    color: var(--eddy-gold);
+    text-decoration: none;
+  }
+
+  .cases-head a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The three decisions */
+  .cases {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px clamp(24px, 3vw, 40px);
+  }
+
+  /* Diagram first, then what it shows; subgrid lines the wells and text up across columns */
+  .cases > li,
+  .case {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 20px;
+  }
+
+  .case .figure {
+    order: -1;
+  }
+
+  .case-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .when {
+    font: 13px var(--font-mono);
+    color: var(--faint);
+  }
+
+  h3 {
+    font-size: clamp(20px, 1.8vw, 23px);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .summary {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  .figure {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 18px;
+    background: rgb(0 0 0 / 0.16);
+    color: var(--ring);
+  }
+
+  /* 0004 · the house */
+  .house {
+    width: 100%;
+    overflow: visible;
+    font-family: var(--font-sans);
+  }
+
+  .house .wall {
+    fill: none;
+    stroke: var(--soft);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .house .box {
+    fill: var(--ring);
+  }
+
+  .house .box.soft {
+    fill: rgb(243 239 230 / 0.12);
+  }
+
+  .house .lbl {
+    fill: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  .house .lbl.small {
+    fill: var(--soft);
+  }
+
+  .house .in,
+  .house .arrow,
+  .house .out,
+  .house .cross {
+    fill: none;
+    stroke: var(--soft);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .house .out {
+    stroke-dasharray: 4 5;
+    opacity: 0.6;
+  }
+
+  .house .cross {
+    stroke: var(--risk);
+  }
+
+  .house .note {
+    fill: var(--faint);
+    font-size: 11px;
+  }
+
+  .house .note.end {
+    text-anchor: end;
+  }
+
+  /* 0015 · the split */
+  .split {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .big {
+    font: 400 44px/1 var(--font-serif);
+    color: var(--ink);
+  }
+
+  .cap {
+    font-size: 13px;
+    color: var(--soft);
+  }
+
+  .bar {
+    display: flex;
+    height: 14px;
+    margin-top: 6px;
+    border-radius: 4px;
+    overflow: hidden;
+    gap: 2px;
+  }
+
+  .key {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+    font-size: 12.5px;
+    color: var(--soft);
+  }
+
+  .key li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .key span {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .b-other { background: rgb(243 239 230 / 0.28); }
+  .b-taste { background: var(--ring); }
+  .b-safety { background: var(--risk); }
+
+  /* 0009 · the slate */
+  .slate {
+    display: grid;
+    grid-template-columns: auto 60px 110px;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sources {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    font-size: 12.5px;
+    color: var(--soft);
+    text-align: right;
+  }
+
+  .funnel {
+    width: 100%;
+    height: 120px;
+  }
+
+  .funnel path {
+    fill: none;
+    stroke: var(--ring);
+    stroke-width: 1.5;
+    opacity: 0.6;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .slots {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    border-radius: 14px;
+    background: rgb(243 239 230 / 0.06);
+    box-shadow: inset 0 0 0 1px var(--hair);
+  }
+
+  .slots span {
+    height: 22px;
+    border-radius: 5px;
+    background: var(--ring);
+  }
+
+  .slots span:nth-child(2) { opacity: 0.75; }
+  .slots span:nth-child(3) { opacity: 0.5; }
+
+  .slots .empty {
+    background: none;
+    border: 1px dashed rgb(243 239 230 / 0.3);
+  }
+
+  .slots .end {
+    padding-top: 6px;
+    border-top: 1px dashed var(--hair);
+    text-align: center;
+    font: 11px var(--font-serif);
+    color: var(--soft);
+  }
+
+  @media (max-width: 960px) {
+    .head { grid-template-columns: minmax(0, 1fr); }
+    /* Under the text, the art shrinks with the screen but the phone doesn't: leave room
+       for it to stand out of the rings (half its 625px height less half the art's) */
+    .art { max-width: 520px; justify-self: center; margin-block: max(0px, calc(337px - 60vw)); }
+  }
+
+  @media (max-width: 960px) {
+    .cases { grid-template-columns: minmax(0, 1fr); max-width: 560px; }
+  }
+
+  @media (max-width: 520px) {
+    .eyebrow { flex-wrap: wrap; }
+    .status { margin-left: 0; flex-basis: 100%; }
+    .figure { padding: 16px; }
+    .slate { grid-template-columns: auto 40px 96px; }
+    .sources { font-size: 12px; }
+  }
+</style>

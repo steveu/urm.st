@@ -1,0 +1,140 @@
+---
+// A phone frame for Eddy's app screens. Screens are HTML strings from sim.ts,
+// rendered on the server and repainted by EddyLive's script, so styles are
+// global but scoped under .eddy-screen.
+interface Props {
+  label: string;
+  id: string;
+  tone?: 'kid' | 'parent';
+  html?: string;
+}
+const { label, id, tone = 'kid', html = '' } = Astro.props;
+---
+
+<figure class="eddy-device" id={id}>
+  <figcaption><span class:list={['tone', tone]}></span>{label}</figcaption>
+  <div class="eddy-phone">
+    <div class="eddy-screen" set:html={html} />
+  </div>
+</figure>
+
+<style is:global>
+  .eddy-device {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .eddy-device figcaption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 700 11px var(--font-sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: inherit;
+    opacity: 0.85;
+  }
+
+  .eddy-device .tone {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--eddy-gold);
+  }
+
+  .eddy-device .tone.parent {
+    background: #8fa3d6;
+  }
+
+  .eddy-phone {
+    width: 250px;
+    height: 520px;
+    padding: 8px;
+    border-radius: 42px;
+    background: #121110;
+    box-shadow: 0 40px 80px -36px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.06);
+    flex-shrink: 0;
+  }
+
+  .eddy-screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 34px;
+    background: #fafaf8;
+    color: #1a1916;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* The site's own pair stands in for the app's: Merriweather titles, Mulish for the rest */
+  .eddy-screen p { margin: 0; }
+  .eddy-screen .ep-pad { height: 100%; padding: 52px 15px 16px; display: flex; flex-direction: column; gap: 11px; }
+  .eddy-screen .ep-title { display: block; font-family: var(--font-serif); font-weight: 400; font-size: 14px; line-height: 1.3; }
+  .eddy-screen .ep-title-sm { font-size: 12.5px; }
+  .eddy-screen .ep-title-xl { font-size: 21px; line-height: 1.15; }
+  .eddy-screen .ep-body { font-size: 14px; line-height: 1.5; color: #4f4c46; }
+  .eddy-screen .ep-meta { display: block; font-size: 11px; color: #6b6860; }
+  .eddy-screen .ep-empty { padding: 8px 2px; }
+
+  .eddy-screen .ep-thumb { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 10px; }
+  .eddy-screen .ep-thumb-sm { width: 86px; flex-shrink: 0; border-radius: 8px; }
+  .eddy-screen .ep-dim { filter: grayscale(0.65) brightness(0.88); }
+  .eddy-screen .ep-play { position: absolute; inset: 0; margin: auto; width: 38px; height: 38px; border-radius: 50%; background: rgb(250 250 248 / 0.92); color: #1a1916; display: flex; align-items: center; justify-content: center; }
+
+  .eddy-screen .ep-today-head { display: flex; align-items: center; gap: 9px; }
+  .eddy-screen .ep-logo { width: 26px; height: 26px; border-radius: 7px; background: url(/icons/eddy.png) center / cover, #e3d3b8; }
+  .eddy-screen .ep-head-title { font-weight: 700; font-size: 14px; }
+
+  .eddy-screen .ep-card { display: flex; flex-direction: column; flex-shrink: 0; gap: 7px; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
+  .eddy-screen .ep-card > .ep-thumb { border-radius: 0; }
+  .eddy-screen .ep-decisions .ep-card > .ep-thumb { border-radius: 8px; }
+  .eddy-screen .ep-ask { padding: 10px; }
+  .eddy-screen .ep-card-body { padding: 2px 11px 11px; display: flex; flex-direction: column; gap: 5px; }
+
+  /* Older items: they slide out of view under the fade, so Today needs no cap */
+  .eddy-screen .ep-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    mask-image: linear-gradient(black calc(100% - 24px), transparent);
+  }
+  .eddy-screen .ep-row { display: flex; flex-shrink: 0; gap: 10px; align-items: center; }
+  .eddy-screen .ep-row-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+  .eddy-screen .ep-pill { align-self: flex-start; font-size: 10.5px; font-weight: 600; border-radius: 99px; padding: 2px 8px; }
+  .eddy-screen .ep-pill-ready { color: #7a5a20; background: #f4ebdb; }
+  .eddy-screen .ep-pill-waiting { color: #44568a; background: #eaedf5; }
+
+  .eddy-screen .ep-end { margin-top: auto; padding-top: 9px; border-top: 1px dashed #cfccc5; text-align: center; font: 13px var(--font-serif); color: #6b6860; }
+
+  .eddy-screen .ep-seg { display: grid; grid-template-columns: repeat(3, 1fr); padding: 3px; border-radius: 10px; background: #efede8; font-size: 11.5px; text-align: center; }
+  .eddy-screen .ep-seg span { padding: 5px 0; color: #6b6860; }
+  .eddy-screen .ep-seg .on { background: #fff; border-radius: 8px; color: #1a1916; font-weight: 600; }
+  .eddy-screen .ep-guard { display: block; background: #f5f4f1; border-radius: 9px; padding: 8px 9px; font-size: 11.5px; line-height: 1.45; }
+  .eddy-screen .ep-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .eddy-screen .ep-actions button { min-height: 44px; border: 0; border-radius: 11px; font: 600 12px/1.15 var(--font-sans); color: #fff; padding: 0 4px; cursor: pointer; transition: transform 0.15s ease; }
+  .eddy-screen .ep-actions button:active { transform: scale(0.96); }
+  .eddy-screen .ep-actions button:disabled { opacity: 0.45; cursor: default; transform: none; }
+  .eddy-screen .ep-allow { background: #3a7d5a; }
+  .eddy-screen .ep-unsafe { background: #a9473f; }
+  .eddy-screen .ep-nfu { background: #efede8; color: #1a1916 !important; }
+  .eddy-screen .ep-more { text-align: center; }
+  .eddy-screen .ep-done { align-items: center; text-align: center; padding: 26px 14px; gap: 6px; }
+  .eddy-screen .ep-done:focus-visible { outline: 2px solid #3d6b6b; outline-offset: -2px; }
+  .eddy-screen .ep-done-line { font: 19px var(--font-serif); color: #3d6b6b; }
+
+  .eddy-screen .ep-in { animation: ep-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  @keyframes ep-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eddy-screen .ep-in { animation: none; }
+  }
+</style>

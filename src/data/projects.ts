@@ -29,7 +29,7 @@ export const projects: Project[] = [
     swatch: 'var(--eddy)',
     ink: 'var(--eddy)',
     icon: '/icons/eddy.png',
-    href: '/work',
+    href: '/work#eddy',
     activity: activity.projects.eddy,
   },
   {
@@ -41,7 +41,6 @@ export const projects: Project[] = [
     swatch: 'var(--one-thought)',
     ink: '#7a5f2b',
     icon: '/icons/one-thought.png',
-    href: '/work',
     activity: activity.projects['one-thought'],
   },
   {

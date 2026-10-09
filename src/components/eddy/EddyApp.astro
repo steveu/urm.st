@@ -1,0 +1,454 @@
+---
+// A kid's Feed in Eddy's own web app, drawn from its components (AppHeader, the
+// Today block, Card, BottomNav) with illustrative videos. One shared link plays
+// through the real states: Reviewing, Getting it with a percentage, then ready.
+// Rendered ready, so it reads the same with scripts off or reduced motion.
+const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+---
+
+<div class="app" data-app aria-label="Eddy’s Feed, as a kid sees it (illustrative)" role="img">
+  <span class="island" aria-hidden="true"></span>
+  <div class="screen">
+    <header class="top">
+      <span class="brand">
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <rect width="512" height="512" rx="150" fill="#3d6b6b" opacity="0.2" />
+          <rect x="60" y="60" width="392" height="392" rx="115" fill="#3d6b6b" opacity="0.4" />
+          <rect x="120" y="120" width="272" height="272" rx="80" fill="#3d6b6b" />
+          <path d="M225 205V307L311 256Z" fill="#fafaf8" stroke="#fafaf8" stroke-width="21" stroke-linejoin="round" />
+        </svg>
+        eddy
+      </span>
+      <span class="avatar" aria-hidden="true"></span>
+    </header>
+
+    <div class="day">
+      <span class="day-name">Today</span>
+      <span class="date" data-date>{today}</span>
+      <span class="count">3 items</span>
+    </div>
+
+    <div class="section"><span>You asked</span><i>1</i><b></b></div>
+    <article class="card" data-state="ready" data-asked>
+      <div class="thumb"><span class="img t-asked"></span>
+        <span class="spinner"><span></span></span>
+        <span class="pct" data-pct>0%</span>
+        <span class="bar"><span data-bar></span></span>
+        <span class="dur">7:48</span>
+      </div>
+      <div class="meta">
+        <h3>How to build a marble run that loops</h3>
+        <p>
+          <span class="pill req"><span></span>You asked</span><span class="sep">·</span><span>Workshop Weekly</span><span
+            class="sep">·</span><span data-status>just now</span>
+        </p>
+      </div>
+    </article>
+
+    <div class="section"><span>Today</span><i>2</i><b></b></div>
+    <p class="voice">New from a maker you follow.</p>
+    <article class="card">
+      <div class="thumb"><span class="img t-follow"></span><span class="dur">12:05</span></div>
+      <div class="meta">
+        <h3>Why bridges don’t fall down</h3>
+        <p><span class="pill follow"><span></span>Bridge Lab</span><span class="sep">·</span>2 days ago</p>
+      </div>
+    </article>
+    <p class="voice">Something new, close to what you’ve been watching.</p>
+    <article class="card">
+      <div class="thumb"><span class="img t-pick"></span><span class="dur">9:30</span></div>
+      <div class="meta">
+        <h3>The smallest working engine</h3>
+        <p><span class="pill pick"><span></span>Picked</span><span class="sep">·</span>Tiny Machines</p>
+      </div>
+    </article>
+    <p class="end">That’s Today.</p>
+  </div>
+
+  <nav class="tabs" aria-hidden="true">
+    <span class="on"><svg viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="3" rx="1" /><rect x="3" y="10" width="16" height="3" rx="1" /><rect x="3" y="16" width="10" height="3" rx="1" /></svg>Feed</span>
+    <span><svg viewBox="0 0 22 22" class="line"><circle cx="9.5" cy="9.5" r="6" /><path d="M14 14l5 5" /></svg>Search</span>
+    <span><svg viewBox="0 0 22 22" class="line"><path d="M5 3h12a1 1 0 011 1v15l-6.5-3.5L5 19V4a1 1 0 011-1z" /></svg>Saved</span>
+  </nav>
+  <span class="home" aria-hidden="true"></span>
+</div>
+
+<script>
+  // Loops the shared link through Eddy's states while the app is on screen
+  const app = document.querySelector<HTMLElement>('[data-app]');
+  const date = app?.querySelector('[data-date]');
+  // The build date is frozen into the page; show today's
+  if (date) date.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  if (app && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const card = app.querySelector<HTMLElement>('[data-asked]')!;
+    const pct = app.querySelector<HTMLElement>('[data-pct]')!;
+    const bar = app.querySelector<HTMLElement>('[data-bar]')!;
+    const status = app.querySelector<HTMLElement>('[data-status]')!;
+    let timer: number | undefined;
+    let t = 0;
+
+    // One beat every 400ms: hold ready, then Reviewing, then Getting it 0–100%
+    const READY = 12;
+    const REVIEW = 8;
+    const GET = 14;
+    const CYCLE = READY + REVIEW + GET;
+
+    function beat() {
+      const b = t++ % CYCLE;
+      if (b < READY) {
+        card.dataset.state = 'ready';
+        status.textContent = 'just now';
+      } else if (b < READY + REVIEW) {
+        card.dataset.state = 'review';
+        status.textContent = 'Reviewing…';
+      } else {
+        const p = Math.round(((b - READY - REVIEW + 1) / GET) * 100);
+        card.dataset.state = 'getting';
+        status.textContent = 'Getting it…';
+        pct.textContent = `${p}%`;
+        bar.style.width = `${p}%`;
+      }
+    }
+
+    new IntersectionObserver(
+      ([entry]) => {
+        window.clearInterval(timer);
+        timer = entry.isIntersecting ? window.setInterval(beat, 400) : undefined;
+      },
+      { threshold: 0.3 },
+    ).observe(app);
+  }
+</script>
+
+<style>
+  /* Eddy's own tokens (src/pwa/index.css), drawn in the site's fonts */
+  .app {
+    --bg: #fafaf8;
+    --surface: #fff;
+    --ink: #1a1916;
+    --ink-2: #6b6860;
+    --ink-3: #a8a59e;
+    --accent: #3d6b6b;
+    --rule: rgb(26 25 22 / 0.08);
+
+    /* An iPhone 16: a 393×852pt screen at 280px wide (×0.7125), its 55pt display
+       corners, and a 9px bezel */
+    position: relative;
+    box-sizing: content-box;
+    width: 280px;
+    height: 607px;
+    border: 9px solid #1a1916;
+    border-radius: 48px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.35);
+    line-height: 1.3;
+  }
+
+  /* Dynamic Island: 125×37pt, 11pt from the top */
+  .island {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    left: 50%;
+    width: 89px;
+    height: 26px;
+    border-radius: 13px;
+    background: #000;
+    transform: translateX(-50%);
+  }
+
+  /* Home indicator: 134×5pt, 8pt from the bottom */
+  .home {
+    position: absolute;
+    z-index: 2;
+    bottom: 6px;
+    left: 50%;
+    width: 96px;
+    height: 4px;
+    border-radius: 2px;
+    background: #1a1916;
+    transform: translateX(-50%);
+  }
+
+  .screen {
+    height: 100%;
+    padding-top: 40px;
+    overflow: hidden;
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 18px 11px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .brand svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background:
+      linear-gradient(90deg, transparent 30%, #1a1916 30% 40%, transparent 40% 60%, #1a1916 60% 70%, transparent 70%) 0 40% / 100% 12% no-repeat,
+      #e8b567;
+  }
+
+  .day {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 14px 18px 4px;
+  }
+
+  .day-name {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .date {
+    font-size: 9.5px;
+    color: var(--ink-3);
+  }
+
+  .count {
+    margin-left: auto;
+    font: italic 10.5px var(--font-serif);
+    color: var(--ink-2);
+  }
+
+  .section {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 12px 18px 8px;
+    font: 12.5px var(--font-serif);
+  }
+
+  .section i {
+    font-size: 10.5px;
+    color: var(--ink-2);
+  }
+
+  .section b {
+    flex: 1;
+    height: 1px;
+    margin-left: 6px;
+    background: var(--rule);
+  }
+
+  .voice {
+    padding: 2px 18px 5px;
+    font: italic 12px/1.45 var(--font-serif);
+  }
+
+  .card {
+    margin: 0 18px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 13px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 2px 12px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.04);
+  }
+
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+  }
+
+  .img {
+    position: absolute;
+    inset: 0;
+    transition: filter 0.6s ease;
+  }
+
+  .t-asked { background: radial-gradient(circle at 30% 40%, #f3c86b 0 14%, transparent 15%), linear-gradient(135deg, #c0573e, #7a3b5c); }
+  .t-follow { background: linear-gradient(170deg, #9cc3d9 0 55%, #5d7f8f 55% 60%, #3f6a4f 60%); }
+  .t-pick { background: radial-gradient(circle at 60% 55%, #d9d4c7 0 18%, #6c6a63 19% 22%, transparent 23%), linear-gradient(135deg, #2f3e46, #52796f); }
+
+  /* Tighter cards below the first, so the stream fits the screen */
+  .voice + .card .thumb {
+    aspect-ratio: 16 / 7;
+  }
+
+  .dur,
+  .pct {
+    position: absolute;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #f4f1ea;
+    background: rgb(0 0 0 / 0.55);
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+
+  .dur {
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .pct {
+    top: 8px;
+    left: 8px;
+    display: none;
+  }
+
+  .bar {
+    position: absolute;
+    inset: auto 0 0;
+    height: 3px;
+    background: rgb(255 255 255 / 0.08);
+    display: none;
+  }
+
+  .bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .spinner {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.35);
+  }
+
+  .spinner span {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    border: 3px solid rgb(244 241 234 / 0.3);
+    border-top-color: #f4f1ea;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  [data-state='review'] .img,
+  [data-state='getting'] .img {
+    filter: grayscale(1) opacity(0.45);
+  }
+
+  [data-state='review'] .spinner { display: flex; }
+  [data-state='getting'] .pct,
+  [data-state='getting'] .bar { display: block; }
+  [data-state='review'] .dur,
+  [data-state='getting'] .dur { display: none; }
+
+  .meta {
+    padding: 9px 11px 10px;
+  }
+
+  h3 {
+    margin: 0 0 4px;
+    font: 500 14.5px/1.22 var(--font-serif);
+    letter-spacing: -0.008em;
+  }
+
+  .meta p {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .sep {
+    color: var(--ink-3);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+  }
+
+  .pill span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .req { color: #b8863c; }
+  .follow { color: #3d6b6b; }
+  .pick { color: #3a7d5a; }
+
+  .end {
+    margin: 4px 18px 0;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--rule);
+    text-align: center;
+    font: italic 11px var(--font-serif);
+    color: var(--ink-3);
+  }
+
+  .tabs {
+    position: absolute;
+    inset: auto 0 0;
+    height: 60px;
+    display: flex;
+    padding-top: 8px;
+    border-top: 1px solid var(--rule);
+    background: rgb(250 250 248 / 0.94);
+    backdrop-filter: blur(20px);
+  }
+
+  .tabs span {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  .tabs svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  .tabs svg.line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tabs .on {
+    color: var(--accent);
+  }
+</style>

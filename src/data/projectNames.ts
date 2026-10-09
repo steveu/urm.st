@@ -16,5 +16,3 @@ export const pad = (n: number) => String(n).padStart(4, '0');
 export const byDecided = (a: { data: { date: Date; number: number } }, b: { data: { date: Date; number: number } }) =>
   a.data.date.getTime() - b.data.date.getTime() || a.data.number - b.data.number;
 
-// Public URL slug: the filename without its ADR number (files keep numbers to match the source repos)
-export const slugOf = (id: string) => id.split('/')[1].replace(/^\d{4}-/, '');
