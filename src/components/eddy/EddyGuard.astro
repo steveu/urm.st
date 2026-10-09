@@ -5,12 +5,6 @@
 // same with scripts off.
 import { DIMS, BANDS, SAMPLES, START, limitsFor, verdictHtml, parentHtml, kidHtml } from './guard';
 
-const facts = [
-  { strong: '8,057', text: 'guard verdicts since April, all on hardware in the house.' },
-  { strong: '15 decisions', text: 'written down as it was built, month by month.' },
-  { strong: 'Measured, not trained', text: 'Family decisions measure the guard, never train it.' },
-];
-
 const sample = SAMPLES[START.sample];
 const limits = limitsFor(START.band);
 ---
@@ -28,10 +22,11 @@ const limits = limitsFor(START.band);
         </p>
       </div>
       <!-- The Eddy site's hero art: the app icon in wide bands that run off to the right -->
-      <div class="art" aria-hidden="true">
+      <div class="art" aria-hidden="true" data-art>
         <span class="b1"></span>
         <span class="b2"></span>
         <span class="b3"></span>
+        <span class="pulse" data-pulse></span>
         <svg class="icon" viewBox="0 0 512 512">
           <rect width="512" height="512" rx="115" fill="#1b2a41" />
           <rect x="40" y="40" width="432" height="432" rx="105" fill="#21405a" />
@@ -105,24 +100,21 @@ const limits = limitsFor(START.band);
         </div>
       </div>
     </div>
-    <p class="note">Illustrative links and scores. The rubric, age limits and rules are Eddy’s own.</p>
+    <p class="note">Example links and scores.</p>
 
-    <div class="facts">
-      {
-        facts.map((f) => (
-          <p class="fact">
-            <strong>{f.strong}</strong> <span>{f.text}</span>
-          </p>
-        ))
-      }
-      <a class="primary" href="/work#eddy">Why it’s built this way →</a>
+    <div class="close">
+      <p>
+        In daily use since April: <strong>8,057 verdicts</strong>, all on hardware in the house. The family’s decisions
+        measure the guard; they never train it.
+      </p>
+      <a class="primary" href="/work#eddy">Why it’s built this way, in 15 decisions →</a>
     </div>
   </div>
   <p class="visually-hidden" role="status" data-status></p>
 </section>
 
 <script>
-  import { SAMPLES, START, limitsFor, verdictHtml, parentHtml, kidHtml, announce, type Choice } from './guard';
+  import { SAMPLES, START, decide, limitsFor, verdictHtml, parentHtml, kidHtml, announce, type Choice } from './guard';
 
   const root = document.querySelector<HTMLElement>('[data-guard]');
   if (root) {
@@ -131,6 +123,8 @@ const limits = limitsFor(START.band);
     const parent = root.querySelector<HTMLElement>('[data-parent]')!;
     const kid = root.querySelector<HTMLElement>('[data-kid]')!;
     const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const art = root.querySelector<HTMLElement>('[data-art]')!;
+    const pulseEl = root.querySelector<HTMLElement>('[data-pulse]')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let sample = START.sample;
@@ -157,6 +151,15 @@ const limits = limitsFor(START.band);
       });
     }
 
+    // A ripple leaves the icon in the colour of the guard's verdict
+    function pulse(tone: string) {
+      if (reduce) return;
+      art.dataset.tone = tone;
+      pulseEl.classList.remove('go');
+      void pulseEl.offsetWidth;
+      pulseEl.classList.add('go');
+    }
+
     function outcome() {
       const s = SAMPLES[sample];
       decision.innerHTML = verdictHtml(s, band);
@@ -164,6 +167,7 @@ const limits = limitsFor(START.band);
       kid.innerHTML = kidHtml(s, band, choice);
       for (const el of [decision, parent, kid]) el.classList.remove('waiting');
       status.textContent = announce(s, band, choice);
+      if (!choice) pulse(decide(s, band).verdict);
     }
 
     // A new link scores from nothing, then the code decides; a new age only moves the limits
@@ -199,6 +203,17 @@ const limits = limitsFor(START.band);
         parent.querySelector<HTMLButtonElement>(`[data-choice="${choice}"]`)?.focus();
       }
     });
+
+    // The first time the band is seen, the rings slide in from the right, the icon lands
+    // on them. Scripts off or reduced motion: it's just there.
+    if (!reduce) {
+      art.classList.add('ready');
+      new IntersectionObserver((entries, io) => {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        art.classList.add('in');
+      }, { threshold: 0.35 }).observe(art);
+    }
   }
 </script>
 
@@ -275,9 +290,60 @@ const limits = limitsFor(START.band);
     background: var(--ring);
   }
 
-  .b1 { inset: 0 calc(-400 * var(--u)) 0 calc(20 * var(--u)); border-radius: calc(126 * var(--u)); opacity: 0.1; }
-  .b2 { inset: calc(50 * var(--u)) calc(-400 * var(--u)) calc(50 * var(--u)) calc(70 * var(--u)); border-radius: calc(104 * var(--u)); opacity: 0.16; }
-  .b3 { inset: calc(100 * var(--u)) calc(-400 * var(--u)) calc(100 * var(--u)) calc(120 * var(--u)); border-radius: calc(81 * var(--u)); opacity: 0.28; }
+  .b1 { inset: 0 -100vw 0 calc(20 * var(--u)); border-radius: calc(126 * var(--u)); opacity: 0.1; }
+  .b2 { inset: calc(50 * var(--u)) -100vw calc(50 * var(--u)) calc(70 * var(--u)); border-radius: calc(104 * var(--u)); opacity: 0.16; }
+  .b3 { inset: calc(100 * var(--u)) -100vw calc(100 * var(--u)) calc(120 * var(--u)); border-radius: calc(81 * var(--u)); opacity: 0.28; }
+
+  /* The rings breathe outward, inner first */
+  .b1, .b2, .b3 {
+    --o: 0.1;
+    animation: breathe 7s ease-in-out infinite;
+  }
+  .b2 { --o: 0.16; animation-delay: -0.6s; }
+  .b3 { --o: 0.28; animation-delay: -1.2s; }
+
+  @keyframes breathe {
+    0%, 100% { opacity: var(--o); }
+    35% { opacity: calc(var(--o) + 0.08); }
+  }
+
+  /* Entrance: the rings slide in from the right, outermost first, decelerating like
+     something with weight; the icon follows and settles on a slight spring. Larger
+     rings travel a touch slower. Off-screen until the band is seen. */
+  .art.ready:not(.in) > * {
+    transform: translateX(100vw);
+  }
+
+  .art.in .b1 { animation: enter 1.15s cubic-bezier(0.16, 1, 0.3, 1) both, breathe 7s ease-in-out 1.2s infinite; }
+  .art.in .b2 { animation: enter 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both, breathe 7s ease-in-out 0.6s infinite; }
+  .art.in .b3 { animation: enter 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both, breathe 7s ease-in-out infinite; }
+  .art.in .icon { animation: enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both; }
+  .art.in .icon { animation: enter 0.95s linear(0, 0.023, 0.0812, 0.1614, 0.2535, 0.3497, 0.4447, 0.5347, 0.6174, 0.6914, 0.7561, 0.8116, 0.8584, 0.897, 0.9282, 0.953, 0.9723, 0.9869, 0.9976, 1.0051, 1.0101, 1.0132, 1.0147, 1.0152, 1.0148, 1.0139, 1.0127, 1.0113, 1.0098, 1.0084, 1.007, 1.0058, 1.0047, 1.0037, 1.0028, 1.0021, 1.0016, 1.0011, 1.0007, 1.0004, 1) 0.32s both; }
+
+  @keyframes enter {
+    from { transform: translateX(100vw); }
+  }
+
+  /* Starts on the icon's own squircle and grows through the rings */
+  .art .pulse {
+    inset: calc(150 * var(--u)) calc(170 * var(--u));
+    border-radius: calc(58 * var(--u));
+    background: none;
+    box-shadow: inset 0 0 0 calc(3 * var(--u)) var(--tone, var(--eddy-gold));
+    opacity: 0;
+  }
+  .art[data-tone='clear-yes'] { --tone: var(--yes); }
+  .art[data-tone='uncertain'] { --tone: var(--eddy-gold); }
+  .art[data-tone='clear-no'] { --tone: var(--risk); }
+
+  .pulse.go {
+    animation: ripple 1.6s cubic-bezier(0.2, 0.6, 0.3, 1);
+  }
+
+  @keyframes ripple {
+    0% { inset: calc(150 * var(--u)) calc(170 * var(--u)); border-radius: calc(58 * var(--u)); opacity: 0.9; }
+    100% { inset: calc(-40 * var(--u)) calc(-20 * var(--u)); border-radius: calc(150 * var(--u)); opacity: 0; }
+  }
 
   .icon {
     left: calc(170 * var(--u));
@@ -728,32 +794,31 @@ const limits = limitsFor(START.band);
     color: var(--faint);
   }
 
-  .facts {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 32px;
-    margin-top: 56px;
-    padding-top: 28px;
+  .close {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 40px;
+    margin-top: 48px;
+    padding-top: 24px;
     border-top: 1px solid var(--hair);
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
-  .fact {
+  .close p {
+    max-width: 640px;
     color: var(--soft);
+    text-wrap: pretty;
   }
 
-  .fact strong {
-    display: block;
-    margin-bottom: 4px;
-    font: 400 26px/1.25 var(--font-serif);
+  .close strong {
+    font-weight: 700;
     color: var(--ink);
   }
 
   .primary {
-    align-self: end;
-    justify-self: end;
     font-weight: 700;
     color: var(--eddy-gold);
     text-decoration: none;
@@ -770,10 +835,6 @@ const limits = limitsFor(START.band);
     .art { max-width: 420px; justify-self: start; }
   }
 
-  @media (max-width: 1180px) {
-    .facts { grid-template-columns: 1fr 1fr; }
-  }
-
   @media (max-width: 900px) {
     .flow { grid-template-columns: minmax(0, 1fr); gap: 28px; max-width: 560px; }
     .stage { padding-inline: 0; }
@@ -782,11 +843,10 @@ const limits = limitsFor(START.band);
 
   @media (max-width: 640px) {
     h2 { font-size: clamp(26px, 7vw, 42px); }
-    .facts { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-    .primary { justify-self: start; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .fill, .tick, .decision, .parent, .kid { transition: none; }
+    .b1, .b2, .b3 { animation: none; opacity: var(--o); }
   }
 </style>
