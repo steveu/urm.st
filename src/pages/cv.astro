@@ -1,0 +1,316 @@
+---
+import Base from '../layouts/Base.astro';
+import { work, education } from '../data/cv';
+
+const month = (ym: string) =>
+  new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const span = (start: string, end?: string, fmt = month) => `${fmt(start)} – ${end ? fmt(end) : 'Present'}`;
+
+
+const year = (ym: string) => ym.slice(0, 4);
+const years = (start: string, end?: string) =>
+  !end ? `${year(start)} – now` : year(start) === year(end) ? year(start) : `${year(start)} – ${year(end)}`;
+---
+
+<Base title="CV" description="CV for Steve Urmston, product engineer in York, UK: design, frontend engineering and product management since 2003.">
+  <article class="wrap page">
+    <header class="intro">
+      <h1>Steve Urmston</h1>
+      <p class="label">Product Engineer · York, UK</p>
+      <p class="lede">
+        I’ve designed, built and managed products since 2003: UX, interface design, frontend engineering and product
+        management, often all at once. Now I build with agents, where judgement and taste matter more than ever.
+      </p>
+      <p class="actions">
+        <a href="mailto:steve@urm.st">steve@urm.st</a>
+        <a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a>
+        <a href="/steven-urmston-resume.pdf">Download PDF</a>
+      </p>
+    </header>
+
+
+    <section aria-labelledby="experience">
+      <h2 id="experience">Experience</h2>
+      <ol class="rows">
+        {
+          work.map((job) => (
+            <li class="row job">
+              <div class="when">
+                <h3 class="company">{job.href ? <a href={job.href}>{job.company}</a> : job.company}</h3>
+                <p class="years">
+                  {years(job.roles.at(-1)!.start, job.roles[0].end)}
+                </p>
+              </div>
+              <div class="what roles">
+                {job.roles.map((role) => (
+                  <div class="role">
+                    <h4>
+                      {role.title}
+                      {job.roles.length > 1 && <span class="span">{span(role.start, role.end)}</span>}
+                    </h4>
+                    <ul>
+                      {role.highlights.map((h) => (
+                        <li>{h}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+
+    <section aria-labelledby="education">
+      <h2 id="education">Education</h2>
+      <ol class="rows">
+        {
+          education.map((e) => (
+            <li class="row">
+              <p class="when">{e.end ? `${e.start} – ${e.end}` : e.start}</p>
+              <div class="what">
+                <h3>
+                  {e.award}<span class="org">, {e.institution}</span>
+                </h3>
+                {e.highlights && (
+                  <ul>
+                    {e.highlights.map((h) => (
+                      <li>{h}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+  </article>
+</Base>
+
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    max-width: 920px;
+    padding-block: clamp(56px, 8vw, 96px) 0;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 720px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 4.4vw, 50px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  .label {
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .lede {
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .actions a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  h2 {
+    font-size: 21px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Dates in a narrow column on the left, the detail on the right */
+  .row {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 32px;
+    padding-block: 20px;
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+
+  .when,
+  .years {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .what {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  h3 {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+
+  .org {
+    color: var(--muted);
+  }
+
+  .what ul {
+    margin: 0;
+    padding-left: 1.1em;
+    color: var(--muted);
+  }
+
+  .what li + li {
+    margin-top: 4px;
+  }
+
+  .what p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* Experience: the company and its years on the left, the roles held there on the right */
+  p.when {
+    padding-top: 4px;
+  }
+
+  .company {
+    margin: 0;
+    color: var(--text);
+    font-size: 21px;
+    line-height: 1.25;
+  }
+
+  .company a {
+    color: var(--text);
+    text-decoration-color: var(--line);
+    text-underline-offset: 4px;
+  }
+
+  .company a:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+
+  .years {
+    margin: 6px 0 0;
+  }
+
+  .roles {
+    gap: 20px;
+  }
+
+  .role {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  h4 {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    font-family: var(--font-sans);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .span {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--faint);
+  }
+
+  /* Bytemark's three roles hang off a rule, so the progression reads as one line */
+  .roles:has(.role + .role) {
+    padding-left: 20px;
+    border-left: 2px solid var(--line);
+  }
+
+  .roles:has(.role + .role) .role {
+    position: relative;
+  }
+
+  .roles:has(.role + .role) .role::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--faint);
+  }
+
+  @media (max-width: 760px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
+    }
+  }
+
+  @media print {
+    :global(.site-header),
+    :global(.site-footer) {
+      display: none;
+    }
+
+    .page {
+      gap: 32px;
+      padding-block: 0;
+    }
+
+    .actions a[href$='.pdf'] {
+      display: none;
+    }
+
+    .row {
+      break-inside: avoid;
+    }
+  }
+</style>

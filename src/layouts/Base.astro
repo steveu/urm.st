@@ -10,17 +10,17 @@ interface Props {
 
 const {
   title,
-  description = 'Steve Urmston is an AI product engineer in York, UK. He has designed, built and managed products since 2003, and now builds them with AI.',
+  description = 'Steve Urmston is a product engineer in York, UK. He has designed, built and managed products since 2003, and now builds them with agents.',
 } = Astro.props;
 
-const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · AI product engineer';
+const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · product engineer';
 const canonical = new URL(Astro.url.pathname.replace(/\.html$/, ''), Astro.site);
 
 const person = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Steve Urmston',
-  jobTitle: 'AI Product Engineer',
+  jobTitle: 'Product Engineer',
   url: 'https://urm.st',
   email: 'mailto:steve@urm.st',
   address: { '@type': 'PostalAddress', addressLocality: 'York', addressCountry: 'GB' },
@@ -46,6 +46,7 @@ const person = {
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
     <script type="application/ld+json" set:html={JSON.stringify(person)} />
+    <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

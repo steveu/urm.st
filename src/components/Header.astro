@@ -3,9 +3,8 @@ import Star from './Star.astro';
 
 const nav = [
   { href: '/work', label: 'Work' },
-  { href: '/process', label: 'Process' },
   { href: '/about', label: 'About' },
-  { href: '/resume', label: 'Résumé' },
+  { href: '/cv', label: 'CV' },
 ];
 
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
@@ -17,7 +16,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     <a class="brand" href="/" aria-current={path === '/' ? 'page' : undefined}>
       <Star size={26} />
       <span>Steve Urmston</span>
-      <span class="role">AI Product Engineer</span>
+      <span class="role">Product Engineer</span>
     </a>
     <nav aria-label="Main">
       <ul>
