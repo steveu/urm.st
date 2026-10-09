@@ -63,11 +63,19 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
   .brand :global(svg) {
     color: var(--orange);
     flex-shrink: 0;
-    transition: transform 0.4s var(--ease-out);
   }
 
-  .brand:hover :global(svg) {
-    transform: rotate(72deg);
+  .brand :global(svg path) {
+    stroke: currentColor;
+    stroke-width: 3.5;
+    stroke-linejoin: round;
+    fill-opacity: 0;
+    transition: fill-opacity 0.18s ease;
+  }
+
+  .brand:hover :global(svg path),
+  .brand[aria-current='page'] :global(svg path) {
+    fill-opacity: 1;
   }
 
   .brand:hover {
