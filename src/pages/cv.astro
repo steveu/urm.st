@@ -1,79 +1,103 @@
 ---
 import Base from '../layouts/Base.astro';
-import { work, education } from '../data/cv';
+import { work, education, projects, skills } from '../data/cv';
 
-const month = (ym: string) =>
-  new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-const span = (start: string, end?: string, fmt = month) => `${fmt(start)} – ${end ? fmt(end) : 'Present'}`;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const month = (ym: string) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
 
+// One entry per role, newest first, so the date column reads as a single timeline
+const roles = work.flatMap((job) => job.roles.map((role) => ({ ...role, company: job.company })));
 
-const year = (ym: string) => ym.slice(0, 4);
-const years = (start: string, end?: string) =>
-  !end ? `${year(start)} – now` : year(start) === year(end) ? year(start) : `${year(start)} – ${year(end)}`;
+// Splits a highlight on [text](url) into plain text and links
+const parts = (h: string): { text: string; href?: string }[] =>
+  h.split(/\[([^\]]+)\]\(([^)]+)\)/).flatMap((s, i, all) =>
+    i % 3 === 0 ? (s ? [{ text: s }] : []) : i % 3 === 1 ? [{ text: s, href: all[i + 1] }] : [],
+  );
 ---
 
 <Base title="CV" description="CV for Steve Urmston, product engineer in York, UK: design, frontend engineering and product management since 2003.">
-  <article class="wrap page">
-    <header class="intro">
-      <h1>Steve Urmston</h1>
-      <p class="label">Product Engineer · York, UK</p>
-      <p class="lede">
-        I’ve designed, built and managed products since 2003: UX, interface design, frontend engineering and product
-        management, often all at once. Now I build with agents, where judgement and taste matter more than ever.
-      </p>
-      <p class="actions">
-        <a href="mailto:steve@urm.st">steve@urm.st</a>
-        <a href="https://www.linkedin.com/in/steveurmston/">LinkedIn</a>
-        <a href="/steven-urmston-resume.pdf">Download PDF</a>
-      </p>
-    </header>
+  <div class="ground">
+    <article class="sheet">
+      <header class="top">
+        <div>
+          <h1>Steve Urmston</h1>
+          <p class="label">Product Engineer · York, UK</p>
+        </div>
+        <p class="contact">
+          <a href="mailto:steve@urm.st">steve@urm.st</a>
+          <a class="paper-only" href="https://urm.st">urm.st</a>
+          <a href="https://www.linkedin.com/in/steveurmston/"><span class="screen">LinkedIn</span><span class="paper">linkedin.com/in/steveurmston</span></a>
+          <a class="save" href="/steven-urmston-cv.pdf">Download PDF</a>
+        </p>
+      </header>
 
+      <section class="profile" aria-labelledby="profile">
+        <div>
+          <h2 id="profile">Profile</h2>
+          <p class="lede">
+            I’ve worked as a designer, a frontend engineer and a product manager, often all at once. Now I design and build
+            AI products, from the experience to the evals.
+          </p>
+        </div>
+        <img src="/assets/images/avatar.jpg" alt="" width="104" height="104" />
+      </section>
 
-    <section aria-labelledby="experience">
-      <h2 id="experience">Experience</h2>
-      <ol class="rows">
-        {
-          work.map((job) => (
-            <li class="row job">
-              <div class="when">
-                <h3 class="company">{job.href ? <a href={job.href}>{job.company}</a> : job.company}</h3>
-                <p class="years">
-                  {years(job.roles.at(-1)!.start, job.roles[0].end)}
+      <section aria-labelledby="experience">
+        <h2 id="experience">Experience</h2>
+        <ol class="timeline">
+          {
+            roles.map((role) => (
+              <li class:list={{ current: !role.end }}>
+                <div class="what">
+                  <h3>
+                    {role.title}{role.company && `, ${role.company}`}
+                  </h3>
+                  <ul>
+                    {role.highlights.map((h) => (
+                      <li>{parts(h).map((p) => (p.href ? <a href={p.href}>{p.text}</a> : p.text))}</li>
+                    ))}
+                  </ul>
+                </div>
+                <p class="when">
+                  <span class="end">{role.end ? month(role.end) : 'Now'}</span>
+                  <span class="start">{month(role.start)}</span>
                 </p>
-              </div>
-              <div class="what roles">
-                {job.roles.map((role) => (
-                  <div class="role">
-                    <h4>
-                      {role.title}
-                      {job.roles.length > 1 && <span class="span">{span(role.start, role.end)}</span>}
-                    </h4>
-                    <ul>
-                      {role.highlights.map((h) => (
-                        <li>{h}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </li>
-          ))
-        }
-      </ol>
-    </section>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
 
+      <section class="projects" aria-labelledby="projects">
+        <h2 id="projects">Projects</h2>
+        <ul>
+          {
+            projects.map((p) => (
+              <li>
+                <img src={p.icon} alt="" width="44" height="44" />
+                <div>
+                  <h3>{p.href ? <a href={p.href}>{p.name}</a> : p.name}</h3>
+                  <p>{p.summary}</p>
+                  {p.tech && <p class="tech">{p.tech}</p>}
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
 
-    <section aria-labelledby="education">
-      <h2 id="education">Education</h2>
-      <ol class="rows">
-        {
-          education.map((e) => (
-            <li class="row">
-              <p class="when">{e.end ? `${e.start} – ${e.end}` : e.start}</p>
-              <div class="what">
-                <h3>
-                  {e.award}<span class="org">, {e.institution}</span>
-                </h3>
+      <section class="education" aria-labelledby="education">
+        <h2 id="education">Education</h2>
+        <ol>
+          {
+            education.map((e) => (
+              <li>
+                <div class="row">
+                  <h3>
+                    {e.award}, {e.institution}
+                  </h3>
+                  <p class="years">{e.end ? `${e.start} – ${e.end}` : e.start}</p>
+                </div>
                 {e.highlights && (
                   <ul>
                     {e.highlights.map((h) => (
@@ -81,236 +105,511 @@ const years = (start: string, end?: string) =>
                     ))}
                   </ul>
                 )}
-              </div>
-            </li>
-          ))
-        }
-      </ol>
-    </section>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
 
-  </article>
+      <section class="skills" aria-labelledby="skills">
+        <h2 id="skills">Skills</h2>
+        <p>{skills.join(' · ')}</p>
+      </section>
+    </article>
+  </div>
 </Base>
 
-
 <style>
-  .page {
-    display: flex;
-    flex-direction: column;
-    gap: 64px;
-    max-width: 920px;
-    padding-block: clamp(56px, 8vw, 96px) 0;
+  /* The page is a printed sheet on a grey ground, as the PDF would be */
+  .ground {
+    --ground: #ebe8e2;
+    --rail: #d6d0c5;
+    background: var(--ground);
+    padding: clamp(24px, 4vw, 48px) 16px clamp(64px, 8vw, 120px);
   }
 
-  .intro {
+  .sheet {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-width: 720px;
+    gap: 32px;
+    max-width: 920px;
+    margin-inline: auto;
+    padding: clamp(32px, 5vw, 56px) clamp(24px, 6vw, 64px) clamp(40px, 6vw, 72px);
+    background: var(--panel);
+    border-top: 6px solid var(--text);
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.05),
+      0 16px 48px rgb(0 0 0 / 0.07);
+  }
+
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
   }
 
   h1 {
-    font-size: clamp(32px, 4.4vw, 50px);
-    line-height: 1.1;
-    letter-spacing: -0.015em;
+    font-size: clamp(30px, 4vw, 36px);
+    font-weight: 400;
+    line-height: 1.15;
   }
 
   .label {
-    font-weight: 600;
+    margin: 6px 0 0;
+    font-size: 18px;
     color: var(--muted);
   }
 
+  .contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin: 0;
+  }
+
+  .contact a,
+  .save {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .contact a:hover {
+    color: var(--accent);
+  }
+
+  /* On paper the addresses have to be readable, not just clickable; the site's own address only matters there */
+  .paper,
+  .contact .paper-only {
+    display: none;
+  }
+
+  .contact .save {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .contact .save:hover {
+    color: var(--accent-hover);
+  }
+
+  h2 {
+    margin-bottom: 14px;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .profile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px 48px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile > div {
+    flex: 999 1 420px;
+  }
+
   .lede {
-    font-size: clamp(17px, 1.5vw, 19px);
+    margin: 0;
+    font-size: clamp(17px, 1.6vw, 18px);
     line-height: 1.6;
     text-wrap: pretty;
   }
 
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 24px;
-    font-size: 15px;
-    font-weight: 600;
+  .profile img {
+    flex: 0 0 auto;
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 6px var(--surface);
   }
 
-  .actions a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-
-  section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  h2 {
-    font-size: 21px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .rows {
+  ol {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  /* Dates in a narrow column on the left, the detail on the right */
-  .row {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
-    gap: 32px;
-    padding-block: 20px;
-  }
-
-  .row + .row {
-    border-top: 1px solid var(--line);
-  }
-
-  .when,
-  .years {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--faint);
-  }
-
-  .what {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0;
-    line-height: 1.55;
-  }
-
   h3 {
     font-size: 19px;
+    font-weight: 400;
     line-height: 1.35;
   }
 
-  .org {
-    color: var(--muted);
+  .sheet ul {
+    margin: 6px 0 0;
+    list-style: disc;
+    padding-left: 20px;
+    color: #3a3733;
+    line-height: 1.55;
   }
 
-  .what ul {
-    margin: 0;
-    padding-left: 1.1em;
-    color: var(--muted);
-  }
-
-  .what li + li {
+  .sheet ul li + li {
     margin-top: 4px;
   }
 
-  .what p {
-    margin: 0;
-    color: var(--muted);
+  /* A quiet link to the work itself: reads as text until it's hovered */
+  .what li a {
+    color: inherit;
+    text-decoration: underline dotted var(--faint);
+    text-underline-offset: 3px;
   }
 
-  /* Experience: the company and its years on the left, the roles held there on the right */
-  p.when {
-    padding-top: 4px;
-  }
-
-  .company {
-    margin: 0;
-    color: var(--text);
-    font-size: 21px;
-    line-height: 1.25;
-  }
-
-  .company a {
-    color: var(--text);
-    text-decoration-color: var(--line);
-    text-underline-offset: 4px;
-  }
-
-  .company a:hover {
+  .what li a:hover {
     color: var(--accent);
     text-decoration-color: currentColor;
   }
 
-  .years {
-    margin: 6px 0 0;
+  /* Experience: the detail on the left, the dates on the right carrying one line, a dot per role */
+  .timeline > li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 156px;
+    column-gap: 32px;
   }
 
-  .roles {
-    gap: 20px;
+  .what {
+    padding-bottom: 26px;
   }
 
-  .role {
+  .when {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-  }
-
-  h4 {
     margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 12px;
-    font-family: var(--font-sans);
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.4;
+    padding: 3px 30px 0 0;
+    text-align: right;
+    font-size: 14px;
   }
 
-  .span {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 400;
+  .end {
+    color: #3a3733;
+  }
+
+  .start {
     color: var(--faint);
   }
 
-  /* Bytemark's three roles hang off a rule, so the progression reads as one line */
-  .roles:has(.role + .role) {
-    padding-left: 20px;
-    border-left: 2px solid var(--line);
-  }
-
-  .roles:has(.role + .role) .role {
-    position: relative;
-  }
-
-  .roles:has(.role + .role) .role::before {
+  .when::before {
     content: '';
     position: absolute;
-    left: -26px;
-    top: 8px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 2px solid var(--faint);
+    top: 0;
+    bottom: 0;
+    right: 6.5px;
+    width: 1px;
+    background: var(--rail);
   }
 
-  @media (max-width: 760px) {
-    .row {
+  .timeline > li:first-child .when::before {
+    top: 12px;
+  }
+
+  .timeline > li:last-child .when::before {
+    bottom: calc(100% - 12px);
+  }
+
+  .when::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    right: 1px;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    border: 2px solid var(--orange);
+    border-radius: 50%;
+    background: var(--panel);
+  }
+
+  .current .when::after {
+    background: var(--orange);
+  }
+
+  /* Projects: each app's own icon beside its name, linked to its section on /work */
+  .projects {
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .projects ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 24px 40px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: inherit;
+  }
+
+  .projects li {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .projects ul li + li {
+    margin-top: 0;
+  }
+
+  .projects img {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .projects h3 a {
+    color: var(--text);
+    text-decoration: underline dotted var(--faint);
+    text-underline-offset: 4px;
+  }
+
+  .projects h3 a:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+
+  .projects p {
+    margin: 4px 0 0;
+    color: #3a3733;
+    line-height: 1.55;
+  }
+
+  .projects .tech {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .education {
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .education ol {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4px 24px;
+  }
+
+  .row h3 {
+    font-size: 18px;
+  }
+
+  .years {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .skills {
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .skills p {
+    margin: 0;
+    color: #3a3733;
+    line-height: 1.6;
+  }
+
+  /* Phones: dates go above each role on one line, and the rail steps aside */
+  @media (max-width: 640px) {
+    .timeline > li {
       grid-template-columns: minmax(0, 1fr);
-      gap: 6px;
     }
+
+    .when {
+      order: -1;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      gap: 0.4em;
+      padding: 0 0 4px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .end::before {
+      content: '– ';
+    }
+
+    .when::before,
+    .when::after {
+      display: none;
+    }
+
+    .contact {
+      align-items: flex-start;
+    }
+  }
+
+  /* Print: two A4 pages, set like a document. No photo, as UK CVs usually go without */
+  @page {
+    size: A4;
+    margin: 18mm 20mm;
   }
 
   @media print {
+    :global(html) {
+      font-size: 9.5pt;
+    }
+
+    :global(body) {
+      border-top: 0;
+      background: none;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
     :global(.site-header),
-    :global(.site-footer) {
+    :global(.site-footer),
+    :global(.skip-link),
+    .contact .save,
+    .screen,
+    .profile img {
       display: none;
     }
 
-    .page {
-      gap: 32px;
-      padding-block: 0;
+    .paper {
+      display: inline;
     }
 
-    .actions a[href$='.pdf'] {
-      display: none;
+    .contact .paper-only {
+      display: inline-flex;
     }
 
-    .row {
+    .ground {
+      padding: 0;
+      background: none;
+    }
+
+    .sheet {
+      gap: 14px;
+      max-width: none;
+      padding: 0;
+      box-shadow: none;
+      border-top: 0;
+      font-size: 9.5pt;
+    }
+
+    .top {
+      padding-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 20pt;
+    }
+
+    .label,
+    .contact {
+      font-size: 10pt;
+    }
+
+    .contact a {
+      min-height: 0;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: 8.5pt;
+    }
+
+    h3,
+    .row h3 {
+      font-size: 10.5pt;
+    }
+
+    .profile,
+    .education,
+    .projects,
+    .skills {
+      padding-top: 12px;
+      padding-bottom: 0;
+    }
+
+    .profile {
+      border-bottom: 0;
+    }
+
+    .lede {
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    .sheet ul {
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .sheet ul li + li {
+      margin-top: 3px;
+    }
+
+    .timeline > li {
+      grid-template-columns: minmax(0, 1fr) 96px;
+      column-gap: 28px;
+    }
+
+    .what {
+      padding-bottom: 16px;
+    }
+
+    .when {
+      padding-top: 1px;
+      font-size: 8.5pt;
+    }
+
+    .projects ul {
+      gap: 10px 28px;
+    }
+
+    .projects img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .projects p,
+    .skills p {
+      line-height: 1.4;
+    }
+
+    .education ol {
+      gap: 6px;
+    }
+
+    .years {
+      font-size: 8.5pt;
+    }
+
+    .timeline > li,
+    .projects li,
+    .education li {
       break-inside: avoid;
+    }
+
+    h2 {
+      break-after: avoid;
     }
   }
 </style>

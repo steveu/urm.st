@@ -4,36 +4,36 @@ export type Role = {
   title: string;
   start: string;
   end?: string;
+  // [text](url) marks a quiet link to the work itself
   highlights: string[];
 };
 
 export type Job = {
-  company: string;
-  href?: string;
+  // Left out for freelance work, where the title already says it
+  company?: string;
   roles: Role[];
 };
 
 export const work: Job[] = [
   {
     company: 'Hublsoft',
-    href: 'https://hublsoft.com/',
     roles: [
       {
         title: 'Senior Frontend Engineer',
         start: '2021-03',
         highlights: [
-          'Senior member of the engineering team building a decision intelligence platform.',
-          'Key contributor to an Innovate UK-funded project, integrating AI capabilities into the product.',
+          'AI-directed data exploration and storytelling in an enterprise data product: first as workflows for business users, now as a multi-agent harness.',
+          'Work across the experience, the prompts, tools and context, and the evals that prove they work.',
+          'Before that, design and frontend for an Innovate UK-funded programme on advanced AI capabilities.',
         ],
       },
     ],
   },
   {
     company: 'Pierbridge',
-    href: 'https://pierbridge.com/',
     roles: [
       {
-        title: 'UX/Frontend Developer',
+        title: 'UX Developer',
         start: '2019-09',
         end: '2021-03',
         highlights: [
@@ -45,7 +45,6 @@ export const work: Job[] = [
   },
   {
     company: 'Effective Experiments',
-    href: 'https://effectiveexperiments.com/',
     roles: [
       {
         title: 'Senior Frontend Engineer',
@@ -53,21 +52,19 @@ export const work: Job[] = [
         end: '2019-08',
         highlights: [
           'Worked in a product team rebuilding a legacy application in React and GraphQL.',
-          'Built a React component library to exacting design standards using Storybook.',
+          'Built a React component library in Storybook.',
         ],
       },
     ],
   },
   {
     company: 'Bytemark',
-    href: 'https://www.bytemark.co.uk',
     roles: [
       {
         title: 'Lead Frontend Developer',
         start: '2017-11',
         end: '2019-02',
         highlights: [
-          'Senior member of an Agile (Scrum) engineering team.',
           'Led UI design and frontend development of the company’s core applications.',
         ],
       },
@@ -84,24 +81,25 @@ export const work: Job[] = [
         title: 'UX Developer',
         start: '2014-01',
         end: '2016-06',
-        highlights: ['Introduced a UX and design focus to an engineering-led environment, shaping early product experiences.'],
+        highlights: [
+          'Designed and built the first visual interfaces for customers, who until then had only the command line.',
+          'The cloud server [control panel](https://panel.bytemark.co.uk/) became the customer portal, still in use more than ten years on.',
+        ],
       },
     ],
   },
   {
-    company: 'Independent',
     roles: [
       {
-        title: 'UI Designer',
+        title: 'Freelance Designer and Developer',
         start: '2012-10',
         end: '2014-01',
-        highlights: ['Design and frontend development across a range of client projects.'],
+        highlights: ['Worked on Wren Kitchens’ visual kitchen planning app, on contract.'],
       },
     ],
   },
   {
     company: 'Designition',
-    href: 'https://designition.co.uk',
     roles: [
       {
         title: 'Senior Designer',
@@ -116,7 +114,6 @@ export const work: Job[] = [
   },
   {
     company: 'Clearbar',
-    href: 'https://web.archive.org/web/20050204022131/http://clearbar.com:80/index.php',
     roles: [
       {
         title: 'Founder',
@@ -130,11 +127,6 @@ export const work: Job[] = [
 
 export const education = [
   {
-    award: 'ILM Level 5, Leadership and Management',
-    institution: 'University of York',
-    start: '2017',
-  },
-  {
     award: 'MSc Human-Centred Interactive Technologies',
     institution: 'University of York',
     start: '2008',
@@ -147,4 +139,31 @@ export const education = [
     start: '1999',
     end: '2003',
   },
+];
+
+// Personal projects, linked to their section on /work once it exists
+export type Project = { name: string; icon: string; href?: string; summary: string; tech?: string };
+
+export const projects: Project[] = [
+  {
+    name: 'Eddy',
+    icon: '/icons/eddy.png',
+    href: '/work#eddy',
+    summary:
+      'A family video app. A model running at home checks every video a kid shares against their age, and the feed ends. In daily family use since April.',
+    tech: 'Gemma 4 · Ollama · Node · SQLite · iOS',
+  },
+  {
+    name: 'One Thought',
+    icon: '/icons/one-thought.png',
+    summary: 'A golf app that counts one thought with a button in your pocket.',
+  },
+];
+
+// One plain line, grouped; only what holds up in an interview
+export const skills = [
+  'TypeScript, React, GraphQL, Node, SQLite',
+  'LLM workflows, multi-agent harnesses, tools, context engineering, evals',
+  'Local models (Ollama)',
+  'Built with Claude Code, Codex and Pi',
 ];
