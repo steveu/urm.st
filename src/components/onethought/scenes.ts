@@ -46,9 +46,9 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     // To the 12th: the short hole, with the gallery stood right by its tee
     {
       open: {
-        trouble: [rope('Ooh! Straight in {trouble}! Seen it all now!'), partner('pleased', 'Ha. They’ve got you there, mind.'), caddie('normal', 'Don’t look round. Walk.')],
+        trouble: [rope('Ooh! Straight into {trouble}! Seen it all now!'), partner('pleased', 'Ha. They’ve got you there, mind.'), caddie('normal', 'Don’t look round. Walk.')],
         well: [rope('Fluke! Pure fluke! Bet you can’t do it twice!'), partner('pleased', 'They’re not wrong. I’ve seen you play.'), caddie('normal', 'That was no fluke. Walk on.')],
-        fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'Fair question, that.'), caddie('normal', 'It was a perfectly good hole. Eyes front.')],
+        fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'They’ve a point.'), caddie('normal', 'It was a perfectly good hole. Eyes front.')],
       },
       build: {
         trouble: [
@@ -67,15 +67,15 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         ],
         fine: [
           you('thinking', '(It was fine. It was a fine hole.)'),
-          rope('We’ll be at the next! Bring your best one! Or any one!'),
+          rope('See you at the next! Bring your best one. Or any one.'),
           partner('pleased', 'Ooh. They’re coming with us.'),
           caddie('thinking', 'Course they are. Ignore it.'),
           you('thinking', '(Any one. Cheeky. …They’ll be right behind me on that tee.)'),
         ],
       },
-      key: [you('shocked', '(…Right. That’s got to me. I can feel my face going red.)')],
+      key: [you('shocked', '(…Right. That’s got to me. My face is going.)')],
       caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.'), partner('pleased', 'Have a scowl, then. Get it out before the tee.')],
-      missed: [rope('Touchy!'), caddie('thinking', 'You’re carrying that onto the tee. I can see it from here.')],
+      missed: [rope('Touchy!'), caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
     },
     // To the 13th: the four-ball waiting on the last tee, and the rope's favourite line
     {
@@ -92,7 +92,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         rope('Any chance this year?'),
         partner('pleased', 'Ha! Sorry. Sorry. That one was good.'),
       ],
-      key: [you('shocked', '(Even my own partner’s laughing. Right. That’s under my skin.)')],
+      key: [you('shocked', '(My own partner. Right. That’s under my skin.)')],
       caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.'), caddie('pleased', 'Better on your face than in your swing.')],
       missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.'), you('thinking', '(I’m fine. Completely fine.)')],
     },
@@ -110,7 +110,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('thinking', 'You don’t have to buy them anything.'),
         partner('pleased', 'You should, though. Shut them up for good.'),
       ],
-      key: [you('shocked', '(Champ. They’ll be calling me that all night. And it’s working.)')],
+      key: [you('shocked', '(Champ. All night, that. And it’s working.)')],
       caught: [caddie('pleased', 'Let it show, then let it go. Good round.'), partner('pleased', 'Come on, champ. First one’s mine.')],
       missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
     },
@@ -140,7 +140,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     {
       open: {
         trouble: [caddie('thinking', 'That one found {trouble}. Were you sure over it?'), you('thinking', 'I was sure until I wasn’t.'), partner('pleased', 'Story of my life, that.')],
-        well: [caddie('pleased', 'Picked the club, swung it. Lovely.'), partner('shocked', 'Show-off.'), you('pleased', 'Committed, that’s all.')],
+        well: [caddie('pleased', 'Picked the club, swung it. Lovely.'), partner('pleased', 'Show-off.'), you('pleased', 'Committed, that’s all.')],
         fine: [caddie('normal', 'Middling. You fiddled with it on the tee.'), you('thinking', 'I re-gripped. A bit.'), partner('pleased', 'A lot. I was watching.')],
       },
       build: [
