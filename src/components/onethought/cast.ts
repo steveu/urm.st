@@ -5,7 +5,7 @@
 //
 // Each is built from named parts (torso, arms, neck, head, ear, nose, hair, hat), every
 // part a shape filled with a material: four tones lit from the right, where the low sun
-// is, a warm rim on the sunny edge, and a dark line only on the shaded edges. Textures go
+// is, a warm rim on the sunny edge, and a dark line all round. Textures go
 // on as the tones are worked out: the knit of a jumper, the weave of a hat, the grain of a
 // beard. The face is drawn over that, by expression: brows, eyes, lids and mouth.
 //
@@ -217,10 +217,10 @@ const folded: Pose = {
   R: { e: [108, 122], h: [46, 116], layer: 'front', hand: 'fist' },
   head: [0, 0],
 };
-// Hands on the hips, elbows out
+// Hands on the hips, elbows out: the fists on the waist, above the box's edge
 const hips: Pose = {
-  L: { e: [12, 116], h: [30, 126], layer: 'mid', hand: 'fist' },
-  R: { e: [114, 116], h: [96, 126], layer: 'mid', hand: 'fist' },
+  L: { e: [8, 110], h: [30, 113], layer: 'mid', hand: 'fist' },
+  R: { e: [118, 110], h: [96, 113], layer: 'mid', hand: 'fist' },
   head: [0, 0],
 };
 // Caught out: hands up by the shoulders, the head back, the hands shaking
@@ -278,17 +278,18 @@ const POSES: Record<Actor, Record<Face, Pose>> = {
   },
   partner: {
     normal: hips,
-    // A belly laugh: both hands on it, the shoulders going
+    // A laugh: the head back, a hand flat on the chest, the other held out level towards
+    // you, palm up: see, what did I say
     pleased: {
-      L: { e: [14, 126], h: [50, 136], layer: 'front', hand: 'open', f1: [0, -1] },
-      R: { e: [114, 126], h: [76, 136], layer: 'front', hand: 'open', f1: [0, -1] },
-      head: [0, 1],
+      L: { e: [14, 122], h: [50, 100], layer: 'front', hand: 'open' },
+      R: { e: [102, 110], h: [117, 100], layer: 'front', hand: 'open', f1: [0, -2] },
+      head: [-1, -1],
       headF1: [0, -2],
     },
-    // Both hands to the hat
+    // Both hands to the hat, the elbows out
     shocked: {
-      L: { e: [8, 104], h: [44, 26], layer: 'front', hand: 'open', f1: [0, 1] },
-      R: { e: [120, 104], h: [86, 28], layer: 'front', hand: 'open', f1: [0, 1] },
+      L: { e: [8, 72], h: [42, 36], layer: 'front', hand: 'open', f1: [0, 1] },
+      R: { e: [118, 72], h: [88, 36], layer: 'front', hand: 'open', f1: [0, 1] },
       head: [-2, -1],
     },
     // A scratch under the brim
@@ -438,11 +439,14 @@ function brow(p: Pic, x0: number, x1: number, y0: number, y1: number, arch: numb
   }
 }
 
-function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: string, browThick = 2) {
+// `lip` is for a face with hair round the mouth: the talking mouth a little bigger, with a
+// lower lip under it, so it's seen to move under a moustache
+function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: string, o: { thick?: number; lip?: boolean } = {}) {
+  const browThick = o.thick ?? 2;
   // Brows: [outer y, inner y, arch] for the near brow (left) and the far one (right)
   const by = h.eyeY - 5;
   const B: Record<Face, [[number, number, number], [number, number, number]]> = {
-    normal: [[0, 0, 1], [0, 0, 1]],
+    normal: [[-1, -1, 1], [-1, -1, 1]],
     pleased: [[-1, -1, 2], [-1, -1, 2]],
     shocked: [[-3, -4, 2], [-3, -4, 2]],
     thinking: [[-1, 2, 0], [-3, -2, 1]],
@@ -483,16 +487,19 @@ function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: s
     return;
   }
   // Talking: an opening, a row of teeth along its top when it's wide
-  const hgt = mouth === 1 ? 2 : f === 'shocked' ? 6 : 4;
-  const w = f === 'shocked' ? 3 : f === 'thinking' ? 3 : 5;
+  const hgt = (mouth === 1 ? 2 : f === 'shocked' ? 6 : 4) + (o.lip ? 1 : 0);
+  const w = (f === 'shocked' ? 3 : f === 'thinking' ? 3 : 5) + (o.lip ? 1 : 0);
   const up = f === 'pleased' ? -1 : 0;
+  const ox = f === 'thinking' ? 2 : 0;
   for (let dy = 0; dy < hgt; dy++)
     for (let dx = -w; dx <= w; dx++) {
       const edge = Math.abs(dx) === w && (dy === 0 || dy === hgt - 1);
       if (edge) continue;
-      set(p, mx + dx + (f === 'thinking' ? 2 : 0), my + dy - 1 + up, mouth === 2 && dy === 0 && f !== 'shocked' ? TEETH : MOUTH_IN);
+      set(p, mx + dx + ox, my + dy - 1 + up, mouth === 2 && dy === 0 && f !== 'shocked' ? TEETH : MOUTH_IN);
     }
-  for (let dx = -w; dx <= w; dx++) set(p, mx + dx + (f === 'thinking' ? 2 : 0), my - 2 + up, LIP);
+  for (let dx = -w; dx <= w; dx++) set(p, mx + dx + ox, my - 2 + up, LIP);
+  // The lower lip, a line under the opening
+  if (o.lip) for (let dx = -w + 1; dx < w; dx++) set(p, mx + dx + ox, my + hgt - 1 + up, LIP);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -556,10 +563,28 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
   skull(p, h);
   // Grey hair at the back
   ell(p, h.cx - 16, h.cy - 2, 4.5, 8, 'hairGrey', { tex: grain, keep: (x, y) => y > h.cy - 8 && x < h.cx - 11 });
+  // The beard: the chin and the jaw, longer than the skull, up the near cheek to the
+  // rim and up the far one to a sideburn, with skin left between it and the ear and
+  // round the mouth. Its top edge is a line from the sideburn down to the mouth's corner
+  // and back up the cheek; its rim breaks into tufts, with a few stray pixels outside
+  const mx = h.mouthX;
+  const my = h.mouthY;
+  const beardTop = (x: number) => {
+    if (x < h.cx - 10) return h.cy + 2;
+    if (x < mx - 5) return h.cy + 4 + (x - (h.cx - 10));
+    if (x <= mx + 6) return my + 3;
+    return my - 1 - Math.round((x - mx - 6) * 0.9);
+  };
+  const bx = h.cx + 2;
+  const by = h.cy + 11;
+  ell(p, bx, by, 18, 17, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) + 1 && hash(x, y, 23) > 0.62 });
+  ell(p, bx, by, 16, 15, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) && (y > beardTop(x) + 1 || hash(x, y, 29) > 0.3) });
   ear(p, h);
-  // The beard: round the jaw and up the cheek to the ear, the mouth showing through
-  ell(p, h.cx + 1, h.cy + 12, 18, 14, 'beard', { tex: grain, keep: (x, y) => y >= h.cy + 6 || (x < h.cx - 10 && y >= h.cy - 2) });
-  ell(p, h.cx + 4, h.cy + 9, 8, 2.4, 'beard', { tex: grain, base: 0.7 });
+  // The lips, bare in the beard, then the moustache over the top one, lifting a pixel as
+  // the mouth opens wide
+  ell(p, mx, my + 1, 7, 3.5, 'skin', { base: 0.5 });
+  const lift = mouth === 2 ? 1 : 0;
+  poly(p, [[mx - 7, my - 6 - lift], [mx - 2, my - 8 - lift], [mx + 2, my - 8 - lift], [mx + 8, my - 6 - lift], [mx + 11, my - 2 - lift], [mx + 8, my - 2 - lift], [mx + 4, my - 4 - lift], [mx, my - 4 - lift], [mx - 4, my - 4 - lift], [mx - 8, my - 2 - lift], [mx - 11, my - 2 - lift]], 'beard', { tex: grain, base: 0.62 });
   // The nose, over the moustache's top edge, or the beard swallows it
   nose(p, { ...h, cy: h.cy - 2 });
   // The wool hat: a dome and a ribbed band turned up
@@ -567,7 +592,7 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
   poly(p, [[h.cx - 23, h.cy - 15], [h.cx + 21, h.cy - 15], [h.cx + 20, h.cy - 7], [h.cx - 22, h.cy - 7]], 'beanie', { tex: ribs, base: 0.5 });
   tint(p, (_x, y) => y === h.cy - 15 || y === h.cy - 14, 0.15, ['beanie']);
   tint(p, (x, y) => y >= h.cy - 7 && y <= h.cy - 5 && x > h.cx - 18, -0.3, ['skin']);
-  face(p, h, f, blink, mouth, MATS.hairGrey.tones[0]);
+  face(p, h, f, blink, mouth, MATS.hairGrey.tones[0], { lip: true });
   arms(p, pose, 'front', frame, 'jacket', flat);
   return h;
 }
@@ -592,18 +617,19 @@ function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth
   poly(p, [[h.cx - 19, h.cy - 14], [h.cx + 17, h.cy - 14], [h.cx + 17, h.cy - 11], [h.cx - 19, h.cy - 11]], 'bucketBand', { base: 0.5 });
   ell(p, h.cx - 1, h.cy - 10, 29, 5, 'bucket', { tex: weave, base: 0.5, keep: (_x, y) => y >= h.cy - 12 });
   tint(p, (x, y) => y >= h.cy - 6 && y <= h.cy - 3 && x > h.cx - 24 && x < h.cx + 28, -0.35, ['skin', 'ginger']);
-  // The moustache: full under the nose, tapering out and down at the ends
+  // The moustache: full under the nose, tapering out and down at the ends, lifting a
+  // pixel as the mouth opens wide
   const mx = h.mouthX;
-  const my = h.mouthY;
+  const my = h.mouthY - (mouth === 2 ? 1 : 0);
   poly(p, [[mx - 8, my - 7], [mx - 2, my - 9], [mx + 2, my - 9], [mx + 8, my - 7], [mx + 13, my - 2], [mx + 10, my - 1], [mx + 5, my - 4], [mx, my - 4], [mx - 5, my - 4], [mx - 11, my - 1], [mx - 14, my - 2]], 'ginger', { tex: grain, base: 0.55 });
-  face(p, h, f, blink, mouth, MATS.ginger.tones[1], 3);
+  face(p, h, f, blink, mouth, MATS.ginger.tones[1], { thick: 3, lip: true });
   arms(p, pose, 'front', frame, 'jumperPink', cable);
   return h;
 }
 
 // ---------------------------------------------------------------------------------------
 // Into pixels: tones by lightness (dithered at the seams), the sun's rim on the lit edge,
-// the dark line on the shaded edges only
+// the dark line all round
 
 function render(p: Pic): HTMLCanvasElement {
   const c = document.createElement('canvas');
@@ -630,12 +656,15 @@ function render(p: Pic): HTMLCanvasElement {
         continue;
       }
       if (m < 0) {
-        // The line: only where a shape's shaded edge (away from the sun) or its foot meets
-        // the air
+        // The line: all round, wherever a shape meets the air, in the colour of the
+        // shape it edges (the shaded side's first, then the one above); the rim sits a
+        // pixel inside it on the sunny side, so the figure holds against a bright sky
         const sh = at(x + ls, y);
         const up = at(x, y - 1);
-        if (sh >= 0) out(x, y, MATS[MAT_LIST[sh]].line);
-        else if (up >= 0 && y < H - 1) out(x, y, MATS[MAT_LIST[up]].line);
+        const lit = at(x - ls, y);
+        const dn = at(x, y + 1);
+        const n = sh >= 0 ? sh : up >= 0 ? up : lit >= 0 ? lit : y < H - 1 ? dn : -1;
+        if (n >= 0) out(x, y, MATS[MAT_LIST[n]].line);
         continue;
       }
       const mat = MATS[MAT_LIST[m]];
@@ -680,3 +709,319 @@ export function portraitFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean,
 }
 
 export const FACES: Face[] = ['normal', 'pleased', 'shocked', 'thinking', 'shout'];
+
+/** Where the head is in a portrait, hat included, as drawn or flipped */
+export function headBox(who: Actor, flip = false): { x: number; y: number; w: number; h: number } {
+  const h = HEAD[who];
+  const x = h.cx - h.rx - 2;
+  const w = h.rx * 2 + 4;
+  return { x: flip ? W - x - w : x, y: h.cy - h.ry - 12, w, h: h.ry * 2 + 12 };
+}
+
+// ---------------------------------------------------------------------------------------
+// The gallery at the rope: three of them in silhouette against the low sun, hand-placed
+// at the board's pixel, near, so their heads break the horizon. '#' is ink, '+' the light
+// on a sunward edge, '*' where it's bright, the cap's peak and the hat's brim. Their feet
+// are under the box, so the coats run on. Drawn facing right, towards the course and you:
+// a flat cap with a hand cupped to the mouth (the one doing the shouting), a bobble hat
+// stood behind with their hands in their pockets, a bare head wound in a scarf with their
+// arms folded
+
+type GalleryFig = { rows: string[]; ink: string; lit: string; hi: string };
+const HECKLER: GalleryFig = {
+  ink: '#221a2c',
+  lit: '#6e4c66',
+  hi: '#c09aac',
+  rows: [
+    '..........########..........',
+    '........############........',
+    '.......##############.......',
+    '......################......',
+    '......#################.....',
+    '.....##################.....',
+    '.....###################***.',
+    '.....######################.',
+    '......##################....',
+    '.......###########+.........',
+    '.......###########+.........',
+    '.......############+........',
+    '.......#############+.......',
+    '.......############++#......',
+    '........##########+#####+...',
+    '........##########+######+..',
+    '........#########+#######+..',
+    '.........########.#######+..',
+    '..........######..#######+..',
+    '...........#####...######+..',
+    '...........#####....#####+..',
+    '...........#####....#####+..',
+    '...........#####.....####+..',
+    '..........######.....#####+.',
+    '.........#######......####+.',
+    '........######+##.....####+.',
+    '......#######+###.....####+.',
+    '.....#######+####.....#####+',
+    '....#############.....#####+',
+    '...##############.....#####+',
+    '...###############....#####+',
+    '...################...#####+',
+    '...#################..#####+',
+    '...#######################+.',
+    '...######################+..',
+    '...#####################+...',
+    '...####################.....',
+    '...###################......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '...##################.......',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+    '....################........',
+  ],
+};
+const BOBBLE: GalleryFig = {
+  ink: '#3a2c48',
+  lit: '#7a5a74',
+  hi: '#b890a8',
+  rows: [
+    '...........####...........',
+    '..........######..........',
+    '..........######+.........',
+    '...........####...........',
+    '.........########.........',
+    '........##########........',
+    '.......############.......',
+    '......##############......',
+    '......##############+.....',
+    '.....################.....',
+    '.....################+....',
+    '.....################+....',
+    '....##################*...',
+    '....###################...',
+    '....###################+..',
+    '....###################+..',
+    '....###################...',
+    '.....#################....',
+    '.....################+....',
+    '.....################+....',
+    '.....#################+...',
+    '.....#################+...',
+    '.....################+....',
+    '......###############+....',
+    '......##############+.....',
+    '.......############.......',
+    '........##########........',
+    '.........########.........',
+    '.........########.........',
+    '........##########........',
+    '.....################.....',
+    '...##################+....',
+    '..####################+...',
+    '.######################+..',
+    '.#######################+.',
+    '.#######################+.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '##########################',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+    '.########################.',
+  ],
+};
+const SCARF: GalleryFig = {
+  ink: '#221a2c',
+  lit: '#6e4c66',
+  hi: '#c09aac',
+  rows: [
+    '........#..##...........',
+    '.......####.###.........',
+    '......###########.......',
+    '.....#############......',
+    '.....##############.....',
+    '....################....',
+    '....################+...',
+    '....################+...',
+    '....################+...',
+    '....#################...',
+    '....#################+..',
+    '....################+...',
+    '.....###############+...',
+    '.....##############+....',
+    '......############+.....',
+    '...###################..',
+    '..####################+.',
+    '..####################+.',
+    '..#####################.',
+    '...###################..',
+    '....#############+####..',
+    '....##############.####.',
+    '...###############.####+',
+    '..################.####+',
+    '.#################.####+',
+    '.######################+',
+    '.######################.',
+    '.######################.',
+    '.#####################+.',
+    '.######################.',
+    '.######################.',
+    '.######################.',
+    '.######################.',
+    '.######################.',
+    '.######################.',
+    '.+++++++++++++++++++++..',
+    '.######################.',
+    '.#######################',
+    '.#######################',
+    '.#######################',
+    '.#######################',
+    '.#######################',
+    '.#######################',
+    '.#######################',
+    '.######################.',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+    '..####################..',
+  ],
+};
+
+const galleryCache: HTMLCanvasElement[] = [];
+/** The three at the rope, in order back to front: the bobble hat, the cap, the scarf.
+ *  Each is its own sprite; the stage places them by the frame's width */
+export function galleryFigures(): HTMLCanvasElement[] {
+  if (galleryCache.length) return galleryCache;
+  for (const f of [BOBBLE, HECKLER, SCARF]) {
+    const w = f.rows[0].length;
+    const h = f.rows.length;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d')!;
+    f.rows.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        if (ch === '.') return;
+        g.fillStyle = ch === '#' ? f.ink : ch === '+' ? f.lit : f.hi;
+        g.fillRect(x, y, 1, 1);
+      }),
+    );
+    galleryCache.push(c);
+  }
+  return galleryCache;
+}
