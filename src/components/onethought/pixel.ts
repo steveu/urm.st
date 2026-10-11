@@ -21,12 +21,15 @@ export const view = { a: OVERVIEW.a as number, zk: OVERVIEW.zk as number };
  *  the trees and the wind; drawn as they are, a wedge goes up a foreshortened fairway like
  *  a rocket. A real one peaks at much the same height whatever the club, the long ones a
  *  touch higher, so each club is drawn to its own peak and only the length tells them apart */
-const PEAK: Record<FullClub, number> = { driver: 17, wood: 16, iron: 15.5, wedge: 14 };
+const PEAK: Record<FullClub, number> = { driver: 17, wood: 16, iron: 14.5, wedge: 12.5 };
 export const liftFor = (club: FullClub) => PEAK[club] / CLUBS[club].apex;
+/** How high a flight is drawn s of the way along it, as a share of its peak. The sim's
+ *  curve is the same both sides of the top, which up a foreshortened fairway reads as
+ *  straight up and then a slide in to land. A real one goes up at an angle, climbs on to
+ *  a peak about two thirds of the way, and drops in steeply: this */
+const ARC_K = 0.75 * 4 ** (-1 / 3); // the peak of s(1 - s³), at s = 4^(-1/3)
+export const arcAt = (s: number) => (s * (1 - s ** 3)) / ARC_K;
 const T = 8; // the plate's thickness
-/** How far off a ball's shadow falls for each pixel it's up: 1.1 rakes it with the trees'
- *  long shadows, 0 would put it straight under */
-const RAKE = 1.1;
 
 type RGB = readonly [number, number, number];
 type Ctx = CanvasRenderingContext2D;
@@ -802,6 +805,21 @@ type Particle = { x: number; y: number; z: number; vx: number; vy: number; vz: n
 type Ring = { x: number; y: number; t0: number; life: number; r0: number; r1: number; col: string };
 
 const TREES: Vec[] = COURSE.holes.flatMap((h) => h.trees.map((t) => t.c));
+const OAK_R = [3, 4, 5]; // the hazard trees' sprites, oaks[i % 3] on the board
+/** How many pixels up a ball over p has to be drawn to show clear over the top of any
+ *  hazard tree it's over, in the view in use; 0 if it's over none */
+export function crownOver(p: Vec): number {
+  let need = 0;
+  COURSE.holes
+    .flatMap((h) => h.trees)
+    .forEach((t, i) => {
+      if (Math.hypot(p[0] - t.c[0], p[1] - t.c[1]) >= t.r) return;
+      // The ball's ground point below the tree's foot on screen, then the crown's height
+      const below = ((p[1] - p[0] - (t.c[1] - t.c[0])) * view.a) / 2;
+      need = Math.max(need, below + 2 * OAK_R[i % 3] + 5);
+    });
+  return need;
+}
 export const HAZARD_TREES = TREES;
 
 // ---------------------------------------------------------------------------------------
@@ -1544,24 +1562,24 @@ export function createBoard(cv: HTMLCanvasElement) {
     if (ball && ball.o > 0) {
       const [x, y] = toPx(ball.p);
       const lift = Math.round(ball.z * view.zk);
-      // Its shadow lies on the ground, under everything that stands. The low sun throws it
-      // off to the left as it does the trees', so it slides away as the ball climbs and
-      // runs back in to meet it on the way down; off the island it's lost
-      if (ball.z >= 0) {
-        const off = lift * RAKE;
-        const q = unIso(sx(ball.p) - ox - off, sy(ball.p) - oy + off * 0.14);
-        if (!lift || (seen(q) && q[0] >= 0 && q[0] <= W && q[1] >= 0 && q[1] <= H)) {
-          const [hx, hy] = toPx(q);
-          items.push({
-            y: -1e9,
-            d: () => {
-              g.globalAlpha = ball.o;
-              g.fillStyle = `rgba(36,44,22,${clamp(0.42 - lift * 0.008, 0.22, 0.42).toFixed(2)})`;
-              g.fillRect(hx - (lift > 3 ? 0 : 1), hy, 2, 1);
-              g.globalAlpha = 1;
-            },
-          });
-        }
+      // Its shadow on the ground straight under it, which is what shows how high it is: a
+      // soft one near the ground, a dot higher up. Off the island it's lost
+      if (ball.z >= 0 && (!lift || seen(ball.p))) {
+        const a = clamp(0.55 - lift * 0.008, 0.4, 0.55);
+        items.push({
+          y: y - 0.5,
+          d: () => {
+            g.globalAlpha = ball.o;
+            g.fillStyle = `rgba(26,32,14,${a.toFixed(2)})`;
+            g.fillRect(x, y, 2, 1);
+            if (lift < 8) {
+              g.fillStyle = `rgba(26,32,14,${(a * 0.5).toFixed(2)})`;
+              g.fillRect(x - 1, y, 1, 1);
+              g.fillRect(x + 2, y, 1, 1);
+            }
+            g.globalAlpha = 1;
+          },
+        });
       }
       items.push({
         y: y + 0.5,

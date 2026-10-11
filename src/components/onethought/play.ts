@@ -13,7 +13,7 @@ import * as S from './sim';
 import type { Vec, Ball, Shot, Situation, Ctx, Sample } from './sim';
 import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
-import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
+import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, arcAt, crownOver, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
@@ -1012,6 +1012,22 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // ---------------------------------------------------------------------------------
   // The ball in the air, as a list of segments
 
+  /** A shot's flight at the heights it's drawn at: the club's drawn peak on the arc (see
+   *  arcAt), and lifted all through if that would show it going through a tree the sim
+   *  says it cleared. Drawn the same in the air, on the record and as the ghost */
+  function drawnFlight(s: S.Shot): S.Sample[] {
+    const peak = s.apex * lift;
+    const fl = s.flight.map((x) => ({ ...x, z: peak * arcAt(x.s) }));
+    let k = 1;
+    for (const x of fl) {
+      if (x.p === s.treeHit || x.z <= 0) continue;
+      const need = crownOver(x.p) / view.zk;
+      if (need > 0) k = Math.max(k, need / x.z);
+    }
+    k = Math.min(k, 1.8);
+    return k > 1 ? fl.map((x) => ({ ...x, z: x.z * k })) : fl;
+  }
+
   function launch() {
     if (!shot) return;
     setMode('flight');
@@ -1022,7 +1038,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     track = [];
     trace = [];
     const H = h();
-    const flight = sh0.flight.map((x) => ({ ...x, z: x.z * lift }));
+    const flight = drawnFlight(sh0);
     const hitIdx = sh0.treeHit ? flight.findIndex((s) => s.p === sh0.treeHit) : -1;
     const air = hitIdx >= 0 ? flight.slice(0, hitIdx + 1) : flight;
     const defl = hitIdx >= 0 ? flight.slice(hitIdx) : [];
@@ -1253,7 +1269,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     bz = 0;
     bo = ball.done ? 0 : 1;
     // Keep the line it flew, at height, for the record
-    trails.push([...s.flight.map((x) => ({ p: x.p, z: x.z * lift })), ...s.roll.map((x) => ({ p: x.p, z: 0 }))]);
+    trails.push([...drawnFlight(s).map((x) => ({ p: x.p, z: x.z })), ...s.roll.map((x) => ({ p: x.p, z: 0 }))]);
     const lie = lieOf(s);
     opts.onShot(hole, lie, putt);
     // Kept for the walk: a pure one, a way out of trouble, a putt or a chip dropping
@@ -1327,7 +1343,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       }
     }
     const ghosted = BAD.has(lie) || s.events.includes('treeHit');
-    ghost = ghosted ? s.flight.map((x) => ({ p: x.p, z: x.z * lift })) : null;
+    ghost = ghosted ? drawnFlight(s).map((x) => ({ p: x.p, z: x.z })) : null;
     ghostT0 = gt;
     setMode('settle');
     // The settle lasts longer on a disaster
