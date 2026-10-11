@@ -382,6 +382,7 @@ export type Pose = {
   wt: number; // -1 on the back foot, 1 through on the front with the back heel up
   up: number; // 0 eyes on the ball, 1 up after it
   putter?: boolean;
+  step?: number; // the front foot put down this far forward, catching a fall
 };
 export const BALL_DX = 6;
 const pose = (h: Vec, c: Vec, bend: number, turn = 0, wt = 0, up = 0): Pose => ({ h, c, bend, turn, wt, up });
@@ -412,9 +413,13 @@ export const POSES = {
   short: pose([5, -13], [0, -19], 0.3, 0.8, 0.8, 1),
   // Thrown at it: the weight falls back and the club wraps round low
   flail: pose([1, -13], [-7, -7], -0.8, 0.55, -1, 1),
+  // And the front foot comes down a step on, to catch it
+  steady: { ...pose([2, -11], [-5, -6], -0.4, 0.5, -0.5, 1), step: 1 },
   // Heavy: the club stays in the ground
   dug: pose([5, -5], [7, 1], 1, 0.2, 0.3),
   slump: pose([3, -7], [8, -1], 1),
+  // A good one let go of: the club down in front, watching it
+  post: pose([5, -10], [9, -4], 0.2, 0.6, 0.8, 1),
   pAddr: puttPose(0),
   pBack: puttPose(-1),
   pThru: puttPose(1),
@@ -438,6 +443,7 @@ export function lerpPose(a: Pose, b: Pose, t: number): Pose {
     wt: mixN(a.wt, b.wt, t),
     up: mixN(a.up, b.up, t),
     putter: a.putter,
+    step: t < 0.5 ? a.step : b.step,
   };
 }
 
@@ -521,13 +527,14 @@ function swinger(px: Put, line: Draw, p: Pose) {
     px(ankle, -2, col, 2, toe ? 1 : 2);
   };
   px(-bk, -6, K.trouDk, 1, 2);
-  leg(1 - bk, 1 + Math.max(0, -w) * 1.2, lift ? 2 : 1, K.trou, lift);
+  const st = p.step ?? 0;
+  leg(1 - bk, 1 + Math.max(0, -w) * 1.2 + st / 2, (lift ? 2 : 1) + st, K.trou, lift);
   leg(-2 - bk, -2 + Math.max(0, w) * 2.6, heel ? 0 : -2, K.trouDk, heel);
   // Up on the toe of the back foot, or flat
   if (heel) px(0, -1, K.shoe, 2, 1);
   else px(-3, 0, K.shoe, 3, 1);
   if (lift) px(2, -1, K.shoe, 3, 1);
-  else px(1, 0, K.shoe, 3, 1);
+  else px(1 + st, 0, K.shoe, 3, 1);
   px(-2 - bk, -7, K.belt, 5, 1);
 
   // The spine tips over the ball: the shoulders are a row lower and two along when bent

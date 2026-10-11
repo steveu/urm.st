@@ -455,9 +455,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     }
     poseTw = { from: pose, to, t0: gt, dur };
   }
-  function poseSeq(steps: [Pose, number][]) {
+  /** With reduced motion only one pose is shown: `still`, or else the last */
+  function poseSeq(steps: [Pose, number][], still?: Pose) {
     if (reduce) {
-      pose = steps[steps.length - 1][0];
+      pose = still ?? steps[steps.length - 1][0];
       poseTw = null;
       poseQ = [];
       return;
@@ -970,9 +971,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       void meterEl.offsetWidth;
       meterEl.classList.add('flash');
     }
-    // Down and through, by how it was struck: a pure or a good one held in a full finish, a
-    // touch early or late in a shorter one, a heavy one left in the ground, a flail thrown
-    // off balance. The ball goes at impact, a beat after the release
+    // Down and through, by how it was struck: a pure one held in a full finish, a good one
+    // let down sooner, a touch early or late in a shorter one, a heavy one left in the
+    // ground, a flail thrown off balance and caught. The ball goes at impact, a beat after
+    // the release
     const lie0 = ball.lie;
     const at0 = ball.at;
     impactFx = () => {
@@ -987,14 +989,18 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     };
     const down: [Pose, number] = [POSES.down, DOWN - IMPACT];
     const hit: [Pose, number] = [g === 'fat' ? POSES.dug : POSES.impact, IMPACT];
+    const fin = g === 'pure' || g === 'good' ? POSES.finish : g === 'early' || g === 'late' ? POSES.short : g === 'fat' ? POSES.slump : POSES.flail;
     poseSeq(
-      g === 'pure' || g === 'good'
-        ? [down, hit, [POSES.through, 100], [POSES.finish, 240]]
-        : g === 'early' || g === 'late'
-          ? [down, hit, [POSES.through, 90], [POSES.short, 200]]
-          : g === 'fat'
-            ? [down, hit, [POSES.dug, 160], [POSES.slump, 320]]
-            : [down, hit, [POSES.flail, 150]],
+      g === 'pure'
+        ? [down, hit, [POSES.through, 100], [POSES.finish, 240], [POSES.finish, 900]]
+        : g === 'good'
+          ? [down, hit, [POSES.through, 100], [POSES.finish, 240], [POSES.finish, 200], [POSES.post, 320]]
+          : g === 'early' || g === 'late'
+            ? [down, hit, [POSES.through, 90], [POSES.short, 200]]
+            : g === 'fat'
+              ? [down, hit, [POSES.dug, 160], [POSES.slump, 320]]
+              : [down, hit, [POSES.flail, 150], [POSES.flail, 140], [POSES.steady, 200]],
+      fin,
     );
     launch();
   }
@@ -1235,6 +1241,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     relMs = -1;
     const H = h();
     const putt = s.grade === null;
+    // With reduced motion the putter stays through until the ball stops
+    if (putt && reduce) poseTo(POSES.addr, 0);
     const fromLie = ball.lie;
     ball = s.next;
     strokes[hole - 1] = ball.strokes;
@@ -1389,7 +1397,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // while it rolls. Longer the further it has to go
     lift = 1;
     const k = clamp(0.5 + S.pathLength(s.roll.map((x) => x.p)) / 20, 0.5, 1.6);
-    poseSeq([[puttPose(-k), 180], [puttPose(k * 0.8), 160], [puttPose(k * 0.8), 300], [POSES.pAddr, 400]]);
+    poseSeq([[puttPose(-k), 180], [puttPose(k * 0.8), 160], [puttPose(k * 0.8), 300], [POSES.pAddr, 400]], puttPose(k * 0.8));
     puttAt = gt + (reduce ? 0 : 190);
     window.setTimeout(() => snd.contact('putt'), reduce ? 0 : 190);
   }
