@@ -395,21 +395,21 @@ export const POSES = {
   addr: pose([4, -6], [6, 0], 1),
   wag: pose([4, -6], [8, -2], 1),
   // Low and slow away, the turn starting
-  take: pose([1, -7], [-3, -5], 1, -0.35, -0.3),
+  take: pose([1, -7], [-5, -8], 1, -0.35, -0.3),
   // The wrists set, the club straight up
   half: pose([-2, -10], [-3, -17], 1, -0.7, -0.5),
   // Wound up, chest to us, the club across behind the head at the target
   top: pose([-3, -15], [5, -17], 0.9, -1, -0.6),
-  // Past it: the arms give and the club drops down the back
-  over: pose([-4, -14], [-3, -6], 0.7, -1, -0.9),
+  // Past it: the arms give and the club drops past level
+  over: pose([-4, -14], [-7, -12], 0.7, -1, -0.9),
   // On the way down the hands drop first and the club lags behind them
   down: pose([-1, -9], [-7, -11], 1, -0.4, 0.3),
   impact: pose([5, -6], [6, 0], 1, 0.35, 0.6),
-  through: pose([7, -11], [8, -20], 0.6, 0.75, 0.85, 0.6),
-  // Up on the front foot, back to us, hands high: held
-  finish: pose([-1, -19], [-7, -11], 0, 1, 1, 1),
-  // Three quarters, for a strike a touch early or late
-  short: pose([6, -14], [1, -21], 0.3, 0.8, 0.8, 1),
+  through: pose([6, -12], [2, -20], 0.6, 0.75, 0.85, 0.6),
+  // Up on the front foot, back to us, the hands by the ear and the club down the back: held
+  finish: pose([-2, -15], [-7, -10], 0, 1, 1, 1),
+  // Three quarters, for a strike a touch early or late: held off, the club up and back
+  short: pose([5, -13], [0, -19], 0.3, 0.8, 0.8, 1),
   // Thrown at it: the weight falls back and the club wraps round low
   flail: pose([1, -13], [-7, -7], -0.8, 0.55, -1, 1),
   // Heavy: the club stays in the ground
@@ -476,11 +476,12 @@ type Draw = (x0: number, y0: number, x1: number, y1: number, col: string) => voi
 // eyes are on the ball; or from behind, looking off after it
 function head(px: Put, hx: number, hy: number, down: number, back: boolean) {
   if (back) {
-    // The hairline, an ear, the back of the neck
-    px(hx - 1, hy, K.hair, 4, 1);
-    px(hx - 1, hy + 1, K.hair);
-    px(hx, hy + 1, K.skinDk, 2, 2);
+    // The back of the head is hair under the cap, an ear at the edge as it turns to look
+    // after the ball, and the neck
+    px(hx - 1, hy, K.hair, 4, 2);
     px(hx + 2, hy + 1, K.skin);
+    px(hx - 1, hy + 2, K.hair);
+    px(hx, hy + 2, K.skinDk, 2, 1);
   } else {
     px(hx - 1, hy, K.hair, 1, 3);
     px(hx, hy, K.skinDk, 1, 3);
@@ -490,7 +491,12 @@ function head(px: Put, hx: number, hy: number, down: number, back: boolean) {
   }
   px(hx - 1, hy - 1, K.cap, 4, 1);
   px(hx, hy - 2, K.capLt, 3, 1);
-  if (back) px(hx + 3, hy - 1, K.capDk);
+  // From behind, the crown wider and the brim's tip past it
+  if (back) {
+    px(hx - 2, hy - 1, K.capDk);
+    px(hx - 1, hy - 2, K.cap);
+    px(hx + 3, hy - 1, K.capDk);
+  }
   else px(hx + 3, hy - 1 + down, K.capDk, 2, 1);
 }
 
@@ -560,9 +566,9 @@ function swinger(px: Put, line: Draw, p: Pose) {
   const leadArm = () => arm(lead, K.jumpDk, false);
   const trailArm = () => arm(trail, K.jump, true);
 
-  // What's behind the body goes down first: at the top the club, across behind the head;
-  // turned through, the arms, out in front of a chest we can't see
-  if (t < -0.55) club();
+  // What's behind the body goes down first: at the top and the finish the club, across
+  // behind the head; turned through, the arms, out in front of a chest we can't see
+  if (t < -0.55 || t > 0.7) club();
   if (t > 0.3) {
     leadArm();
     trailArm();
@@ -573,19 +579,21 @@ function swinger(px: Put, line: Draw, p: Pose) {
     const d = along(y);
     const x0 = d - 2;
     const x1 = d + (wide ? 2 : 1);
-    for (let x = x0; x <= x1; x++) px(x, y, x === x0 ? K.jumpDk : x === x1 ? K.jumpLt : K.jump);
+    // Turned away, the side from the sun is wider in shade
+    const dk = t > 0.45 ? x0 + 1 : x0;
+    for (let x = x0; x <= x1; x++) px(x, y, x <= dk ? K.jumpDk : x === x1 ? K.jumpLt : K.jump);
   }
-  // The collar: a V at the front, else the band round the neck
+  // The collar: a V at the front, the band round the neck side on, none from behind
   if (t < -0.45) {
     px(top - 1, sY, K.collar, 3, 1);
     px(top, sY + 1, K.collar);
-  } else px(top, sY, K.collar, 2, 1);
+  } else if (t <= 0.45 || p.up <= 0.5) px(top, sY, K.collar, 2, 1);
 
   // The head stays where it was over the ball until the swing's gone through
   const back = t > 0.45 && p.up > 0.5;
   head(px, top, sY - 3, p.up > 0.5 ? 0 : r(Math.max(0, b)), back);
 
-  if (t >= -0.55) club();
+  if (t >= -0.55 && t <= 0.7) club();
   if (t < -0.3) {
     leadArm();
     trailArm();
@@ -1519,7 +1527,7 @@ export function createBoard(cv: HTMLCanvasElement) {
           g.fillStyle = P.shade;
           g.fillRect(x - 10, y, 12, 1);
           g.fillRect(x - 5, y + 1, 5, 1);
-          if (gf.bag) drawBag(g, x - gf.face * 9 - 1, y - 1);
+          if (gf.bag) drawBag(g, x - gf.face * 12 - 1, y - 2);
           drawGolfer(g, x, y, gf.face, gf.st);
         },
       });
