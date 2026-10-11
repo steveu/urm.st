@@ -1,8 +1,72 @@
 # Swing pass: golfer, swing, ball flight
 
+## Look at first (second pass, after the critique)
+
+1. The pose sheet: `s3-sheet.png` (first pass: `sheet-final.png`). The finish now shows the back of the head, the hands by the ear and the club down the back. The new `post` and `steady` poses are in row 3.
+2. A wedge, swing and flight: `s4-wedge.png` (first pass: `cr-wedgeair.png`, `swing-wedge.png`). The shadow is under the ball and the flight peaks late.
+3. A long shot: `s4-driver.png`. The last frame shows the record's trail as an arc.
+4. Reduced motion: `s5-reduce.png`.
+
+The screenshots are in `/private/tmp/claude-501/-Users-steveu-code-urm-st/e6af49c7-8165-4d33-8d8a-49faa7bd1734/scratchpad/night/swing-opus/`.
+
+## Second pass: what changed, against the critique
+
+1. **The finish read as a face (agreed).**
+   - The back of the head is now a mass of hair under a wider crown, with one ear pixel and the neck below.
+   - There is no white collar from behind, and the turned jumper has a 2px shaded side.
+   - The finish hands are at the ear (`[-2,-15]`).
+   - Once the turn is past 0.7, the club is drawn behind the head and body, which covers `through` and `short` too.
+   - The finish club is a pixel shorter than the critique suggested (`[-7,-10]`), so it stays off the bag.
+2. **The flight was a "!" then a slide (agreed, different curve).**
+   - Flights are drawn on `arcAt(s) = s(1 - s³)`, normalised, which peaks at s = 0.63.
+   - I didn't use the suggested `sin(π·s^1.4)`. It leaves the ground with no launch angle, so the ball skims before it climbs. This curve leaves at an angle and falls about three times as steeply as it rose.
+   - One helper, `drawnFlight` in play.ts, feeds the flight, the record's trails and the ghost.
+   - The wedge `PEAK` is now 12.5 and the iron 14.5 (they were 14 and 15.5).
+   - A limit of the view: on a hole that runs up the screen, a steep fall still moves little on screen, because the ball falls as it moves away. The shadow closing in on the ball is what shows the drop.
+3. **The shadow (agreed).**
+   - `RAKE` is gone, and the shadow sits straight under the ball.
+   - It is darker, at alpha 0.4 to 0.55. Near the ground it is 2px with soft ends, and higher up a plain 2px.
+   - It is now sorted at its own ground row, not under everything. The golfer only covers it where he really stands in front of it.
+4. **Flights drawn below the trees (handled, not checked in play).**
+   - The tree crowns are fixed sprites 10 to 14px tall. The sim's tree height of 20 never matched them, even before this pass.
+   - `crownOver(p)` in pixel.ts gives the height a ball over a hazard tree has to be drawn at to show above the crown.
+   - When a flight the sim lets through would be drawn into a crown, `drawnFlight` scales the whole arc up to clear it, by at most 1.8x, so there is no bump in the flight.
+   - I haven't captured a corner-cutting drive to confirm it.
+5. **`through` and `short` read as a sword or hands up (agreed).** I took the suggested numbers. Both now carry the club behind the head, over the shoulder.
+6. **The muddle to the golfer's left (agreed).**
+   - `take.c` is now `[-5,-8]` and `over.c` is `[-7,-12]`.
+   - The bag is at `x - face*12, y - 2`.
+   - **For the course pass:** the golfer still stands right in front of the black-and-cream tee sign. That makes a loud clump at 1x (`s4-wedge.png`, `s5-reduce.png`). I left the sign alone.
+7. **Pure and good looked the same (agreed).**
+   - A pure strike holds the finish for 900ms more.
+   - A good one holds briefly, then lets the club down in front (`post`).
+   - A flail now catches itself (`steady`), with the front foot put down a pixel forward (`Pose.step`).
+8. **Reduced-motion putts (agreed).**
+   - `poseSeq` takes a `still` pose to show under reduced motion.
+   - Putts show the stroke through and go back to address in `landed()`.
+   - Full swings show the grade's finish, not the last tween step.
+
+Nothing changed in `sim.ts` or `read.ts`: `PEAK`, the arc and the tree lift are all in the render.
+
+## Open questions (second pass)
+- The wedge and iron `PEAK` (12.5, 14.5) is still a guess, for you to judge.
+- The tree lift is untested in a real corner cut. Setting the 1.8 cap in `drawnFlight` to 1 switches it off.
+- A pure finish now holds for 900ms more, so on a short flight it may still be held as the ball lands. I think that's fine, but it's a feel call.
+
+## Checks (second pass)
+- `npm run build` passes with 0 errors.
+- `read.ts` and `sim.ts` are unchanged against 3fae718, and there are no banned names.
+- Bot rounds: `d1440` (1440, seed 7) and `d390` (390, seed 11).
+  - Logs: `d1440.log`, `d390.log`. Screenshots: `d1440-*.png`, `d390-*.png`.
+  - The only errors are the known font 403s from `@fs`.
+
+---
+
+# First pass (kept for the record; the second pass above supersedes where they differ)
+
 First pass on the golfer sprite, the swing motion and the ball flight. Cut scenes, course edges and the walk sprite (used by the cut scenes) are untouched. `sim.ts` and `read.ts` are unchanged.
 
-## What to look at first
+## What to look at first (first pass)
 
 1. The pose sheet, every frame big: `sheet-final.png` (before: `sheet-before.png`).
 2. A wedge, swing and flight at zoom: `swing-wedge.png`, and the flight before and after: `before-wedge.png` against `after3-wedge.png`.
