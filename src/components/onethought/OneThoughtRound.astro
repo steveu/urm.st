@@ -1,0 +1,1968 @@
+---
+// Home band for One Thought: three holes, played on a little isometric course. Choose a
+// thought, carry it round, swing on the course and press the pocket button when the
+// thought applies; the round is read after in one sentence, by the app's own rules.
+// Nothing counts on screen while you play. Rendered at the choosing screen, so it reads
+// the same with scripts off.
+//
+// The game's chrome is pixel art at the board's own scale (--px): stepped panels, hard
+// shadows, a pixel face for labels. The words the product says (the thoughts, the caddie,
+// the gallery, the sentence) stay in Petrona.
+import '@fontsource-variable/petrona/wght.css';
+import '@fontsource-variable/petrona/wght-italic.css';
+import '@fontsource/caveat/latin-500.css';
+import '@fontsource/pixelify-sans/latin-400.css';
+import { getCollection } from 'astro:content';
+import { THOUGHTS, OFFERED, START } from './thoughts';
+import { MARK } from './record';
+
+const decisionCount = (await getCollection('decisions', (d) => d.data.project === 'one-thought')).length;
+const start = THOUGHTS[START];
+const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
+---
+
+<section id="one-thought-live" class="band" aria-labelledby="one-thought-live-title" data-round data-stage="choose">
+  <div class="wrap">
+    <div class="play">
+      <header class="title">
+        <p class="eyebrow">
+          <svg class="mark" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" set:html={MARK} />
+          One Thought
+        </p>
+        <h2 id="one-thought-live-title">
+          <span class="note" aria-hidden="true"
+            ><svg viewBox="0 0 34 30"
+              ><path d="M30 4 C 20 4, 10 10, 6 24 M2 18 L6 25 L12 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+              ></path></svg
+            >three, here</span
+          >Eighteen holes.<br />One thought.
+        </h2>
+      </header>
+      <p class="lede">
+        A golf app for carrying one thought through a round. A button in your pocket counts, the phone stays in the bag, and
+        the round is read afterwards in one sentence.
+      </p>
+
+      <div class="game" data-game>
+        <p class="px hole" data-hole>
+          <canvas class="mini" data-mini aria-hidden="true"></canvas><span data-hole-text><b>The eleventh</b><span class="hn"> · The Slope</span> · par four</span>
+        </p>
+
+        <!-- The course: a small table of three holes in the low evening sun. The board is
+             the swing; the Flic is the pocket button, and the two never share an input -->
+        <div
+          class="scene"
+          data-scene
+          data-mode="idle"
+          tabindex="0"
+          role="group"
+          aria-roledescription="game"
+          aria-label="The course: three holes. Click where you want the ball to go, or use the arrows. Hold and let go to swing: space on the keyboard. F for the pocket button."
+        >
+          <canvas class="board" data-canvas aria-hidden="true"></canvas>
+          <div class="chips" data-chips aria-hidden="true"></div>
+          <div class="px caddie" data-caddie aria-hidden="true"><p class="q"></p><p class="by">your caddie</p></div>
+          <div class="px white bubble" data-bubble aria-hidden="true"><p class="q"></p><p class="by"></p></div>
+          <p class="word" data-word aria-hidden="true"></p>
+          <p class="hint" data-hint aria-hidden="true"></p>
+          <div class="visually-hidden" data-sraim></div>
+          <!-- The close-ups: a face cuts in beside the line it says. The status line
+               carries the words, so this is for the eyes only -->
+          <!-- The walk between holes: the line in a box across the foot, its speaker on a
+               tab. The faces and the shout are drawn on the board -->
+          <div class="px white dialogue" data-dialogue aria-hidden="true">
+            <p class="tab" data-tab></p>
+            <p class="line" data-dline></p>
+            <span class="next"></span>
+            <p class="stamp" data-dstamp></p>
+          </div>
+          <div class="cutin" data-cutin aria-hidden="true">
+            <div class="px face"><canvas data-face width="48" height="48"></canvas></div>
+            <div class="px white box"><p class="who" data-who></p><p class="line" data-line></p><p class="stamp"></p></div>
+          </div>
+        </div>
+
+        <div class="px carry">
+          <p class="k">In your pocket</p>
+          <p class="n" data-carry-name>{start.name}</p>
+          <p class="r" data-carry-rule>{start.rule}</p>
+          <p class="acts">
+            <button type="button" class="plink" data-act="choose">choose another</button>
+            <span aria-hidden="true">·</span>
+            <button type="button" class="plink" data-act="end">end the round</button>
+          </p>
+        </div>
+
+        <div class="kit">
+          <div class="px meter" data-meter aria-hidden="true">
+            <p class="pips" data-pips><span data-pip>look</span><span data-pip>waggle</span><span data-pip>breath</span></p>
+            <div class="bar">
+              <em class="good" data-good></em><em class="pure" data-pure></em><span class="fill" data-fill></span><span class="mk" data-mark></span>
+            </div>
+            <div class="clubrow">
+              <p class="club" data-club>driver</p>
+              <canvas class="sock" data-sock width="20" height="14" aria-hidden="true"></canvas>
+            </div>
+          </div>
+          <!-- The pocket button: a plain Flic, as it comes -->
+          <div class="px pocket" data-pocket>
+            <button type="button" class="flic" data-flic aria-label="The pocket button: press to count, or hold to mark a moment. F on the keyboard.">
+              <canvas data-flic-canvas aria-hidden="true" width="32" height="32"></canvas>
+            </button>
+            <p>your pocket · <kbd>F</kbd><br /><span class="how">press a tap · hold a moment</span></p>
+            <button type="button" class="mute" data-mute aria-pressed="false" aria-label="Sound off">
+              <svg viewBox="0 0 9 7" shape-rendering="crispEdges" aria-hidden="true"
+                ><path d="M0 2h2v3H0zM2 1h1v5H2zM3 0h1v7H3z" fill="currentColor"></path><path class="on" d="M5 2h1v3H5zM7 1h1v5H7z" fill="currentColor"></path><path
+                  class="off"
+                  d="M5 2h1v1H5zM6 3h1v1H6zM7 4h1v1H7zM7 2h1v1H7zM5 4h1v1H5z"
+                  fill="currentColor"></path></svg
+              >
+            </button>
+          </div>
+        </div>
+
+        <div class="choose" data-choose>
+          <h3>Choose a thought to carry</h3>
+          <div class="cards">
+            {
+              OFFERED.map((i) => (
+                <button type="button" class="px card" data-pick={i} aria-pressed={i === START ? 'true' : 'false'}>
+                  <span class="n">{THOUGHTS[i].name}</span>
+                  <span class="l">{THOUGHTS[i].line}</span>
+                  <span class="w" set:html={`${tap(THOUGHTS[i].rule)} ${THOUGHTS[i].watch ?? ''}`} />
+                </button>
+              ))
+            }
+          </div>
+          <button type="button" class="pb go" data-act="carry">Carry it to the eleventh tee</button>
+        </div>
+
+        <div class="px record" data-record></div>
+      </div>
+    </div>
+
+    <div class="close">
+      <p>
+        The sentence comes from the app’s own rules. On TestFlight, for phone and watch, with no notifications, no streaks
+        and no count while you play.
+      </p>
+      <a class="primary" href="/work/one-thought/decisions">Why it’s built this way, in {decisionCount} decisions →</a>
+    </div>
+  </div>
+
+  <!-- Sealed: the last green at last light, in pixels, with the sentence over the sky -->
+  <div class="sealed" data-sealed>
+    <canvas data-ending aria-hidden="true"></canvas>
+    <div class="sealcopy" data-sealcopy></div>
+  </div>
+  <p class="visually-hidden" role="status" aria-live="polite" data-status></p>
+</section>
+
+<script>
+  import { START, THOUGHTS } from './thoughts';
+  import { fresh, read, recordHtml, sealedHtml, type State } from './record';
+  import { createGame, type Finish } from './play';
+  import { drawFlic } from './pixel';
+  import { createEnding } from './ending';
+  import * as snd from './sound';
+
+  const HOLD = 500;
+  const DUSK = 700;
+
+  const root = document.querySelector<HTMLElement>('[data-round]');
+  if (root) {
+    const q = <T extends Element = HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const scene = q('[data-scene]');
+    const status = q('[data-status]');
+    const flic = q<HTMLButtonElement>('[data-flic]');
+    const flicCv = q<HTMLCanvasElement>('[data-flic-canvas]');
+    const pocketEl = q('[data-pocket]');
+    const recordEl = q('[data-record]');
+    const sealedEl = q('[data-sealed]');
+    const copyEl = q('[data-sealcopy]');
+    const carryEl = q('.carry');
+    const nameEl = q('[data-carry-name]');
+    const ruleEl = q('[data-carry-rule]');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ending = createEnding(q<HTMLCanvasElement>('[data-ending]'));
+
+    let s: State = fresh(START);
+    // Focus rings for the keyboard only
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' || e.key.startsWith('Arrow') || e.key === ' ' || e.key === 'Enter') root.dataset.kb = '';
+    });
+    root.addEventListener('pointerdown', () => delete root.dataset.kb);
+
+    const game = createGame(root, {
+      reduce,
+      seed: 0,
+      status: (t) => (status.textContent = t),
+      onShot: (hole, lie, putt) => s.card[hole - 1]?.push({ k: 'shot', lie, putt }),
+      onFinish: (f) => finish(f),
+      onMissed: (hole) => s.stage === 'round' && s.card[hole - 1]?.push({ k: 'missed' }),
+      onLive: (on) => setLive(on),
+    });
+
+    // Focus once the thing can take it: a panel coming in is hidden for a frame or two
+    function focusSoon(el: HTMLElement | null) {
+      if (!el) return;
+      let tries = 60;
+      const go = () => {
+        el.focus({ preventScroll: true });
+        if (document.activeElement !== el && --tries > 0) requestAnimationFrame(go);
+      };
+      go();
+    }
+    const act = (name: string) => root!.querySelector<HTMLElement>(`[data-act="${name}"]`);
+
+    function paint(focus?: string) {
+      const moved = root!.dataset.stage !== s.stage;
+      root!.dataset.stage = s.stage;
+      const t = THOUGHTS[s.thought];
+      nameEl.textContent = t.name;
+      ruleEl.textContent = t.rule;
+      root!.querySelectorAll<HTMLElement>('[data-pick]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.pick) === s.thought)));
+      if (s.stage === 'record') recordEl.innerHTML = recordHtml(s);
+      if (s.stage === 'sealed') copyEl.innerHTML = sealedHtml(s);
+      if (moved) game.layout();
+      if (focus) focusSoon(act(focus));
+    }
+
+    // Sound starts with the round, from the click that starts it; the mute is remembered
+    const muteEl = q<HTMLButtonElement>('[data-mute]');
+    const paintMute = () => {
+      muteEl.setAttribute('aria-pressed', String(snd.isMuted()));
+      muteEl.setAttribute('aria-label', snd.isMuted() ? 'Sound on' : 'Sound off');
+    };
+    paintMute();
+    muteEl.addEventListener('click', () => {
+      snd.init();
+      snd.setMuted(!snd.isMuted());
+      paintMute();
+    });
+
+    function begin() {
+      snd.init();
+      s = { ...fresh(s.thought), stage: 'round' };
+      paint();
+      game.begin(s.thought);
+      scene.focus({ preventScroll: true });
+      if (matchMedia('(max-width: 640px)').matches) q('[data-game]').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    // The round over, by the 3rd green or by ending it early
+    function finish(f?: Finish) {
+      if (s.stage !== 'round') return;
+      const r = f ?? game.end();
+      const a = document.activeElement;
+      const hadFocus = scene.contains(a) || carryEl.contains(a) || a === document.body;
+      s = { ...s, stage: 'record', end: r.end, holesPlayed: r.holesPlayed, complete: r.complete, bounds: r.bounds };
+      paint(hadFocus ? 'keep' : undefined);
+      game.reveal(s.taps, s.moments);
+      status.textContent = read(s);
+    }
+
+    function reset(thought: number) {
+      ending.stop();
+      game.setActive(true);
+      s = fresh(thought, 'choose');
+      game.reset();
+      paint();
+    }
+
+    // Sealing: the light goes off the board, then the last green comes in a pixel at a time
+    let sealing = false;
+    function seal() {
+      if (sealing || !s.verdict) return;
+      sealing = true;
+      root!.dataset.sealing = '';
+      game.dusk(true, DUSK);
+      window.setTimeout(
+        () => {
+          sealing = false;
+          delete root!.dataset.sealing;
+          s = { ...s, stage: 'sealed' };
+          paint();
+          sizeEnding();
+          ending.start({ reduce });
+          game.setActive(false);
+          // The band may be taller than the screen: bring its top, and the sentence, into view
+          if (root!.getBoundingClientRect().top < 0) root!.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+          focusSoon(act('again'));
+          status.textContent = `Sealed. ${read(s)}`;
+        },
+        reduce ? 0 : DUSK,
+      );
+    }
+
+    // The painting composes round the words: it is told where their ink actually falls
+    function sizeEnding() {
+      const box = sealedEl.getBoundingClientRect();
+      const words = { l: Infinity, r: 0, b: 0 };
+      const take = (q: DOMRect) => {
+        if (!q.width) return;
+        words.l = Math.min(words.l, q.left - box.left);
+        words.r = Math.max(words.r, q.right - box.left);
+        words.b = Math.max(words.b, q.bottom - box.top);
+      };
+      const range = document.createRange();
+      range.selectNodeContents(copyEl);
+      for (const q of range.getClientRects()) take(q);
+      copyEl.querySelectorAll('button').forEach((b) => take(b.getBoundingClientRect()));
+      if (!Number.isFinite(words.l)) words.l = 0;
+      ending.resize(sealedEl.clientWidth, sealedEl.clientHeight, words);
+    }
+    let lastSealW = 0;
+    new ResizeObserver(() => {
+      if (s.stage !== 'sealed' || sealedEl.clientWidth === lastSealW) return;
+      lastSealW = sealedEl.clientWidth;
+      sizeEnding();
+    }).observe(sealedEl);
+    new IntersectionObserver((es) => ending.pause(!es.some((x) => x.isIntersecting))).observe(root);
+
+    // The Flic: pressed while held, a gold ring on a press, wider and longer for a moment,
+    // and a faint warm halo while the inner voice is talking
+    let down = false;
+    let live = false;
+    let liveT0 = 0;
+    let glow: { t0: number; ms: number; moment: boolean } | null = null;
+    let holdT0 = -1;
+    let flicRaf = 0;
+    function flicFrame() {
+      const now = performance.now();
+      let g = 0;
+      let moment = false;
+      if (glow) {
+        const u = (now - glow.t0) / glow.ms;
+        if (u >= 1) glow = null;
+        else {
+          g = Math.ceil((1 - u) * 4) / 4;
+          moment = glow.moment;
+        }
+      }
+      // While held, the ring gathers: a moment is coming
+      if (!glow && down && holdT0 >= 0 && !reduce) g = Math.min(0.5, Math.max(0, (now - holdT0 - 180) / 640));
+      // The halo breathes in four steps over a second and a half; still, with reduced motion
+      const lv = live ? (reduce ? 0.7 : 0.45 + 0.35 * (Math.round(((Math.sin(((now - liveT0) / 1600) * 2 * Math.PI - Math.PI / 2) + 1) / 2) * 3) / 3)) : 0;
+      drawFlic(flicCv, down, g, moment || (down && g > 0), lv);
+      flicRaf = glow || down || (live && !reduce) ? requestAnimationFrame(flicFrame) : 0;
+    }
+    function flicPaint() {
+      if (!flicRaf) flicRaf = requestAnimationFrame(flicFrame);
+    }
+    drawFlic(flicCv, false, 0, false);
+
+    function setLive(on: boolean) {
+      if (on === live) return;
+      live = on;
+      liveT0 = performance.now();
+      pocketEl.classList.toggle('live', on);
+      if (reduce) drawFlic(flicCv, down, 0, false, on ? 0.7 : 0);
+      flicPaint();
+    }
+
+    // A press answers the line that was up as the button went down. Whether it's a tap or
+    // a hold is only known when it's let go (or held long enough), so that's when it's
+    // decided: a tap may catch the key line, a hold only ever marks a moment
+    function tryCatch() {
+      if (s.stage !== 'round' || !game.catchLine()) return false;
+      ripple(false);
+      return true;
+    }
+
+    function setDown(v: boolean) {
+      down = v;
+      holdT0 = v ? performance.now() : -1;
+      flic.classList.toggle('down', v);
+      flicPaint();
+    }
+    function ripple(moment: boolean) {
+      if (reduce) return;
+      glow = { t0: performance.now(), ms: moment ? 1100 : 380, moment };
+      flicPaint();
+    }
+
+    // Every press counts as it always did; a catch only marks the tap on the card, and a
+    // moment held on a line worth keeping only marks the moment
+    function press(moment: boolean, caught = false) {
+      snd.flic();
+      if (s.stage !== 'round') return ripple(moment);
+      const p = game.stamp();
+      const kept = moment && game.keepLine();
+      if (moment) s.moments.push(p);
+      else s.taps.push(p);
+      s.card[p.hole - 1]?.push(moment ? { k: 'moment', kept } : { k: 'tap', over: p.over, caught });
+      ripple(moment);
+      status.textContent = moment ? (kept ? 'Kept.' : 'Moment marked.') : caught ? 'Caught.' : 'Tap.';
+    }
+
+    // Press is a tap, hold is a moment. The keyboard presses with Enter or Space on the
+    // button, or F anywhere in the band. A pointer press ends in a click the button would
+    // otherwise count again; that flag is cleared after the click, or when no click comes
+    let held: number | undefined;
+    let fromPointer = false;
+    flic.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      fromPointer = true;
+      setDown(true);
+      game.armLine();
+      held = window.setTimeout(() => {
+        held = undefined;
+        press(true);
+      }, HOLD);
+    });
+    const release = () => {
+      window.setTimeout(() => (fromPointer = false), 0);
+      if (!down) return;
+      setDown(false);
+      if (held === undefined) return;
+      clearTimeout(held);
+      held = undefined;
+      press(false, tryCatch());
+    };
+    flic.addEventListener('pointerup', release);
+    flic.addEventListener('pointercancel', () => {
+      fromPointer = false;
+      setDown(false);
+      clearTimeout(held);
+      held = undefined;
+    });
+    flic.addEventListener('pointerleave', release);
+    flic.addEventListener('contextmenu', (e) => e.preventDefault());
+    flic.addEventListener('click', () => {
+      if (fromPointer) {
+        fromPointer = false;
+        return;
+      }
+      game.armLine();
+      press(false, tryCatch());
+    });
+
+    let fHeld: number | undefined;
+    let fDown = false;
+    root.addEventListener('keydown', (e) => {
+      if ((e.key !== 'f' && e.key !== 'F') || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (s.stage === 'choose' || s.stage === 'sealed') return;
+      e.preventDefault();
+      if (e.repeat || fDown) return;
+      fDown = true;
+      setDown(true);
+      game.armLine();
+      fHeld = window.setTimeout(() => {
+        fHeld = undefined;
+        press(true);
+      }, HOLD);
+    });
+    root.addEventListener('keyup', (e) => {
+      if (e.key !== 'f' && e.key !== 'F') return;
+      if (!fDown) return;
+      fDown = false;
+      setDown(false);
+      if (fHeld === undefined) return;
+      clearTimeout(fHeld);
+      fHeld = undefined;
+      press(false, tryCatch());
+    });
+
+    root.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLButtonElement>('button');
+      if (!b || b === flic || b === muteEl || sealing) return;
+      if (b.dataset.pick) {
+        s = { ...s, thought: Number(b.dataset.pick) };
+        paint();
+        return;
+      }
+      const a = b.dataset.act;
+      if (a === 'carry') begin();
+      else if (a === 'choose') {
+        reset(s.thought);
+        focusSoon(root.querySelector<HTMLElement>(`[data-pick="${s.thought}"]`));
+      } else if (a === 'end') finish();
+      else if (a === 'keep' || a === 'drop') {
+        s = { ...s, verdict: a };
+        paint(a);
+        status.textContent = read(s);
+      } else if (a === 'seal') seal();
+      else if (a === 'again') {
+        reset(s.thought);
+        if (root.getBoundingClientRect().top < 0) root.scrollIntoView({ block: 'start', behavior: 'auto' });
+        focusSoon(root.querySelector<HTMLElement>(`[data-pick="${s.thought}"]`));
+      }
+    });
+  }
+</script>
+
+<style>
+  .band {
+    --ink: #26211a;
+    --soft: rgb(38 33 26 / 0.74);
+    --faint: rgb(38 33 26 / 0.6);
+    --brass: #8a6d34;
+    --brass-ink: #6e5523;
+    --gold: #c9a24a;
+    --hair: rgb(38 33 26 / 0.16);
+    --paper: #f7f1e1;
+    --drop: rgb(38 33 26 / 0.2);
+    --pix: 'Pixelify Sans', ui-monospace, monospace;
+    /* One board pixel in CSS pixels; play.ts sets it to the board's scale */
+    --px: 3px;
+    /* Pixel panels: a 7 by 7 nine-slice with stepped corners and a bevel lit from the top
+       right, where the sun is. Drawn at --px a pixel */
+    --pp-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23fffbf0'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23e4d9bf'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    --pp-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23ece3cd'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    --pp-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%23120e09'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23120e09'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%23120e09'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23120e09'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%234a4034'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%234a4034'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%234a4034'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%23120e09'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23120e09'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%231a1610'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%234a4034'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%23120e09'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%23120e09'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%231a1610'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%234a4034'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%23120e09'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%23120e09'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%231a1610'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%234a4034'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%23120e09'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%23120e09'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%231a1610'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%231a1610'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%231a1610'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%23120e09'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%23120e09'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23120e09'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%23120e09'/%3E%3C/svg%3E");
+    --pp-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23f7f1e1'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    --pp-off: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%238c8678'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%238c8678'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%238c8678'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%238c8678'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%238c8678'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%238c8678'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%238c8678'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%238c8678'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%238c8678'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%238c8678'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23b5ad9c'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23c6bfae'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%238c8678'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%238c8678'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23a69f8f'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%238c8678'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%238c8678'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%238c8678'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%238c8678'/%3E%3C/svg%3E");
+    --pp-brass: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%234a3a18'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%234a3a18'/%3E%3C/svg%3E");
+    --pp-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='6' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    --pp-garrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='6' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    --pp-diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5' shape-rendering='crispEdges'%3E%3Crect x='2' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    /* The record's stamp: a tick in a brass box; and the empty box, faint, where one could have gone */
+    --pp-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='6' y='1' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='5' y='6' width='1' height='1' fill='%238a6d34'/%3E%3C/svg%3E");
+    --pp-tickmiss: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='1' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='1' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='5' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3C/svg%3E");
+    --pp-tail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='6' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
+    position: relative;
+    overflow: hidden;
+    padding: 50px 0 36px;
+    background: radial-gradient(ellipse 60% 90% at 86% 70%, #f9d690 0%, #f8e2b4 34%, #f5ebd6 64%, #f3ead6 100%);
+    color: var(--ink);
+    font-family: 'Petrona Variable', Georgia, serif;
+  }
+  @media (max-width: 963px) {
+    .band {
+      --px: 2px;
+    }
+  }
+  /* Narrower screens: a narrower box, clear of the golfer on the near tee */
+  @media (max-width: 1180px) {
+    .band .cutin .box {
+      min-width: 0;
+      max-width: 250px;
+    }
+    .band .cutin .line {
+      font-size: 17px;
+    }
+  }
+  .band :focus-visible {
+    outline: var(--px) solid var(--brass);
+    outline-offset: var(--px);
+  }
+  /* The course takes focus when a round starts; it shows only to the keyboard */
+  .band .scene:focus,
+  .band .scene:focus-visible {
+    outline: none;
+  }
+  .band[data-kb] .scene:focus-visible {
+    outline: var(--px) solid var(--brass);
+    outline-offset: calc(-1 * var(--px));
+  }
+  .wrap {
+    position: relative;
+  }
+  .band :global(button) {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  /* ---- The pixel kit ---------------------------------------------------------------- */
+  .band :global(.px) {
+    border: calc(3 * var(--px)) solid transparent;
+    border-image: var(--pp-paper) 3 fill / calc(3 * var(--px)) stretch;
+    background: none;
+    image-rendering: pixelated;
+    filter: drop-shadow(calc(-2 * var(--px)) calc(2 * var(--px)) 0 var(--drop));
+  }
+  .band :global(.px.white) {
+    border-image-source: var(--pp-white);
+  }
+  /* Buttons: ink, sunk a pixel when pressed */
+  .band :global(.pb) {
+    border: calc(3 * var(--px)) solid transparent;
+    border-image: var(--pp-ink) 3 fill / calc(3 * var(--px)) stretch;
+    background: none;
+    image-rendering: pixelated;
+    filter: drop-shadow(calc(-2 * var(--px)) calc(2 * var(--px)) 0 var(--drop));
+    padding: 4px 16px 6px;
+    font: 18px/1.2 var(--pix);
+    color: var(--paper);
+    -webkit-font-smoothing: none;
+  }
+  .band :global(.pb:hover:not(:disabled)) {
+    border-image-source: var(--pp-brass);
+    color: var(--ink);
+  }
+  .band :global(.pb:active:not(:disabled)) {
+    transform: translate(calc(-1 * var(--px)), var(--px));
+    filter: drop-shadow(calc(-1 * var(--px)) var(--px) 0 var(--drop));
+  }
+  .band :global(.pb:disabled) {
+    border-image-source: var(--pp-off);
+    color: #ece6d8;
+    cursor: default;
+    filter: none;
+  }
+  .band :global(.pb.small) {
+    border-image-source: var(--pp-white);
+    color: var(--ink);
+    padding: 2px 12px 4px;
+    font-size: 12px;
+  }
+  /* Chosen: filled in ink, with a pointer, so it never reads as the focus ring */
+  .band :global(.pb.small[aria-pressed='true']) {
+    border-image-source: var(--pp-ink);
+    color: var(--paper);
+  }
+  /* A text link in the pixel face */
+  .band :global(.plink) {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: 12px/1.4 var(--pix);
+    color: var(--brass-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .band :global(.plink:hover) {
+    color: var(--ink);
+  }
+
+  /* The pixel face's fi ligature reads as an A. The font shorthand resets features, so
+     this comes after every rule that sets the face */
+  .band.band :global(:is(.pb, .plink, .hole, .hole *, .word, .hint, .chip, .pips, .club, .pocket p, .choose h3, .card .n, .carry .k, .carry .n, .k, .rows, .key, .eb, .d, .by, .who, .stamp)) {
+    font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+    font-variant-ligatures: none;
+  }
+
+  /* ---- The title row: the title, with a pencil note on it, and the lede beside it ---- */
+  .play {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'title lede'
+      'game game';
+    column-gap: 64px;
+    row-gap: 28px;
+    align-items: end;
+  }
+  .title {
+    grid-area: title;
+  }
+  .lede {
+    grid-area: lede;
+    justify-self: end;
+    max-width: 520px;
+    margin: 0 0 6px;
+    font-size: 19px;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+  .game {
+    grid-area: game;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+  }
+  .mark {
+    width: 26px;
+    height: 26px;
+    color: var(--brass);
+  }
+  h2 {
+    position: relative;
+    margin-top: 18px;
+    font-family: inherit;
+    font-size: clamp(44px, 4.8vw, 68px);
+    font-weight: 540;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+  }
+  /* In pencil, over the title: not quite eighteen */
+  .note {
+    position: absolute;
+    left: 120px;
+    top: -30px;
+    font: 500 25px/1.2 Caveat, cursive;
+    letter-spacing: 0;
+    color: #6f6658;
+    transform: rotate(-4deg);
+    white-space: nowrap;
+  }
+  .note svg {
+    position: absolute;
+    left: -30px;
+    top: 16px;
+    width: 34px;
+    height: 30px;
+    overflow: visible;
+  }
+
+  /* ---- The game: the board across the band, its kit in pixel panels around it ------- */
+  .game {
+    position: relative;
+  }
+  .scene {
+    position: relative;
+    height: 522px;
+    overflow: hidden;
+    outline-offset: 4px;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .board {
+    position: absolute;
+    left: 0;
+    top: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .band[data-stage='round'] .scene {
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .scene[data-mode='swing'] {
+    cursor: grabbing;
+  }
+
+  .hole {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    padding: 2px 12px 4px;
+    font: 18px/1.3 var(--pix);
+    color: var(--soft);
+    display: flex;
+    align-items: center;
+  }
+  .hole b {
+    font-weight: 400;
+    color: var(--ink);
+  }
+  /* The three holes in a few pixels each, the one in play lit */
+  .hole .mini {
+    display: inline-block;
+    width: calc(32 * var(--px));
+    height: calc(17 * var(--px));
+    flex: none;
+    margin: 0 calc(3 * var(--px)) 0 calc(-1 * var(--px));
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .hole :global(.carrying) {
+    display: none;
+  }
+  .hole :global(.carrying i) {
+    font-style: normal;
+    color: var(--ink);
+  }
+  .hole:global(.in) {
+    animation: slidein 0.3s steps(3, end) both;
+  }
+  @keyframes slidein {
+    from {
+      opacity: 0;
+      transform: translateX(calc(-4 * var(--px)));
+    }
+  }
+  .caddie {
+    position: absolute;
+    left: 0;
+    top: 56px;
+    z-index: 2;
+    max-width: 300px;
+    padding: 4px 12px 6px;
+    font-size: 16px;
+    font-style: italic;
+    line-height: 1.3;
+    opacity: 0;
+    transform: translateY(calc(-2 * var(--px)));
+    transition:
+      opacity 0.2s steps(2, end),
+      transform 0.2s steps(2, end);
+    pointer-events: none;
+  }
+  .caddie:global(.on) {
+    opacity: 1;
+    transform: none;
+  }
+  .caddie .by,
+  .bubble .by {
+    margin-top: 4px;
+    font: 12px/1.2 var(--pix);
+    font-style: normal;
+    color: var(--faint);
+  }
+  /* What the gallery says, said from where they stand, with a pixel tail */
+  .bubble {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    max-width: 260px;
+    padding: 2px 10px 4px;
+    font-size: 15px;
+    font-style: italic;
+    line-height: 1.3;
+    white-space: nowrap;
+    transform: translate(-50%, calc(-100% - 6 * var(--px)));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .bubble::after {
+    content: '';
+    position: absolute;
+    left: calc(50% + var(--tail, 0px) - 3.5 * var(--px));
+    top: calc(100% + 2 * var(--px));
+    width: calc(7 * var(--px));
+    height: calc(4 * var(--px));
+    background: var(--pp-tail) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+  }
+  .bubble:global(.on) {
+    opacity: 1;
+    animation: pop 0.2s steps(2, end) both;
+  }
+  @keyframes pop {
+    from {
+      transform: translate(-50%, calc(-100% - 4 * var(--px))) scale(0.85);
+    }
+  }
+  .word {
+    position: absolute;
+    z-index: 2;
+    font: 24px/1 var(--pix);
+    color: var(--ink);
+    text-shadow:
+      0 2px 0 #fff6dc,
+      2px 0 0 #fff6dc,
+      -2px 0 0 #fff6dc,
+      0 -2px 0 #fff6dc,
+      2px 2px 0 #fff6dc,
+      -2px -2px 0 #fff6dc,
+      2px -2px 0 #fff6dc,
+      -2px 2px 0 #fff6dc;
+    transform: translate(-50%, -100%);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    -webkit-font-smoothing: none;
+  }
+  .word:global(.gold) {
+    color: #8a6418;
+  }
+  .word:global(.bad) {
+    color: #7a3a22;
+  }
+  .word:global(.on) {
+    animation: word 1.4s steps(14, end) both;
+  }
+  @keyframes word {
+    0% {
+      opacity: 0;
+      translate: 0 0;
+    }
+    12% {
+      opacity: 1;
+      translate: 0 -18px;
+    }
+    75% {
+      opacity: 1;
+      translate: 0 -24px;
+    }
+    100% {
+      opacity: 0;
+      translate: 0 -30px;
+    }
+  }
+  .hint {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    z-index: 2;
+    transform: translateX(-50%);
+    font: 12px/1 var(--pix);
+    color: var(--soft);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s steps(3, end);
+    pointer-events: none;
+  }
+  .hint:global(.on) {
+    opacity: 1;
+  }
+  /* A voice at the foot of the board has the floor */
+  .scene:has(:global(.cutin.on)) .hint {
+    opacity: 0;
+  }
+  /* The targets the hole offers: a ring on the board, and a tag by it. The tags never
+     take a click: the click goes to the course under them, which snaps to the ring */
+  .chips {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .chips:global(.on) {
+    opacity: 1;
+  }
+  .chips :global(.chip) {
+    position: absolute;
+    padding: 1px 5px 2px;
+    border: 0;
+    background: #fffaf0;
+    font: 12px/1.2 var(--pix);
+    color: var(--ink);
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 var(--ink),
+      0 var(--px) 0 var(--ink),
+      var(--px) 0 0 var(--ink),
+      calc(-1 * var(--px)) 0 0 var(--ink);
+    transform: translate(calc(4 * var(--px)), -50%);
+  }
+  .chips :global(.chip.l) {
+    transform: translate(calc(-100% - 4 * var(--px)), -50%);
+  }
+  .chips :global(.chip.on) {
+    background: var(--ink);
+    color: #fff6dc;
+  }
+
+  .carry {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+    width: 256px;
+    padding: 4px 12px 6px;
+  }
+  .carry .k,
+  .record :global(.k) {
+    font: 12px/1.2 var(--pix);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .carry .n {
+    margin-top: 6px;
+    font: 24px/1.1 var(--pix);
+  }
+  .carry .r {
+    margin-top: 4px;
+    font-size: 15px;
+    font-style: italic;
+    color: var(--soft);
+  }
+  .carry .acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    white-space: nowrap;
+    margin-top: 8px;
+    font: 12px/1.4 var(--pix);
+    color: var(--faint);
+  }
+
+  .kit {
+    display: contents;
+  }
+  .meter {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 292px;
+    padding: 6px 10px 6px;
+    transition: opacity 0.3s steps(3, end);
+  }
+  .meter:global(.dim) {
+    opacity: 0.72;
+  }
+  .pips {
+    display: flex;
+    gap: 12px;
+    font: 12px/1 var(--pix);
+    color: var(--soft);
+  }
+  .pips span::before {
+    content: '';
+    display: inline-block;
+    width: calc(2 * var(--px));
+    height: calc(2 * var(--px));
+    margin-right: 5px;
+    vertical-align: 1px;
+    background: var(--brass);
+    opacity: 0.25;
+  }
+  .pips span:global(.lit)::before {
+    opacity: 1;
+  }
+  .pips span:global(.skipped) {
+    text-decoration: line-through;
+    color: #7a3a22;
+  }
+  .pips:global(.rushed) {
+    animation: nudge 0.3s steps(4, end) 2;
+  }
+  @keyframes nudge {
+    50% {
+      transform: translateX(var(--px));
+    }
+  }
+  .bar {
+    position: relative;
+    height: calc(5 * var(--px));
+    margin: 10px 0 6px;
+    border: var(--px) solid var(--ink);
+    background: #efe7d2;
+    box-shadow: inset 0 var(--px) 0 #ded3b8;
+  }
+  .bar em,
+  .bar span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  .bar .good {
+    background: rgb(212 160 40 / 0.3);
+  }
+  .bar .pure {
+    top: calc(-2 * var(--px));
+    bottom: calc(-2 * var(--px));
+    background: rgb(212 160 40 / 0.62);
+    border-left: var(--px) solid var(--ink);
+    border-right: var(--px) solid var(--ink);
+  }
+  .bar .fill {
+    left: 0;
+    width: 0;
+    background: repeating-linear-gradient(90deg, #c9a24a 0 calc(2 * var(--px)), #b48a33 calc(2 * var(--px)) calc(3 * var(--px)));
+  }
+  .bar .fill:global(.over) {
+    background: repeating-linear-gradient(90deg, #c7653a 0 calc(2 * var(--px)), #a24b2c calc(2 * var(--px)) calc(3 * var(--px)));
+  }
+  .bar .mk {
+    top: calc(-2 * var(--px));
+    bottom: calc(-2 * var(--px));
+    width: var(--px);
+    background: var(--ink);
+    opacity: 0;
+  }
+  .bar .mk:global(.on) {
+    opacity: 1;
+  }
+  .meter:global(.jag) .bar {
+    animation: jag 0.12s steps(2, end) infinite;
+  }
+  @keyframes jag {
+    50% {
+      transform: translateX(var(--px));
+    }
+  }
+  .meter:global(.flash) .bar {
+    animation: flash 0.5s steps(3, end);
+  }
+  @keyframes flash {
+    0% {
+      box-shadow: 0 0 0 calc(2 * var(--px)) #f1c75a;
+    }
+  }
+  .club {
+    font: 12px/1.2 var(--pix);
+    color: var(--faint);
+  }
+
+  .clubrow {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  /* The windsock: which way it blows across the board, and how hard */
+  .sock {
+    width: calc(20 * var(--px));
+    height: calc(14 * var(--px));
+    margin: calc(-6 * var(--px)) 0 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* ---- The close-ups: a face cuts in beside its line, at the foot of the board -------- */
+  /* In the empty corner under the plate, beside the pocket: the face on the right,
+     looking back across at its words */
+  .cutin {
+    position: absolute;
+    right: calc(32 * var(--px) + 98px);
+    bottom: 6px;
+    z-index: 3;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    gap: calc(2 * var(--px));
+    max-width: min(560px, calc(100% - 12px));
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .cutin :global(.face) {
+    flex: none;
+    padding: 0;
+    line-height: 0;
+  }
+  .cutin canvas {
+    display: block;
+    width: calc(48 * var(--px));
+    height: calc(48 * var(--px));
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .cutin .box {
+    position: relative;
+    min-width: 220px;
+    max-width: 320px;
+    margin-bottom: calc(4 * var(--px));
+    padding: 4px 12px 8px;
+  }
+  .cutin .who {
+    font: 12px/1.2 var(--pix);
+    color: var(--faint);
+  }
+  .cutin .line {
+    min-height: 1.3em;
+    margin-top: 4px;
+    font-size: 19px;
+    font-style: italic;
+    line-height: 1.3;
+  }
+  .cutin:global(.on) {
+    visibility: visible;
+    animation: cutin 0.15s steps(3, end) both;
+  }
+  .cutin:global(.on.shake) .box,
+  .cutin:global(.on.shake) .face {
+    animation: shake 0.24s 0.15s steps(4, end) 2;
+  }
+  .cutin:global(.out) {
+    visibility: visible;
+    animation: cutout 0.15s steps(3, end) both;
+  }
+  @keyframes cutin {
+    from {
+      opacity: 0;
+      transform: translateX(calc(12 * var(--px)));
+    }
+  }
+  @keyframes cutout {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes shake {
+    25% {
+      transform: translateX(calc(2 * var(--px)));
+    }
+    75% {
+      transform: translateX(calc(-2 * var(--px)));
+    }
+  }
+  /* Caught: the tap's word lands on the line in the shout's lettering, small; a moment
+     kept, in brass. Drawn at the board's pixel size */
+  .cutin .stamp {
+    position: absolute;
+    right: calc(4 * var(--px));
+    top: calc(-10 * var(--px));
+    line-height: 0;
+    visibility: hidden;
+  }
+  .cutin .stamp :global(canvas) {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .cutin:global(.caught) .stamp,
+  .cutin:global(.kept) .stamp {
+    visibility: visible;
+    animation: stamp 0.2s steps(3, end) both;
+  }
+  /* ---- The walk between holes: a dialogue on the stage ----------------------------- */
+  /* The line in a wide box across the foot of the frame, clear of the Flic, its speaker on
+     a tab on the top edge, an arrow when there's more */
+  .dialogue {
+    position: absolute;
+    left: 6px;
+    right: 230px;
+    bottom: 6px;
+    z-index: 4;
+    min-height: calc(30 * var(--px));
+    padding: 14px 18px 12px;
+    visibility: hidden;
+    cursor: pointer;
+  }
+  .dialogue:global(.on) {
+    visibility: visible;
+  }
+  .dialogue .tab {
+    position: absolute;
+    left: calc(4 * var(--px));
+    top: calc(-7 * var(--px));
+    padding: 1px 10px 3px;
+    font: 15px/1.3 var(--pix);
+    color: #fff6dc;
+    background: var(--ink);
+    box-shadow:
+      0 calc(-1 * var(--px)) 0 var(--ink),
+      var(--px) 0 0 var(--ink),
+      calc(-1 * var(--px)) 0 0 var(--ink);
+  }
+  .dialogue[data-who='partner'] .tab {
+    background: #965a5a;
+  }
+  .dialogue[data-who='caddie'] .tab {
+    background: #3d4a26;
+  }
+  .dialogue[data-who='rope'] .tab {
+    background: #6b5a3a;
+  }
+  .dialogue .line {
+    min-height: 2.6em;
+    font-size: 22px;
+    line-height: 1.3;
+    text-wrap: pretty;
+  }
+  /* The rope is off the side of the stage: its words come in from the right */
+  .dialogue:global(.off) .line {
+    font-style: italic;
+    animation: offside 0.2s steps(3, end) both;
+  }
+  @keyframes offside {
+    from {
+      transform: translateX(calc(10 * var(--px)));
+      opacity: 0;
+    }
+  }
+  .dialogue .next {
+    position: absolute;
+    right: calc(5 * var(--px));
+    bottom: calc(4 * var(--px));
+    width: calc(5 * var(--px));
+    height: calc(3 * var(--px));
+    background: var(--ink);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    visibility: hidden;
+  }
+  .dialogue:global(.done) .next {
+    visibility: visible;
+    animation: nudge 0.8s steps(2, end) infinite;
+  }
+  @keyframes nudge {
+    50% {
+      transform: translateY(var(--px));
+    }
+  }
+  /* Kept: the word in brass lettering, small, over the box's edge */
+  .dialogue .stamp {
+    position: absolute;
+    right: calc(10 * var(--px));
+    top: calc(-9 * var(--px));
+    line-height: 0;
+    visibility: hidden;
+  }
+  .dialogue .stamp :global(canvas) {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .dialogue:global(.kept) .stamp {
+    visibility: visible;
+    animation: stamp 0.2s steps(3, end) both;
+  }
+  /* Sound, on or off: a small pixel speaker in the pocket's corner */
+  .mute {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    display: grid;
+    place-items: center;
+    width: calc(9 * var(--px) + 8px);
+    height: calc(7 * var(--px) + 8px);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--soft);
+  }
+  .mute svg {
+    width: calc(9 * var(--px));
+    height: calc(7 * var(--px));
+  }
+  .mute .off,
+  .mute[aria-pressed='true'] .on {
+    display: none;
+  }
+  .mute[aria-pressed='true'] .off {
+    display: inline;
+  }
+  .mute:hover {
+    color: var(--ink);
+  }
+  @media (max-width: 640px) {
+    /* The kit steps out of the way altogether on a phone, so no empty band is left */
+    .band.band[data-walk] :is(.hole, .meter) {
+      display: none;
+    }
+    .dialogue {
+      left: var(--gutter);
+      right: var(--gutter);
+      bottom: 4px;
+      padding: 12px 12px 10px;
+    }
+    .dialogue .line {
+      font-size: 17px;
+    }
+    .dialogue .tab {
+      font-size: 13px;
+    }
+    .mute {
+      right: 2px;
+      top: 2px;
+    }
+  }
+
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+  }
+
+  /* The pocket: the second control, in its own panel. The Flic is drawn a size up from the
+     board, so it reads as a thing to press */
+  .pocket {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px 6px;
+    transition: opacity 0.4s steps(3, end);
+  }
+  .flic {
+    display: block;
+    width: calc(32 * (var(--px) + 1px));
+    height: calc(32 * (var(--px) + 1px));
+    padding: 0;
+    border: 0;
+    background: none;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .flic canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .pocket p {
+    font: 12px/1.5 var(--pix);
+    color: var(--soft);
+    text-align: center;
+  }
+  /* While the inner voice talks, the label warms with the halo */
+  .pocket:global(.live) p {
+    color: var(--brass-ink);
+  }
+  .pocket kbd {
+    font: inherit;
+    padding: 0 4px;
+    background: #fffaf0;
+    box-shadow:
+      0 -1px 0 var(--ink),
+      0 1px 0 var(--ink),
+      1px 0 0 var(--ink),
+      -1px 0 0 var(--ink);
+  }
+
+  /* ---- Choosing: a menu over a quiet board --------------------------------------------- */
+  .choose {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    padding: 0 48px;
+  }
+  .choose h3 {
+    align-self: center;
+    font: 24px/1 var(--pix);
+    color: var(--ink);
+    text-shadow:
+      0 2px 0 #f7efdb,
+      2px 0 0 #f7efdb,
+      -2px 0 0 #f7efdb,
+      0 -2px 0 #f7efdb;
+  }
+  /* Three cards in a row, the same height */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 26px;
+    width: 100%;
+    max-width: 1080px;
+    align-self: center;
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 12px 8px;
+    text-align: left;
+  }
+  .card:hover {
+    transform: translateY(calc(-1 * var(--px)));
+  }
+  .band .card[aria-pressed='true'] {
+    border-image-source: var(--pp-gold);
+  }
+  /* The menu pointer, on the one carried */
+  .card[aria-pressed='true']::before {
+    content: '';
+    position: absolute;
+    left: calc(-9 * var(--px));
+    top: calc(3 * var(--px));
+    width: calc(4 * var(--px));
+    height: calc(7 * var(--px));
+    background: var(--pp-garrow) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+    animation: blink 1s steps(1, end) infinite;
+  }
+  @keyframes blink {
+    50% {
+      translate: var(--px) 0;
+    }
+  }
+  .card .n {
+    font: 24px/1.1 var(--pix);
+  }
+  .card .l {
+    font-size: 16px;
+    font-style: italic;
+    color: var(--soft);
+  }
+  .card .w {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .card .w :global(b) {
+    font-weight: 600;
+    color: var(--brass);
+  }
+  .go {
+    align-self: center;
+  }
+
+  /* ---- The record, in the game frame --------------------------------------------------- */
+  .record {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 3;
+    width: 356px;
+    padding: 10px 14px 12px;
+  }
+  .band[data-sealing] .record {
+    pointer-events: none;
+  }
+  .record :global(.rows) {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    row-gap: 8px;
+    margin-top: 12px;
+    font: 12px/1 var(--pix);
+    align-items: center;
+  }
+  .record :global(.d) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--px);
+    align-items: center;
+  }
+  .record :global(.g) {
+    display: inline-block;
+    width: calc(3 * var(--px));
+    height: calc(3 * var(--px));
+    background: #7aa64e;
+    box-shadow: inset calc(-1 * var(--px)) var(--px) 0 rgb(0 0 0 / 0.12);
+  }
+  .record :global(.g.s-rough) { background: #9aa864; }
+  .record :global(.g.s-bunker) { background: #dcc48a; }
+  .record :global(.g.s-water) { background: #5f9fa3; }
+  .record :global(.g.s-trees) { background: #3f7434; }
+  .record :global(.g.s-out) { background: #8c8678; }
+  .record :global(.g.pt) {
+    background: #cfe0b5;
+    box-shadow: inset 0 0 0 var(--px) #7aa64e;
+  }
+  .record :global(.g.pk) {
+    background: none;
+    box-shadow: inset 0 0 0 var(--px) var(--faint);
+  }
+  .record :global(.tk) {
+    display: inline-block;
+    width: var(--px);
+    height: calc(5 * var(--px));
+    margin: 0 var(--px);
+    background: var(--ink);
+  }
+  .record :global(.tk.over) {
+    width: calc(3 * var(--px));
+    margin: 0;
+    background: none;
+    box-shadow: inset 0 0 0 var(--px) var(--ink);
+  }
+  /* A tap that caught its line: a tick stamped in a brass box */
+  .record :global(.ck) {
+    display: inline-block;
+    width: calc(7 * var(--px));
+    height: calc(7 * var(--px));
+    background: var(--pp-tick) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+  }
+  /* A catch let go by: the same tick, hollow and faint */
+  .record :global(.ck.miss) {
+    background-image: var(--pp-tickmiss);
+  }
+  .record :global(.dm) {
+    display: inline-block;
+    width: calc(5 * var(--px));
+    height: calc(5 * var(--px));
+    background: var(--pp-diamond) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+  }
+  .record :global(.dm.kept) {
+    filter: drop-shadow(var(--px) 0 0 #e3b84f) drop-shadow(calc(-1 * var(--px)) 0 0 #e3b84f);
+  }
+  .record :global(.key) {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    font: 12px/1 var(--pix);
+    color: var(--faint);
+  }
+  .record :global(.key > :not(:first-child)) {
+    margin-left: 6px;
+  }
+  .record :global(.key .tk) {
+    height: calc(4 * var(--px));
+  }
+  .record :global(.read) {
+    margin-top: 14px;
+    font-size: 20px;
+    font-style: italic;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .record :global(.ask) {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  .record :global(.kd) {
+    display: flex;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .record :global(.seal) {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  /* ---- What shows when ----------------------------------------------------------------- */
+  .choose,
+  .record,
+  .hole,
+  .carry,
+  .meter,
+  .pocket {
+    visibility: hidden;
+    opacity: 0;
+  }
+  .band[data-stage='choose'] .choose,
+  .band[data-stage='round'] .hole,
+  .band[data-stage='round'] .carry,
+  .band[data-stage='round'] .meter,
+  .band[data-stage='round'] .pocket,
+  .band[data-stage='record'] .record {
+    visibility: visible;
+    opacity: 1;
+  }
+  /* The walk between holes takes the whole frame: the kit steps aside, but for the Flic */
+  .band[data-walk] :is(.hole, .meter, .carry, .caddie, .bubble, .chips, .hint, .word) {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .band[data-stage='record'] .record {
+    animation: rise 0.5s 0.4s steps(4, end) both;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(calc(3 * var(--px)));
+    }
+  }
+
+  .close {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 40px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .close p {
+    max-width: 640px;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+  .primary {
+    color: var(--brass-ink);
+    white-space: nowrap;
+    text-underline-offset: 3px;
+  }
+  .primary:hover {
+    color: var(--ink);
+  }
+
+  /* ---- Sealed: the last green at last light, across the whole band --------------------- */
+  .sealed {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    visibility: hidden;
+  }
+  .sealed canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .band[data-stage='sealed'] .sealed {
+    visibility: visible;
+  }
+  /* The board stays under the scene while it comes in, then goes */
+  .band[data-stage='sealed'] .wrap {
+    visibility: hidden;
+    transition: visibility 0s 0.75s;
+  }
+  .sealcopy {
+    position: relative;
+    width: min(700px, calc(100% - 2 * var(--gutter)));
+    margin-left: max(var(--gutter), calc((100% - var(--page-max)) / 2 + var(--gutter)));
+    padding-top: 92px;
+  }
+  .band[data-stage='sealed'] .sealcopy > :global(*) {
+    animation: rise 0.6s 0.5s steps(5, end) both;
+  }
+  .band[data-stage='sealed'] .sealcopy > :global(:nth-child(2)) {
+    animation-delay: 0.7s;
+  }
+  .band[data-stage='sealed'] .sealcopy > :global(:nth-child(n + 3)) {
+    animation-delay: 1.1s;
+  }
+  .sealcopy :global(.eb) {
+    font: 12px/1 var(--pix);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .sealcopy :global(.s) {
+    margin-top: 22px;
+    font-size: clamp(30px, 3.2vw, 46px);
+    font-style: italic;
+    font-weight: 420;
+    line-height: 1.22;
+    text-wrap: pretty;
+  }
+  /* The verdict, ruled under in brass pixels */
+  .sealcopy :global(.v) {
+    padding-bottom: calc(1 * var(--px));
+    background:
+      linear-gradient(#e3b84f, #e3b84f) 0 100% / 100% var(--px) no-repeat,
+      linear-gradient(var(--brass), var(--brass)) var(--px) calc(100% - var(--px)) / calc(100% - 2 * var(--px)) var(--px) no-repeat;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .sealcopy :global(.c) {
+    margin-top: 26px;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--soft);
+  }
+  .sealcopy :global(.d) {
+    margin-top: 8px;
+    font: 12px/1 var(--pix);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .sealcopy :global(.again) {
+    margin-top: 24px;
+  }
+
+  /* ---- Narrower: the record goes under the board --------------------------------------- */
+  @media (max-width: 1099px) {
+    .play {
+      column-gap: 40px;
+    }
+    .record {
+      position: relative;
+      width: auto;
+      max-width: 560px;
+      margin: 16px auto 0;
+      display: none;
+    }
+    .band[data-stage='record'] .record {
+      display: block;
+    }
+    .band[data-stage='record'] .pocket {
+      visibility: hidden;
+    }
+    .carry {
+      width: 232px;
+    }
+  }
+  @media (max-width: 860px) {
+    .play {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'title' 'lede' 'game';
+      row-gap: 18px;
+    }
+    .lede {
+      justify-self: start;
+    }
+    .choose {
+      padding: 0 0 0 calc(10 * var(--px));
+    }
+    .card .n {
+      font-size: 18px;
+    }
+  }
+
+  /* ---- Phone width: the board bleeds off both edges, the kit sits under it ------------- */
+  @media (max-width: 640px) {
+    .band {
+      padding: 44px 0 36px;
+    }
+    .note {
+      left: 78px;
+      top: -26px;
+      font-size: 21px;
+    }
+    .lede {
+      font-size: 17px;
+    }
+    .game {
+      display: flex;
+      flex-direction: column;
+      margin-inline: calc(-1 * var(--gutter));
+    }
+    .carry {
+      order: 2;
+    }
+    .hole {
+      position: relative;
+      margin: 0 var(--gutter) 10px;
+      font-size: 12px;
+      display: none;
+    }
+    .band[data-stage='round'] .hole {
+      display: flex;
+    }
+    .hole :global(.hn) {
+      display: none;
+    }
+    .hole :global(.carrying) {
+      display: inline;
+    }
+    .caddie {
+      left: var(--gutter);
+      top: 8px;
+      max-width: calc(100% - 2 * var(--gutter));
+      font-size: 14px;
+    }
+    .bubble {
+      font-size: 13px;
+      white-space: normal;
+      max-width: 200px;
+    }
+    .kit {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin: 12px var(--gutter) 0;
+    }
+    .band:not([data-stage='round']) .kit {
+      display: none;
+    }
+    .meter,
+    .pocket {
+      position: relative;
+      right: auto;
+      bottom: auto;
+    }
+
+    .meter {
+      width: 232px;
+    }
+    /* The Flic stays thumb-sized */
+    .flic {
+      width: 96px;
+      height: 96px;
+    }
+    .pocket .how {
+      display: none;
+    }
+    .carry {
+      position: relative;
+      width: auto;
+      margin: 10px var(--gutter) 0;
+      padding: 0;
+      border: 0;
+      border-image: none;
+      filter: none;
+      display: none;
+    }
+    .band[data-stage='round'] .carry {
+      display: block;
+    }
+    .carry .k,
+    .carry .n,
+    .carry .r {
+      display: none;
+    }
+    .choose {
+      position: relative;
+      inset: auto;
+      padding: 0 var(--gutter) 0 calc(var(--gutter) + 6 * var(--px));
+      margin-top: 14px;
+      display: none;
+    }
+    .band[data-stage='choose'] .choose {
+      display: flex;
+    }
+    .choose h3 {
+      font-size: 18px;
+    }
+    .cards {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    /* On a phone the golfer stands at the foot of the board: the voices take the sky */
+    .cutin {
+      left: var(--gutter);
+      right: var(--gutter);
+      top: 4px;
+      bottom: auto;
+      align-items: flex-start;
+    }
+    .band .cutin .box {
+      min-width: 0;
+      max-width: none;
+      flex: 1;
+    }
+    .cutin .line {
+      font-size: 16px;
+    }
+    /* The voices sit at the top of the board here: the stamp lands inside the box, by the label */
+    .cutin .stamp {
+      top: calc(2 * var(--px));
+    }
+    .card[aria-pressed='true']::before {
+      left: calc(-8 * var(--px));
+    }
+    .record {
+      margin: 12px var(--gutter) 0;
+    }
+    .close {
+      flex-direction: column;
+      gap: 14px;
+    }
+    .primary {
+      white-space: normal;
+    }
+    /* Sealed on a phone: the scene takes the band's place, rather than a tall empty sky */
+    .band[data-stage='sealed'] .wrap {
+      display: none;
+    }
+    .band[data-stage='sealed'] .sealed {
+      position: relative;
+      margin: -44px 0 -36px;
+      min-height: 760px;
+      padding-bottom: 300px;
+    }
+    .sealcopy {
+      padding-top: 56px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caddie,
+    .hint,
+    .meter,
+    .pocket {
+      transition: none;
+    }
+    .meter:global(.jag) .bar,
+    .pips:global(.rushed),
+    .bubble:global(.on),
+    .hole:global(.in),
+    .card[aria-pressed='true']::before,
+    .band[data-stage='record'] .record,
+    .band[data-stage='sealed'] .sealcopy > :global(*),
+    .cutin:global(.on),
+    .cutin:global(.out),
+    .cutin:global(.on.shake) .box,
+    .cutin:global(.on.shake) .face,
+    .cutin:global(.caught) .stamp,
+    .cutin:global(.kept) .stamp,
+    .dialogue:global(.off) .line,
+    .dialogue:global(.done) .next,
+    .dialogue:global(.kept) .stamp {
+      animation: none;
+    }
+    .band[data-stage='sealed'] .wrap {
+      transition: none;
+    }
+    .word:global(.on) {
+      animation: word 1.4s steps(1, end) both;
+    }
+  }
+</style>
