@@ -33,7 +33,7 @@ function timing(b: Beat, text: string): number[] {
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     t += per;
-    if (ch === '…') t += 320;
+    if (ch === '…') t += 450;
     else if ('.!?'.includes(ch) && i < text.length - 1) t += 240;
     else if (',;:'.includes(ch)) t += 110;
     out.push(t);
@@ -64,6 +64,7 @@ export function createStage(els: Els, opts: Opts) {
   let flashK = 1;
   let shakeT0 = -1e9;
   let shoutT0 = -1e9;
+  let shoutLine = -1;
   let shoutWord = '';
   // The kept stamp, in the brass lettering, drawn at the board's pixel size
   els.stamp.replaceChildren(letteringEl('Kept', 1, BRASS_PAL));
@@ -161,6 +162,7 @@ export function createStage(els: Els, opts: Opts) {
       finishTyping(now);
       shoutWord = word;
       shoutT0 = now;
+      shoutLine = i;
       if (!reduce) {
         flashT0 = now;
         flashK = 1;
@@ -186,6 +188,11 @@ export function createStage(els: Els, opts: Opts) {
     shout(now: number) {
       return now - shoutT0 <= SHOUT_HOLD + 200 ? { word: shoutWord, t: now - shoutT0 } : null;
     },
+    /** How long since the shout, while the line it was shouted on is still up; -1 once
+     *  the scene has moved on, so the shouter's face can hold and then land */
+    shoutAge(now: number) {
+      return i === shoutLine ? now - shoutT0 : -1;
+    },
     clear() {
       running = false;
       // Forget the last scene, or the next walk starts from where it ended
@@ -193,6 +200,7 @@ export function createStage(els: Els, opts: Opts) {
       i = -1;
       els.box.classList.remove('on', 'done', 'kept', 'off', 'thought');
       shoutT0 = -1e9;
+      shoutLine = -1;
     },
     get current() {
       return cur();

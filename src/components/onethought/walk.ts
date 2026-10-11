@@ -67,7 +67,7 @@ const SHADOW = 'rgba(72,60,96,0.42)';
 
 /** How far across (0 to 1); the hole the walk is to, or 0 for the clubhouse; the golfer's
  *  walk and bearing; and whether the voices sit at the top of the board (a phone) */
-export type WalkFrame = { u: number; n: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean };
+export type WalkFrame = { u: number; n: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean; golfer: boolean };
 
 const SCROLL = 64; // how far the near ground goes by over the walk, in pixels
 
@@ -312,13 +312,15 @@ export function createWalk() {
       const sp = signs[f.n - 1];
       g.drawImage(sp.c, Math.round(lw * 0.86) + SCROLL - sc - sp.ax, pathY - 3 - sp.ay);
     } else g.drawImage(houseSp.c, Math.round(lw * 0.88) + SCROLL - sc - houseSp.ax, pathY - 5 - houseSp.ay);
-    // The golfer, and their shadow, long to the left
-    const gx = Math.round(lw * 0.12 + (lw * 0.62 * u));
-    g.fillStyle = SHADOW;
-    g.fillRect(gx - 24, pathY, 24, 1);
-    g.fillRect(gx - 13, pathY + 1, 12, 1);
-    drawGolfer(g, gx, pathY, 1, { kind: 'walk', phase: f.walking && !reduce ? Math.floor(now / (f.bow ? 190 : 150)) : 0, bag: true, bow: f.bow });
-    if (f.cloud) drawCloud(g, gx + 1, pathY - 19, now - f.cloud.t0, f.cloud.doubt, reduce);
+    // The golfer, and their shadow, long to the left (left out while their portrait's up)
+    if (f.golfer) {
+      const gx = Math.round(lw * 0.12 + (lw * 0.62 * u));
+      g.fillStyle = SHADOW;
+      g.fillRect(gx - 24, pathY, 24, 1);
+      g.fillRect(gx - 13, pathY + 1, 12, 1);
+      drawGolfer(g, gx, pathY, 1, { kind: 'walk', phase: f.walking && !reduce ? Math.floor(now / (f.bow ? 190 : 150)) : 0, bag: true, bow: f.bow });
+      if (f.cloud) drawCloud(g, gx + 1, pathY - 19, now - f.cloud.t0, f.cloud.doubt, reduce);
+    }
     // Motes, drifting in the light
     if (!reduce) {
       g.fillStyle = MOTE;

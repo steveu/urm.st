@@ -163,9 +163,15 @@ function burst(bw: number, bh: number, seed: number): HTMLCanvasElement {
   return c;
 }
 
+/** Where the shouter is: their head's box in frame pixels, and the waist line where the
+ *  box begins */
+export type ShoutAnchor = { head: [number, number, number, number]; waist: number };
+
 /** The shout, at `t` ms since it began, over the frame (w by h board pixels). It sizes
- *  itself to the frame: smaller letters on a phone rather than cut off */
-export function drawShout(g: CanvasRenderingContext2D, w: number, h: number, word: string, t: number, reduce: boolean) {
+ *  itself to the frame: smaller letters on a phone rather than cut off. Given the
+ *  shouter, it sits beside their head where there's room, the way a balloon does; on a
+ *  narrow frame there's no beside, so it goes over the chest and leaves the face clear */
+export function drawShout(g: CanvasRenderingContext2D, w: number, h: number, word: string, t: number, reduce: boolean, anchor: ShoutAnchor | null = null) {
   if (t < 0 || t > SHOUT_HOLD + OUT_MS) return;
   const glyphW = [...word].reduce((s, ch) => s + ((G[ch] ?? G[ch.toLowerCase()] ?? G['!'])[0].length + 1), 0) + 4;
   const k = Math.max(1, Math.min(3, Math.floor((w * 0.62) / glyphW)));
@@ -173,9 +179,15 @@ export function drawShout(g: CanvasRenderingContext2D, w: number, h: number, wor
   const bw = Math.round(letters.width * 1.2 + 20);
   const bh = Math.round(Math.max(letters.height * 2, bw * 0.36));
   const b = burst(bw, bh, word.length);
-  // A little right of the middle where there's room, so the shouter shows beside it
-  const cx = Math.round(w >= 300 ? w * 0.57 : w / 2);
-  const cy = Math.round(h * 0.4);
+  let cx = Math.round(w / 2);
+  let cy = Math.round(h * 0.4);
+  if (anchor) {
+    const [, hy0, hx1, hy1] = anchor.head;
+    if (w - hx1 >= bw * 0.9) {
+      cx = Math.min(hx1 + 2 + Math.round(bw / 2), w - 2 - Math.round(bw / 2));
+      cy = Math.max(Math.round((hy0 + hy1) / 2) - 8, Math.round(bh / 2) + 2);
+    } else cy = anchor.waist - Math.round(bh / 2) + 6;
+  }
   // In fast, a frame past full size, back; out quicker still
   let s = 1;
   if (!reduce) {
