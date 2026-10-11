@@ -5,8 +5,7 @@ import { z } from 'astro/zod';
 // Public, scrubbed copies of each project's decision records (ADRs).
 // Files live at src/content/decisions/<project>/<NNNN-slug>.md.
 const decisions = defineCollection({
-  // One Thought's records stay out until they've been reviewed for publication
-  loader: glob({ pattern: ['*/*.md', '!one-thought/**'], base: './src/content/decisions' }),
+  loader: glob({ pattern: '*/*.md', base: './src/content/decisions' }),
   schema: z.object({
     project: z.enum(['eddy', 'one-thought']),
     number: z.number().int().positive(),
