@@ -13,7 +13,7 @@ import * as S from './sim';
 import type { Vec, Ball, Shot, Situation, Ctx, Sample } from './sim';
 import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
-import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
+import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
@@ -366,6 +366,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let swingAt = 0;
   let relMs = -1;
   let shot: Shot | null = null;
+  // How high the shot in hand is drawn against the sim's heights (pixel.ts)
+  let lift = 1;
   let putts: Shot[] = [];
   let shotWord = '';
 
@@ -961,22 +963,45 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     patterns.push(S.pattern(ball, club as S.FullClub, aim, diff.spread));
     shot = S.strike(ball, { club, aim, errMs: err, wind }, diff.k, S.shotSeed(round, hole, swings), diff.spread);
     const g = shot.grade;
+    lift = liftFor(club as S.FullClub);
     snd.whoosh();
-    snd.contact(g === 'pure' ? 'pure' : g === 'good' || g === 'early' || g === 'late' ? 'good' : 'thin');
     if (g === 'pure' && !reduce) {
-      freezeUntil = performance.now() + 80;
-      board.burst('gold', ball.at, gt);
       meterEl.classList.remove('flash');
       void meterEl.offsetWidth;
       meterEl.classList.add('flash');
     }
-    if (g === 'fat') board.burst('divot', ball.at, gt, -Math.PI / 2);
-    else if (!reduce && ball.lie !== 'tee' && ball.lie !== 'bunker') board.burst('turf', ball.at, gt);
-    if (ball.lie === 'bunker') board.burst('sand', ball.at, gt);
-    const fin = g === 'pure' || g === 'good' || g === 'early' || g === 'late';
-    poseSeq(fin ? [[POSES.impact, 60], [POSES.through, 110], [POSES.finish, 200]] : [[POSES.impact, 70], [POSES.slump, 260]]);
+    // Down and through, by how it was struck: a pure or a good one held in a full finish, a
+    // touch early or late in a shorter one, a heavy one left in the ground, a flail thrown
+    // off balance. The ball goes at impact, a beat after the release
+    const lie0 = ball.lie;
+    const at0 = ball.at;
+    impactFx = () => {
+      snd.contact(g === 'pure' ? 'pure' : g === 'good' || g === 'early' || g === 'late' ? 'good' : 'thin');
+      if (g === 'pure' && !reduce) {
+        freezeUntil = performance.now() + 80;
+        board.burst('gold', at0, gt);
+      }
+      if (g === 'fat') board.burst('divot', at0, gt, -Math.PI / 2);
+      else if (!reduce && lie0 !== 'tee' && lie0 !== 'bunker') board.burst('turf', at0, gt);
+      if (lie0 === 'bunker') board.burst('sand', at0, gt);
+    };
+    const down: [Pose, number] = [POSES.down, DOWN - IMPACT];
+    const hit: [Pose, number] = [g === 'fat' ? POSES.dug : POSES.impact, IMPACT];
+    poseSeq(
+      g === 'pure' || g === 'good'
+        ? [down, hit, [POSES.through, 100], [POSES.finish, 240]]
+        : g === 'early' || g === 'late'
+          ? [down, hit, [POSES.through, 90], [POSES.short, 200]]
+          : g === 'fat'
+            ? [down, hit, [POSES.dug, 160], [POSES.slump, 320]]
+            : [down, hit, [POSES.flail, 150]],
+    );
     launch();
   }
+  // The downswing from the release to impact, and the last part of it into the ball
+  const DOWN = 110;
+  const IMPACT = 50;
+  let impactFx: (() => void) | null = null;
 
   // ---------------------------------------------------------------------------------
   // The ball in the air, as a list of segments
@@ -991,7 +1016,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     track = [];
     trace = [];
     const H = h();
-    const flight = sh0.flight;
+    const flight = sh0.flight.map((x) => ({ ...x, z: x.z * lift }));
     const hitIdx = sh0.treeHit ? flight.findIndex((s) => s.p === sh0.treeHit) : -1;
     const air = hitIdx >= 0 ? flight.slice(0, hitIdx + 1) : flight;
     const defl = hitIdx >= 0 ? flight.slice(hitIdx) : [];
@@ -1004,6 +1029,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
     if (reduce) {
       track.push({ dur: 300, at: (u) => (u < 0.5 ? { p: sh0.from, z: 0, o: 1 - u * 2 } : { p: finalP, z: 0, o: holed && !putt ? 0 : (u - 0.5) * 2 }) });
+      impactFx?.();
+      impactFx = null;
       segI = 0;
       segT0 = gt;
       return;
@@ -1045,7 +1072,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // Down: bounce and roll by what it lands on
     if (!out && !sh0.treeHit && sh0.roll.length > 1) {
       const land = S.surfaceAt(H, sh0.roll[0].p);
-      const ap = sh0.apex;
+      const ap = sh0.apex * lift;
       const bounces: [number, number][] = putt
         ? []
         : land === 'green' || land === 'fringe'
@@ -1089,6 +1116,18 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       track.push({ dur: 160, at: (u) => ({ p: H.cup, z: -u * 2, o: 1 - u }) });
     }
     if (!track.length) track.push({ dur: 300, at: (u) => ({ p: sh0.from, z: 0, o: 1 - u }) });
+    // A full swing: the ball sits while the club comes down, and goes at impact
+    const fx = impactFx;
+    impactFx = null;
+    if (fx) {
+      const first = track[0];
+      const go = first.start;
+      first.start = () => {
+        fx();
+        go?.();
+      };
+      if (!reduce) track.unshift({ dur: DOWN, at: () => ({ p: sh0.from, z: 0 }) });
+    }
     segI = 0;
     segT0 = gt;
     track[0].start?.();
@@ -1206,7 +1245,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     bz = 0;
     bo = ball.done ? 0 : 1;
     // Keep the line it flew, at height, for the record
-    trails.push([...s.flight.map((x) => ({ p: x.p, z: x.z })), ...s.roll.map((x) => ({ p: x.p, z: 0 }))]);
+    trails.push([...s.flight.map((x) => ({ p: x.p, z: x.z * lift })), ...s.roll.map((x) => ({ p: x.p, z: 0 }))]);
     const lie = lieOf(s);
     opts.onShot(hole, lie, putt);
     // Kept for the walk: a pure one, a way out of trouble, a putt or a chip dropping
@@ -1280,7 +1319,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       }
     }
     const ghosted = BAD.has(lie) || s.events.includes('treeHit');
-    ghost = ghosted ? s.flight.map((x) => ({ p: x.p, z: x.z })) : null;
+    ghost = ghosted ? s.flight.map((x) => ({ p: x.p, z: x.z * lift })) : null;
     ghostT0 = gt;
     setMode('settle');
     // The settle lasts longer on a disaster
@@ -1346,8 +1385,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     phase('shot', 0, () => 0.5);
     shot = s;
     golfer = standAt(ball.at, h().cup);
-    // The stroke back, then the ball goes as the putter comes through
-    poseSeq([[POSES.pBack, 180], [POSES.pThru, 160], [POSES.pAddr, 400]]);
+    // The stroke back, then the ball goes as the putter comes through, and it's held there
+    // while it rolls. Longer the further it has to go
+    lift = 1;
+    const k = clamp(0.5 + S.pathLength(s.roll.map((x) => x.p)) / 20, 0.5, 1.6);
+    poseSeq([[puttPose(-k), 180], [puttPose(k * 0.8), 160], [puttPose(k * 0.8), 300], [POSES.pAddr, 400]]);
     puttAt = gt + (reduce ? 0 : 190);
     window.setTimeout(() => snd.contact('putt'), reduce ? 0 : 190);
   }
@@ -1461,16 +1503,19 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         break;
       }
       case 'swing': {
-        // The backswing, driven by the hold: away, halfway, the top, then past it
+        // The backswing, driven by the hold: low and slow away, the wrists setting, wound
+        // up at the top as the meter gets there, then on past it into the overswing. With
+        // less motion it steps: over the ball, halfway, the top
         const held = gt - swingAt;
         if (held >= SW.click) endForSwing();
         const s = Math.max(0, held) / SW.top;
         if (s <= 1) {
-          const k = s * 3;
+          const at = [0, 0.32, 0.66, 1];
           const keys = [POSES.addr, POSES.take, POSES.half, POSES.top];
-          const i = clamp(Math.floor(k), 0, 2);
-          pose = lerpPose(keys[i], keys[i + 1], k - i);
-        } else pose = lerpPose(POSES.top, POSES.over, clamp((held - SW.top) / (SW.end - SW.top), 0, 1));
+          const i = s >= at[2] ? 2 : s >= at[1] ? 1 : 0;
+          const u = (s - at[i]) / (at[i + 1] - at[i]);
+          pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 ? POSES.half : POSES.top) : lerpPose(keys[i], keys[i + 1], i === 0 ? u * u : u);
+        } else pose = reduce ? POSES.top : lerpPose(POSES.top, POSES.over, clamp((held - SW.top) / (SW.end - SW.top), 0, 1) ** 1.5);
         if (held >= SW.end) swingEnd(true);
         break;
       }

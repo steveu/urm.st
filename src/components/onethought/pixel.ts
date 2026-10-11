@@ -11,13 +11,22 @@
 // blits it, then draws what stands up off it, back to front. Nothing here knows the rules
 // of golf; play.ts says where things are.
 
-import { COURSE, W, H, type Vec, type Ellipse, type Capsule } from './sim';
+import { COURSE, CLUBS, W, H, type Vec, type Ellipse, type Capsule, type FullClub } from './sim';
 
 /** The whole table: pixels per course unit across the plate, and of height */
 export const OVERVIEW = { a: 0.3, zk: 0.5 } as const;
 /** The projection in use. The board sets it; everything reads it live */
 export const view = { a: OVERVIEW.a as number, zk: OVERVIEW.zk as number };
+/** The height a flight is drawn at, against the sim's. The sim's apexes are its own, for
+ *  the trees and the wind; drawn as they are, a wedge goes up a foreshortened fairway like
+ *  a rocket. A real one peaks at much the same height whatever the club, the long ones a
+ *  touch higher, so each club is drawn to its own peak and only the length tells them apart */
+const PEAK: Record<FullClub, number> = { driver: 17, wood: 16, iron: 15.5, wedge: 14 };
+export const liftFor = (club: FullClub) => PEAK[club] / CLUBS[club].apex;
 const T = 8; // the plate's thickness
+/** How far off a ball's shadow falls for each pixel it's up: 1.1 rakes it with the trees'
+ *  long shadows, 0 would put it straight under */
+const RAKE = 1.1;
 
 type RGB = readonly [number, number, number];
 type Ctx = CanvasRenderingContext2D;
@@ -357,33 +366,80 @@ export function house(): Sprite {
 }
 
 // ---------------------------------------------------------------------------------------
-// The golfer: a flat cap, a red jumper over a white collar, cream trousers. Drawn facing
-// right and mirrored to face left. Feet at (0, 0); the ball sits at (6, 0)
-
-export type Pose = { h: Vec; c: Vec; bend: number; putter?: boolean };
+// The golfer: a flat cap, a red jumper over a white collar, cream trousers. Seen from
+// behind, down the line, facing the ball on the right; mirrored to face left. Feet at
+// (0, 0); the ball sits at (6, 0).
+//
+// A pose is where the hands and the clubhead are, and what the body does round them: how
+// far it's bent over the ball, how far it has turned (the chest to us at the top of the
+// swing, the back to us at the finish), where the weight is, and whether the eyes have
+// come up after the ball.
+export type Pose = {
+  h: Vec;
+  c: Vec;
+  bend: number; // 0 stood up, 1 over the ball, below 0 falling back off it
+  turn: number; // -1 chest to us, 0 side on, 1 back to us
+  wt: number; // -1 on the back foot, 1 through on the front with the back heel up
+  up: number; // 0 eyes on the ball, 1 up after it
+  putter?: boolean;
+};
 export const BALL_DX = 6;
+const pose = (h: Vec, c: Vec, bend: number, turn = 0, wt = 0, up = 0): Pose => ({ h, c, bend, turn, wt, up });
+/** The putting stroke from the shoulders, the hands quiet: x is -1 back, 0 at the ball,
+ *  1 through; a long putt takes it further */
+export const puttPose = (x: number): Pose => ({
+  ...pose([4 + x * 0.7, -6 - Math.abs(x) * 0.3], [5 + x * 2.6, Math.abs(x) > 1.1 ? -1 : 0], 1),
+  putter: true,
+});
 export const POSES = {
-  addr: { h: [3, -7], c: [6, 0], bend: 1 },
-  wag: { h: [3, -7], c: [8, -2], bend: 1 },
-  take: { h: [0, -7], c: [-6, -5], bend: 1 },
-  half: { h: [-3, -11], c: [-4, -19], bend: 1 },
-  top: { h: [-3, -15], c: [5, -17], bend: 1 },
-  over: { h: [-4, -14], c: [1, -7], bend: 1 },
-  impact: { h: [4, -7], c: [6, 0], bend: 1 },
-  through: { h: [6, -11], c: [12, -16], bend: 0 },
-  finish: { h: [1, -17], c: [-8, -12], bend: 0 },
-  slump: { h: [3, -8], c: [8, -1], bend: 1 },
-  pAddr: { h: [3, -7], c: [5, 0], bend: 1, putter: true },
-  pBack: { h: [2, -7], c: [1, 0], bend: 1, putter: true },
-  pThru: { h: [4, -7], c: [9, -1], bend: 1, putter: true },
+  addr: pose([4, -6], [6, 0], 1),
+  wag: pose([4, -6], [8, -2], 1),
+  // Low and slow away, the turn starting
+  take: pose([1, -7], [-3, -5], 1, -0.35, -0.3),
+  // The wrists set, the club straight up
+  half: pose([-2, -10], [-3, -17], 1, -0.7, -0.5),
+  // Wound up, chest to us, the club across behind the head at the target
+  top: pose([-3, -15], [5, -17], 0.9, -1, -0.6),
+  // Past it: the arms give and the club drops down the back
+  over: pose([-4, -14], [-3, -6], 0.7, -1, -0.9),
+  // On the way down the hands drop first and the club lags behind them
+  down: pose([-1, -9], [-7, -11], 1, -0.4, 0.3),
+  impact: pose([5, -6], [6, 0], 1, 0.35, 0.6),
+  through: pose([7, -11], [8, -20], 0.6, 0.75, 0.85, 0.6),
+  // Up on the front foot, back to us, hands high: held
+  finish: pose([-1, -19], [-7, -11], 0, 1, 1, 1),
+  // Three quarters, for a strike a touch early or late
+  short: pose([6, -14], [1, -21], 0.3, 0.8, 0.8, 1),
+  // Thrown at it: the weight falls back and the club wraps round low
+  flail: pose([2, -14], [-7, -12], -0.6, 0.55, -0.8, 1),
+  // Heavy: the club stays in the ground
+  dug: pose([5, -5], [7, 1], 1, 0.2, 0.3),
+  slump: pose([3, -7], [8, -1], 1),
+  pAddr: puttPose(0),
+  pBack: puttPose(-1),
+  pThru: puttPose(1),
 } satisfies Record<string, Pose>;
 export type PoseName = keyof typeof POSES;
-export const lerpPose = (a: Pose, b: Pose, t: number): Pose => ({
-  h: [a.h[0] + (b.h[0] - a.h[0]) * t, a.h[1] + (b.h[1] - a.h[1]) * t],
-  c: [a.c[0] + (b.c[0] - a.c[0]) * t, a.c[1] + (b.c[1] - a.c[1]) * t],
-  bend: t < 0.5 ? a.bend : b.bend,
-  putter: a.putter,
-});
+const mixN = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Between two poses the club swings round the hands, the short way, rather than sliding
+ *  through the body */
+export function lerpPose(a: Pose, b: Pose, t: number): Pose {
+  const h: Vec = [mixN(a.h[0], b.h[0], t), mixN(a.h[1], b.h[1], t)];
+  const ra = Math.atan2(a.c[1] - a.h[1], a.c[0] - a.h[0]);
+  const rb = Math.atan2(b.c[1] - b.h[1], b.c[0] - b.h[0]);
+  const turn = Math.atan2(Math.sin(rb - ra), Math.cos(rb - ra));
+  const r = ra + turn * t;
+  const len = mixN(Math.hypot(a.c[0] - a.h[0], a.c[1] - a.h[1]), Math.hypot(b.c[0] - b.h[0], b.c[1] - b.h[1]), t);
+  return {
+    h,
+    c: [h[0] + Math.cos(r) * len, h[1] + Math.sin(r) * len],
+    bend: mixN(a.bend, b.bend, t),
+    turn: mixN(a.turn, b.turn, t),
+    wt: mixN(a.wt, b.wt, t),
+    up: mixN(a.up, b.up, t),
+    putter: a.putter,
+  };
+}
 
 const K = {
   cap: '#7a6447',
@@ -412,6 +468,129 @@ const K = {
 export type Golfer =
   | { kind: 'swing'; pose: Pose }
   | { kind: 'walk'; phase: number; bag: boolean; bow?: boolean };
+
+type Put = (dx: number, dy: number, col: string, w?: number, h?: number) => void;
+type Draw = (x0: number, y0: number, x1: number, y1: number, col: string) => void;
+
+// The head under a flat cap, its crown at (hx, hy): side on, the brim tipped down when the
+// eyes are on the ball; or from behind, looking off after it
+function head(px: Put, hx: number, hy: number, down: number, back: boolean) {
+  if (back) {
+    // The hairline, an ear, the back of the neck
+    px(hx - 1, hy, K.hair, 4, 1);
+    px(hx - 1, hy + 1, K.hair);
+    px(hx, hy + 1, K.skinDk, 2, 2);
+    px(hx + 2, hy + 1, K.skin);
+  } else {
+    px(hx - 1, hy, K.hair, 1, 3);
+    px(hx, hy, K.skinDk, 1, 3);
+    px(hx + 1, hy, K.skin, 2, 3);
+    px(hx + 3, hy + 1, K.skin);
+    px(hx + 2, hy + 1, K.hair);
+  }
+  px(hx - 1, hy - 1, K.cap, 4, 1);
+  px(hx, hy - 2, K.capLt, 3, 1);
+  if (back) px(hx + 3, hy - 1, K.capDk);
+  else px(hx + 3, hy - 1 + down, K.capDk, 2, 1);
+}
+
+// The golfer over the ball, in a pose
+function swinger(px: Put, line: Draw, p: Pose) {
+  const r = Math.round;
+  const b = clamp(p.bend, -1, 1);
+  const t = clamp(p.turn, -1, 1);
+  const w = clamp(p.wt, -1, 1);
+
+  // Legs: knees flexed at the ball. The weight going through kicks the back knee in and
+  // brings its heel up; going back, the front knee comes in
+  const heel = w > 0.55;
+  // Each leg in three pairs of rows, two wide: thigh, knee, shin. Over the ball the seat
+  // goes back and the thighs with it, the shins stood over the feet
+  const bk = r(Math.max(0, b) * 0.7);
+  const leg = (thigh: number, knee: number, ankle: number, col: string, toe = false) => {
+    px(thigh, -6, col, 2, 2);
+    px(r(knee), -4, col, 2, 2);
+    px(ankle, -2, col, 2, toe ? 1 : 2);
+  };
+  px(-bk, -6, K.trouDk, 1, 2);
+  leg(1 - bk, 1 + Math.max(0, -w) * 1.2, 1, K.trou);
+  leg(-2 - bk, -2 + Math.max(0, w) * 2.6, heel ? 0 : -2, K.trouDk, heel);
+  // Up on the toe of the back foot, or flat
+  if (heel) px(0, -1, K.shoe, 2, 1);
+  else px(-3, 0, K.shoe, 3, 1);
+  px(1, 0, K.shoe, 3, 1);
+  px(-2 - bk, -7, K.belt, 5, 1);
+
+  // The spine tips over the ball: the shoulders are a row lower and two along when bent
+  const sY = -12 - r((1 - Math.abs(b)) * 2);
+  const along = (y: number) => r((b * 2 * (-8 - y)) / (-8 - sY));
+  const top = along(sY);
+  const wide = Math.abs(t) > 0.45;
+  // The shoulders: side on, one behind the other; turned, spread across
+  const lead: Vec = [top + 0.5 - 1.5 * t, sY + 1];
+  const trail: Vec = [top + 0.5 + 1.5 * t, sY + 1];
+  const h: Vec = [r(p.h[0]), r(p.h[1])];
+  const c: Vec = [r(p.c[0]), r(p.c[1])];
+
+  const club = () => {
+    line(h[0], h[1], c[0], c[1], K.shaft);
+    if (p.putter) px(c[0] - 1, c[1], K.head, 3, 1);
+    else if (c[1] >= -2) px(c[0], c[1], K.head, 2, 1);
+    else px(c[0], c[1] - 1, K.head, 1, 2);
+  };
+  // An arm, straight when it can reach, the elbow folding down when it can't
+  const arm = (s: Vec, col: string, give: boolean) => {
+    const dx = h[0] - s[0];
+    const dy = h[1] - s[1];
+    const d = Math.hypot(dx, dy);
+    const L = 3.4;
+    if (!give || d >= 2 * L - 0.6 || d < 0.5) {
+      line(s[0], s[1], h[0], h[1], col);
+      return;
+    }
+    const m = Math.sqrt(Math.max(0, L * L - (d / 2) ** 2));
+    const n: Vec = dx / d >= 0 ? [-dy / d, dx / d] : [dy / d, -dx / d];
+    const e: Vec = [s[0] + dx / 2 + n[0] * m, s[1] + dy / 2 + n[1] * m];
+    line(s[0], s[1], e[0], e[1], col);
+    line(e[0], e[1], h[0], h[1], col);
+  };
+  const leadArm = () => arm(lead, K.jumpDk, false);
+  const trailArm = () => arm(trail, K.jump, true);
+
+  // What's behind the body goes down first: at the top the club, across behind the head;
+  // turned through, the arms, out in front of a chest we can't see
+  if (t < -0.55) club();
+  if (t > 0.3) {
+    leadArm();
+    trailArm();
+  } else if (t >= -0.3) leadArm();
+
+  // The jumper
+  for (let y = -8; y >= sY; y--) {
+    const d = along(y);
+    const x0 = d - 2;
+    const x1 = d + (wide ? 2 : 1);
+    for (let x = x0; x <= x1; x++) px(x, y, x === x0 ? K.jumpDk : x === x1 ? K.jumpLt : K.jump);
+  }
+  // The collar: a V at the front, else the band round the neck
+  if (t < -0.45) {
+    px(top - 1, sY, K.collar, 3, 1);
+    px(top, sY + 1, K.collar);
+  } else px(top, sY, K.collar, 2, 1);
+
+  // The head stays where it was over the ball until the swing's gone through
+  const back = t > 0.45 && p.up > 0.5;
+  head(px, top, sY - 3, p.up > 0.5 ? 0 : r(Math.max(0, b)), back);
+
+  if (t >= -0.55) club();
+  if (t < -0.3) {
+    leadArm();
+    trailArm();
+  } else if (t <= 0.3) trailArm();
+  // The hands on the grip
+  px(h[0], h[1], K.glove);
+  px(h[0], h[1] + 1, K.skin);
+}
 
 export function drawGolfer(g: Ctx, x: number, y: number, face: 1 | -1, st: Golfer) {
   // Pixels by position, later ones over earlier ones; then an outline round the lot
@@ -445,25 +624,23 @@ export function drawGolfer(g: Ctx, x: number, y: number, face: 1 | -1, st: Golfe
     }
   };
 
-  const walk = st.kind === 'walk';
-  const pose: Pose | null = st.kind === 'swing' ? st.pose : null;
-  // Walking with the head down: leaning in, as over a ball, and the arm hanging
-  const bow = walk && st.bow;
-  const b = pose ? pose.bend : bow ? 1 : 0;
-  const ph = walk ? st.phase & 3 : 0;
-  const o = walk && (ph === 1 || ph === 3) ? -1 : 0;
-
-  // The bag over the shoulder goes behind everything
-  if (walk && st.bag) {
-    line(-3, -14 + o, -5, -5 + o, K.bagDk);
-    line(-2, -14 + o, -4, -5 + o, K.bag);
-    px(-4, -9 + o, K.bagLt);
-    px(-3, -15 + o, K.head);
-    px(-2, -16 + o, K.shaft);
-    px(-4, -16 + o, K.head);
-  }
-  // Legs: planted at address; striding on the walk
-  if (walk) {
+  if (st.kind === 'swing') swinger(px, line, st.pose);
+  else {
+    // Walking with the head down: leaning in, as over a ball, and the arm hanging
+    const bow = st.bow;
+    const b = bow ? 1 : 0;
+    const ph = st.phase & 3;
+    const o = ph === 1 || ph === 3 ? -1 : 0;
+    // The bag over the shoulder goes behind everything
+    if (st.bag) {
+      line(-3, -14 + o, -5, -5 + o, K.bagDk);
+      line(-2, -14 + o, -4, -5 + o, K.bag);
+      px(-4, -9 + o, K.bagLt);
+      px(-3, -15 + o, K.head);
+      px(-2, -16 + o, K.shaft);
+      px(-4, -16 + o, K.head);
+    }
+    // Legs, striding
     const s = ph === 1 ? 1 : ph === 3 ? -1 : 0;
     line(-1, -6 + o, -1 - s * 2, -1, K.trouDk);
     line(0, -6 + o, -s * 2, -1, K.trouDk);
@@ -471,58 +648,20 @@ export function drawGolfer(g: Ctx, x: number, y: number, face: 1 | -1, st: Golfe
     line(2, -6 + o, 2 + s * 2, -1, K.trou);
     px(-2 - s * 2, 0, K.shoe, 2, 1);
     px(1 + s * 2, 0, K.shoe, 3, 1);
-  } else {
-    px(-2, -6, K.trouDk, 2, 6);
-    px(1, -6, K.trou, 2, 6);
-    px(0, -6, K.trouDk, 1, 2);
-    px(-3, 0, K.shoe, 3, 1);
-    px(1, 0, K.shoe, 3, 1);
-  }
-  px(-2, -7 + o, K.belt, 5, 1);
-  // The jumper, leaning in over the ball
-  px(-2, -9 + o, K.jumpDk, 1, 2);
-  px(-1, -9 + o, K.jump, 3, 2);
-  px(2, -9 + o, K.jumpLt, 1, 2);
-  px(-2 + b, -12 + o, K.jumpDk, 1, 3);
-  px(-1 + b, -12 + o, K.jump, 3, 3);
-  px(2 + b, -12 + o, K.jumpLt, 1, 3);
-  px(0 + b, -12 + o, K.collar, 2, 1);
-  // The head, under a flat cap; looking down at the ball when over it
-  const hx = b ? 2 : 0;
-  const hy = (b ? -15 : -16) + o;
-  px(hx - 1, hy, K.hair, 1, 3);
-  px(hx, hy, K.skinDk, 1, 3);
-  px(hx + 1, hy, K.skin, 2, 3);
-  px(hx + 3, hy + 1, K.skin);
-  px(hx + 2, hy + 1, K.hair);
-  px(hx - 1, hy - 1, K.cap, 4, 1);
-  px(hx, hy - 2, K.capLt, 3, 1);
-  px(hx + 3, hy - 1 + b, K.capDk, 2, 1);
-
-  if (walk) {
+    px(-2, -7 + o, K.belt, 5, 1);
+    // The jumper
+    px(-2, -9 + o, K.jumpDk, 1, 2);
+    px(-1, -9 + o, K.jump, 3, 2);
+    px(2, -9 + o, K.jumpLt, 1, 2);
+    px(-2 + b, -12 + o, K.jumpDk, 1, 3);
+    px(-1 + b, -12 + o, K.jump, 3, 3);
+    px(2 + b, -12 + o, K.jumpLt, 1, 3);
+    px(0 + b, -12 + o, K.collar, 2, 1);
+    head(px, b ? 2 : 0, (b ? -15 : -16) + o, b, false);
     // The near arm swings
-    const s = bow ? 0 : ph === 1 ? 1 : ph === 3 ? -1 : 0;
-    line(1, -11 + o, 1 + s, -8 + o, K.jumpDk);
-    px(1 + s, -7 + o, K.skin);
-  } else if (pose) {
-    const sx = b ? 2 : 1;
-    const sy = -11;
-    const hx2 = Math.round(pose.h[0]);
-    const hy2 = Math.round(pose.h[1]);
-    // The club first, so the hands sit over it
-    line(hx2, hy2, pose.c[0], pose.c[1], K.shaft);
-    const cx = Math.round(pose.c[0]);
-    const cy = Math.round(pose.c[1]);
-    if (pose.putter) px(cx - 1, cy, K.head, 3, 1);
-    else {
-      px(cx, cy, K.head);
-      if (cy >= -2) px(cx + 1, cy, K.head);
-      else px(cx, cy - 1, K.head);
-    }
-    line(sx, sy, hx2, hy2, K.jumpDk);
-    line(sx + 1, sy, hx2 + (hx2 > sx ? 0 : 1), hy2, K.jump);
-    px(hx2, hy2, K.glove);
-    px(hx2, hy2 + 1, K.skin);
+    const a = bow ? 0 : s;
+    line(1, -11 + o, 1 + a, -8 + o, K.jumpDk);
+    px(1 + a, -7 + o, K.skin);
   }
 
   const X = (dx: number) => (face > 0 ? x + dx : x - dx);
@@ -1377,7 +1516,7 @@ export function createBoard(cv: HTMLCanvasElement) {
           g.fillStyle = P.shade;
           g.fillRect(x - 10, y, 12, 1);
           g.fillRect(x - 5, y + 1, 5, 1);
-          if (gf.bag) drawBag(g, x - gf.face * 7 - 1, y - 1);
+          if (gf.bag) drawBag(g, x - gf.face * 9 - 1, y - 1);
           drawGolfer(g, x, y, gf.face, gf.st);
         },
       });
@@ -1387,13 +1526,28 @@ export function createBoard(cv: HTMLCanvasElement) {
     if (ball && ball.o > 0) {
       const [x, y] = toPx(ball.p);
       const lift = Math.round(ball.z * view.zk);
+      // Its shadow lies on the ground, under everything that stands. The low sun throws it
+      // off to the left as it does the trees', so it slides away as the ball climbs and
+      // runs back in to meet it on the way down; off the island it's lost
+      if (ball.z >= 0) {
+        const off = lift * RAKE;
+        const q = unIso(sx(ball.p) - ox - off, sy(ball.p) - oy + off * 0.14);
+        if (!lift || (seen(q) && q[0] >= 0 && q[0] <= W && q[1] >= 0 && q[1] <= H)) {
+          const [hx, hy] = toPx(q);
+          items.push({
+            y: -1e9,
+            d: () => {
+              g.globalAlpha = ball.o;
+              g.fillStyle = `rgba(36,44,22,${clamp(0.42 - lift * 0.008, 0.22, 0.42).toFixed(2)})`;
+              g.fillRect(hx - (lift > 3 ? 0 : 1), hy, 2, 1);
+              g.globalAlpha = 1;
+            },
+          });
+        }
+      }
       items.push({
         y: y + 0.5,
         d: () => {
-          if (ball.z >= 0) {
-            g.fillStyle = ball.z > 2 ? 'rgba(36,44,22,0.3)' : 'rgba(36,44,22,0.4)';
-            g.fillRect(x - (ball.z > 6 ? 0 : 1), y, ball.z > 6 ? 1 : 2, 1);
-          }
           g.globalAlpha = ball.o;
           for (let i = 0; i < ball.trail.length; i++) {
             const tr = ball.trail[i];
