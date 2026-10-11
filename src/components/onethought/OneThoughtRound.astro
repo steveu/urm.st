@@ -70,7 +70,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
                carries the words, so this is for the eyes only -->
           <!-- The walk between holes: the line in a box across the foot, its speaker on a
                tab. The faces and the shout are drawn on the board -->
-          <div class="px white dialogue" data-dialogue aria-hidden="true">
+          <div class="dialogue" data-dialogue aria-hidden="true">
             <p class="tab" data-tab></p>
             <p class="line" data-dline></p>
             <span class="next"></span>
@@ -523,6 +523,8 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     /* The record's stamp: a tick in a brass box; and the empty box, faint, where one could have gone */
     --pp-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='6' y='1' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%2326211a'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23e3b84f'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%2326211a'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%23c9a24a'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='1' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%238a6d34'/%3E%3Crect x='5' y='6' width='1' height='1' fill='%238a6d34'/%3E%3C/svg%3E");
     --pp-tickmiss: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7' shape-rendering='crispEdges'%3E%3Crect x='1' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='1' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='2' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='1' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='2' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3Crect x='5' y='6' width='1' height='1' fill='%23a59d8c'/%3E%3C/svg%3E");
+    /* The walk's dialogue box: dusk-dark, a cream line, stepped corners */
+    --pp-stage: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%279%27 height=%279%27 shape-rendering=%27crispEdges%27%3E%3Crect x=%273%27 y=%270%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%274%27 y=%270%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%275%27 y=%270%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%272%27 y=%271%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%271%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%274%27 y=%271%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%275%27 y=%271%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%276%27 y=%271%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%271%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%272%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%273%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%274%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%275%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%276%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%277%27 y=%272%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%270%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%271%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%272%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%273%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%274%27 y=%273%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%275%27 y=%273%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%276%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%277%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%278%27 y=%273%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%270%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%271%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%272%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%274%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%274%27 y=%274%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%275%27 y=%274%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%276%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%277%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%278%27 y=%274%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%270%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%271%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%272%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%275%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%274%27 y=%275%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%275%27 y=%275%27 width=%271%27 height=%271%27 fill=%27rgba(30,24,38,0.88)%27/%3E%3Crect x=%276%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%277%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%278%27 y=%275%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%271%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%272%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%273%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%274%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%275%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%276%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%277%27 y=%276%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%272%27 y=%277%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%277%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%274%27 y=%277%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%275%27 y=%277%27 width=%271%27 height=%271%27 fill=%27%23efe0bc%27/%3E%3Crect x=%276%27 y=%277%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%273%27 y=%278%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%274%27 y=%278%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3Crect x=%275%27 y=%278%27 width=%271%27 height=%271%27 fill=%27%2316110e%27/%3E%3C/svg%3E");
     --pp-tail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='6' y='0' width='1' height='1' fill='%2326211a'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2326211a'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23fffaf0'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%2326211a'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%2326211a'/%3E%3C/svg%3E");
     position: relative;
     overflow: hidden;
@@ -1213,16 +1215,22 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     animation: stamp 0.2s steps(3, end) both;
   }
   /* ---- The walk between holes: a dialogue on the stage ----------------------------- */
-  /* The line in a wide box across the foot of the frame, clear of the Flic, its speaker on
-     a tab on the top edge, an arrow when there's more */
+  /* The line in a dark box across the foot of the frame, clear of the Flic, as a courtroom
+     game would have it: a cream line round a dusk-dark panel with stepped corners, the
+     speaker on a plate in their own colour over its top edge, an arrow when there's more */
   .dialogue {
+    --plate: #8c2c1a;
     position: absolute;
     left: 6px;
     right: 230px;
     bottom: 6px;
     z-index: 4;
     min-height: calc(30 * var(--px));
-    padding: 14px 18px 12px;
+    padding: 16px 20px 14px;
+    border: calc(4 * var(--px)) solid transparent;
+    border-image: var(--pp-stage) 4 fill / calc(4 * var(--px)) stretch;
+    background: none;
+    image-rendering: pixelated;
     visibility: hidden;
     cursor: pointer;
   }
@@ -1231,34 +1239,41 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   }
   .dialogue .tab {
     position: absolute;
-    left: calc(4 * var(--px));
-    top: calc(-7 * var(--px));
-    padding: 1px 10px 3px;
+    left: calc(2 * var(--px));
+    top: calc(-9 * var(--px));
+    padding: 2px 12px 3px;
     font: 15px/1.3 var(--pix);
     color: #fff6dc;
-    background: var(--ink);
+    background: var(--plate);
     box-shadow:
-      0 calc(-1 * var(--px)) 0 var(--ink),
-      var(--px) 0 0 var(--ink),
-      calc(-1 * var(--px)) 0 0 var(--ink);
+      0 0 0 var(--px) #16110e,
+      inset 0 var(--px) 0 rgb(255 255 255 / 0.22),
+      inset 0 calc(-1 * var(--px)) 0 rgb(0 0 0 / 0.28);
   }
-  .dialogue[data-who='partner'] .tab {
-    background: #965a5a;
+  .dialogue[data-who='partner'] {
+    --plate: #a64e68;
   }
-  .dialogue[data-who='caddie'] .tab {
-    background: #3d4a26;
+  .dialogue[data-who='caddie'] {
+    --plate: #3c4a26;
   }
-  .dialogue[data-who='rope'] .tab {
-    background: #6b5a3a;
+  .dialogue[data-who='rope'] {
+    --plate: #5a4636;
   }
   .dialogue .line {
     min-height: 2.6em;
     font-size: 22px;
     line-height: 1.3;
+    color: #f6edd6;
     text-wrap: pretty;
   }
-  /* The rope is off the side of the stage: its words come in from the right */
+  /* A thought, not said: in its own colour, the way the courtroom marks one */
+  .dialogue:global(.thought) .line {
+    color: #b9d9a4;
+    font-style: italic;
+  }
+  /* The rope is off the side of the stage: its words come in from the right, in a shout */
   .dialogue:global(.off) .line {
+    color: #f3cf96;
     font-style: italic;
     animation: offside 0.2s steps(3, end) both;
   }
@@ -1270,11 +1285,11 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   }
   .dialogue .next {
     position: absolute;
-    right: calc(5 * var(--px));
-    bottom: calc(4 * var(--px));
+    right: calc(4 * var(--px));
+    bottom: calc(3 * var(--px));
     width: calc(5 * var(--px));
     height: calc(3 * var(--px));
-    background: var(--ink);
+    background: #efe0bc;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
     visibility: hidden;
   }

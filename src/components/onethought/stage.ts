@@ -13,12 +13,33 @@ import type { Beat, Speaker } from './scenes';
 import * as snd from './sound';
 import { letteringEl, BRASS_PAL, SHOUT_HOLD } from './lettering';
 
-const CPS = 32; // letters a second: readable, unhurried
+const CPS = 34; // letters a second: readable, unhurried
 const AUTO_MS = 8000; // a line left alone this long goes on by itself
 const FLASH_MS = 180;
 const SHAKE_MS = 280;
 
 const TAB: Record<Speaker, string> = { you: 'you', caddie: 'your caddie', partner: 'your partner', rope: 'from the rope' };
+
+// A line in brackets is thought, not said: shown without them, in its own colour
+const isThought = (b: Beat) => b.who === 'you' && /^\(.*\)$/.test(b.text);
+const shownText = (b: Beat) => (isThought(b) ? b.text.slice(1, -1) : b.text);
+
+// When each letter of a line lands: a beat on a comma, a longer one on a full stop, longer
+// still on an ellipsis; the rope shouts quicker, a thought comes slower
+function timing(b: Beat, text: string): number[] {
+  const per = 1000 / (b.who === 'rope' ? CPS * 1.3 : isThought(b) ? CPS * 0.85 : CPS);
+  const out: number[] = [0];
+  let t = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    t += per;
+    if (ch === '…') t += 320;
+    else if ('.!?'.includes(ch) && i < text.length - 1) t += 240;
+    else if (',;:'.includes(ch)) t += 110;
+    out.push(t);
+  }
+  return out;
+}
 
 type Els = { box: HTMLElement; tab: HTMLElement; line: HTMLElement; stamp: HTMLElement };
 type Opts = {
@@ -50,14 +71,20 @@ export function createStage(els: Els, opts: Opts) {
 
   const cur = () => (running && i >= 0 ? lines[i] : null);
 
+  let txt = '';
+  let at: number[] = [];
+
   function show(now: number) {
     const b = lines[i];
     t0 = now;
     shown = -1;
     doneAt = -1;
+    txt = shownText(b);
+    at = timing(b, txt);
     els.tab.textContent = TAB[b.who];
     els.box.dataset.who = b.who;
     els.box.classList.toggle('off', b.who === 'rope');
+    els.box.classList.toggle('thought', isThought(b));
     els.box.classList.remove('done', 'kept');
     els.line.textContent = '';
     if (b.shake && !reduce) {
@@ -68,16 +95,15 @@ export function createStage(els: Els, opts: Opts) {
   }
 
   function finishTyping(now: number) {
-    const b = lines[i];
-    shown = b.text.length;
-    els.line.textContent = b.text;
+    shown = txt.length;
+    els.line.textContent = txt;
     doneAt = now;
     els.box.classList.add('done');
   }
 
   function end() {
     running = false;
-    els.box.classList.remove('on', 'done', 'kept', 'off');
+    els.box.classList.remove('on', 'done', 'kept', 'off', 'thought');
     opts.onEnd();
   }
 
@@ -97,13 +123,14 @@ export function createStage(els: Els, opts: Opts) {
       const b = cur();
       if (!b) return;
       if (doneAt < 0) {
-        const n = reduce ? b.text.length : Math.min(b.text.length, Math.max(0, Math.floor(((now - t0) * CPS) / 1000)));
+        let n = reduce ? txt.length : Math.max(0, shown);
+        if (!reduce) while (n < txt.length && at[n + 1] <= now - t0) n++;
         if (n !== shown) {
-          if (n > shown && n % 2 === 0 && /\S/.test(b.text.charAt(n - 1))) snd.blip(b.who);
+          if (n > shown && n % 2 === 0 && /\S/.test(txt.charAt(n - 1))) snd.blip(b.who);
           shown = n;
-          els.line.textContent = b.text.slice(0, n);
+          els.line.textContent = txt.slice(0, n);
         }
-        if (n >= b.text.length) finishTyping(now);
+        if (n >= txt.length) finishTyping(now);
       } else if (now - doneAt >= AUTO_MS) this.advance(now, true);
     },
     /** A click or Enter: finish the line if it's typing, else on to the next */
@@ -164,7 +191,7 @@ export function createStage(els: Els, opts: Opts) {
       // Forget the last scene, or the next walk starts from where it ended
       lines = [];
       i = -1;
-      els.box.classList.remove('on', 'done', 'kept', 'off');
+      els.box.classList.remove('on', 'done', 'kept', 'off', 'thought');
       shoutT0 = -1e9;
     },
     get current() {

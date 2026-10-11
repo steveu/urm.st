@@ -173,7 +173,8 @@ export function drawShout(g: CanvasRenderingContext2D, w: number, h: number, wor
   const bw = Math.round(letters.width * 1.2 + 20);
   const bh = Math.round(Math.max(letters.height * 2, bw * 0.36));
   const b = burst(bw, bh, word.length);
-  const cx = Math.round(w / 2);
+  // A little right of the middle where there's room, so the shouter shows beside it
+  const cx = Math.round(w >= 300 ? w * 0.57 : w / 2);
   const cy = Math.round(h * 0.4);
   // In fast, a frame past full size, back; out quicker still
   let s = 1;

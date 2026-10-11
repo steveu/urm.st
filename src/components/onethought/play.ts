@@ -18,7 +18,7 @@ import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
 import { walkScene, type Went, type MomentKind, type Trouble, type Beat } from './scenes';
-import { portraitFrame, SIZE as FIG } from './cast';
+import { portraitFrame, W as FIG_W, H as FIG_H, type Face as CastFace } from './cast';
 import { drawShout } from './lettering';
 import { createStage } from './stage';
 import * as snd from './sound';
@@ -1708,7 +1708,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       g.save();
       g.translate(shx, shy);
       walk.draw(g, w, hh, f, gt, reduce);
-      if (sp) drawStage(g, w, hh, sp);
+      if (sp) drawStage(g, w, hh, sp, !!shout);
       g.restore();
       if (shout) drawShout(g, w, hh, shout.word, shout.t, reduce);
       if (flash > 0) {
@@ -1718,34 +1718,113 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     };
   }
 
-  // The stage: one speaker at a time, large, near the middle, over the walk dimmed behind
-  // them; you a little left looking in, the others a little right looking back. A cut,
-  // not a slide, between speakers. They breathe, a pixel up and down; they blink now and
-  // then; their mouth goes shut, half, open while their words come. The rope is never
-  // seen. The chin sits just clear of the box at the foot, whatever the width
+  // The stage: one speaker at a time, from the waist up, over the walk dimmed behind them;
+  // you a little left looking in, the others a little right looking back. A cut, not a
+  // slide, between speakers. They breathe, a pixel up and down; they blink now and then;
+  // their mouth goes shut, half, open while their words come; their pose has a second
+  // frame that comes and goes (a tap of the finger, a bob, a jitter). The rope is heard
+  // from the edge of the frame, a gallery in silhouette against the light. The box at the
+  // foot covers the waist, whatever the width
   const dialogueEl = q('[data-dialogue]');
-  function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number }) {
-    g.fillStyle = 'rgba(46,36,56,0.5)';
+  function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number }, shouting: boolean) {
+    // The walk dimmed to dusk behind the speaker
+    g.fillStyle = 'rgba(40,30,52,0.42)';
     g.fillRect(0, 0, w, hh);
-    if (sp.who === 'rope') return;
+    if (sp.who === 'rope') {
+      drawGallery(g, w, hh, sp.t0);
+      return;
+    }
     const you = sp.who === 'you';
     const still = reduce;
+    const t = gt - sp.t0;
     const blink = !still && (gt + (you ? 0 : 1300)) % 3400 < 140;
-    const beat = Math.floor((gt - sp.t0) / 90) % 4;
+    const beat = Math.floor(t / 90) % 4;
     const mouth = still || !sp.talking ? 0 : ([1, 2, 1, 0] as const)[beat];
-    const fig = portraitFrame(sp.who as 'you' | 'caddie' | 'partner', sp.face, blink, mouth, !you);
+    const face: CastFace = shouting && you ? 'shout' : sp.face;
+    // The pose's second frame: a jitter while caught out, a tap now and then while
+    // thinking, a bob while pleased, the arm thrust out as the shout lands
+    let frame: 0 | 1 = 0;
+    if (!still) {
+      if (face === 'shocked') frame = t < 800 && Math.floor(t / 110) % 2 ? 1 : 0;
+      else if (face === 'thinking') frame = t % 900 < 200 ? 1 : 0;
+      else if (face === 'pleased') frame = t % 1200 < 300 ? 1 : 0;
+      else if (face === 'shout') frame = 1;
+    }
+    const fig = portraitFrame(sp.who as 'you' | 'caddie' | 'partner', face, frame, blink, mouth, !you);
     const breathe = still ? 0 : Math.floor(gt / 1100) % 2;
-    // Caught out, they lean back a touch
-    const lean = sp.face === 'shocked' ? (you ? -2 : 2) : 0;
-    // Twice the board's pixel where the frame has the room for the head above the box (a
-    // wide screen), else at the board's own; the chin just clear of the box
+    // The waist at the box's top edge, the head clear of the frame's top
     const boxTop = dialogueEl.offsetTop / scale;
-    const k = boxTop >= 132 && w >= 300 ? 2 : 1;
-    const size = FIG * k;
-    const x = Math.round(w / 2 - size / 2 + (you ? -1 : 1) * Math.min(w * 0.12, 48)) + lean * k;
-    const y = Math.round(boxTop > 60 ? boxTop - 79 * k : hh - size) + breathe;
+    const x = Math.round(w / 2 - FIG_W / 2 + (you ? -1 : 1) * Math.min(w * 0.14, 56));
+    const y = clamp(Math.round(Math.min(boxTop, hh) + 24 - FIG_H), -40, 30) + breathe;
     g.imageSmoothingEnabled = false;
-    g.drawImage(fig, x, y, size, size);
+    g.drawImage(fig, x, y);
+  }
+
+  // The gallery at the rope: three of them in silhouette against the low sun, near, at
+  // the left edge of the frame with the box over their feet, the rope in front of them.
+  // The tall one at the back is a shade lighter, so they read as three. The one in the
+  // flat cap has a hand cupped to their mouth, raised as the line lands
+  function drawGallery(g: CanvasRenderingContext2D, _w: number, hh: number, t0: number) {
+    const t = gt - t0;
+    const lift = !reduce && t < 450 ? Math.floor((450 - t) / 150) : 0;
+    const base = Math.min(Math.round(dialogueEl.offsetTop / scale) + 8, hh);
+    const disc = (cx: number, cy: number, r: number) => {
+      for (let dy = -r; dy <= r; dy++) {
+        const hw = Math.round(Math.sqrt(r * r - dy * dy - 0.3));
+        g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1);
+      }
+    };
+    // Each: where they stand, the head's size, how tall, what's on their head, their ink
+    // and the light on their sunward edge
+    type Fig = { x: number; r: number; ht: number; hat: 'cap' | 'bobble' | 'none'; ink: string; lit: string };
+    const figs: Fig[] = [
+      { x: 46, r: 6, ht: 76, hat: 'bobble', ink: '#3a2c48', lit: '#7a5a74' },
+      { x: 18, r: 5, ht: 56, hat: 'cap', ink: '#221a2c', lit: '#6a4a62' },
+      { x: 74, r: 5, ht: 50, hat: 'none', ink: '#221a2c', lit: '#6a4a62' },
+    ];
+    for (const f of figs) {
+      const { x, r, hat } = f;
+      const top = base - f.ht;
+      const neckY = top + r * 2;
+      g.fillStyle = f.ink;
+      // The neck, then the shoulders sloping out, then down to the box
+      g.fillRect(x - 2, neckY - 1, 5, 4);
+      for (let y = neckY + 2; y < base; y++) {
+        const s = Math.min(1, (y - neckY - 2) / 5);
+        const hw = Math.round(3 + s * (r + 4) + ((y - neckY) / f.ht) * 2);
+        g.fillRect(x - hw, y, hw * 2 + 1, 1);
+      }
+      disc(x, top + r, r);
+      if (hat === 'cap') {
+        g.fillRect(x - r - 1, top, r * 2 + 3, 2);
+        g.fillRect(x + r, top + 2, 4, 1);
+      } else if (hat === 'bobble') {
+        g.fillRect(x - r + 1, top - 4, r * 2 - 1, 5);
+        g.fillRect(x - 1, top - 7, 3, 3);
+      }
+      // The light along their sunward edge: the cheek, the shoulder, the arm
+      g.fillStyle = f.lit;
+      g.fillRect(x + r, top + r - 1, 1, 3);
+      g.fillRect(x + r + 2, neckY + 4, 1, 2);
+      for (let y = neckY + 8; y < base - 2; y += 3) g.fillRect(x + r + 6 + Math.round(((y - neckY) / f.ht) * 2), y, 1, 2);
+    }
+    // The capped one's hand, cupped to the mouth, the forearm up from the shoulder
+    {
+      const f = figs[1];
+      const top = base - f.ht;
+      g.fillStyle = f.ink;
+      g.fillRect(f.x + f.r + 2, top + f.r + 2 - lift, 3, 14 + lift);
+      g.fillRect(f.x + f.r - 1, top + f.r - 1 - lift, 6, 4);
+      g.fillStyle = f.lit;
+      g.fillRect(f.x + f.r + 4, top + f.r + 4 - lift, 1, 5);
+    }
+    // The rope in front of them, on its posts
+    g.fillStyle = '#1c1424';
+    const ry = base - 24;
+    for (let x = 4; x < 96; x += 30) g.fillRect(x, ry - 3, 2, base - ry + 3);
+    for (let x = 0; x < 96; x++) g.fillRect(x, ry + (((x >> 3) & 1) === 0 ? 0 : 1), 1, 1);
+    g.fillStyle = '#6a4a62';
+    for (let x = 4; x < 96; x += 30) g.fillRect(x + 2, ry - 3, 1, 5);
   }
 
   function renderMeter() {
