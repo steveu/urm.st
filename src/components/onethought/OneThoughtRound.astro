@@ -94,14 +94,14 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
         </div>
 
         <div class="kit">
-          <div class="px meter" data-meter aria-hidden="true">
-            <p class="pips" data-pips><span data-pip>look</span><span data-pip>waggle</span><span data-pip>breath</span></p>
-            <div class="bar">
+          <div class="px meter" data-meter>
+            <p class="pips" data-pips aria-hidden="true"><span data-pip>look</span><span data-pip>waggle</span><span data-pip>breath</span></p>
+            <div class="bar" aria-hidden="true">
               <em class="good" data-good></em><em class="pure" data-pure></em><span class="fill" data-fill></span><span class="mk" data-mark></span>
             </div>
             <div class="clubrow">
-              <p class="club" data-club>driver</p>
-              <canvas class="sock" data-sock width="20" height="14" aria-hidden="true"></canvas>
+              <button type="button" class="club" data-club aria-label="Club: press to change, or C">driver</button>
+              <button type="button" class="pb small step" data-step aria-pressed="false" disabled>step in</button>
             </div>
           </div>
           <!-- The pocket button: a plain Flic, as it comes -->
@@ -160,7 +160,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
 
 <script>
   import { START, THOUGHTS } from './thoughts';
-  import { fresh, read, recordHtml, sealedHtml, type State } from './record';
+  import { fresh, read, recordHtml, sealedHtml, type CardEvent, type State } from './record';
   import { createGame, type Finish } from './play';
   import { drawFlic } from './pixel';
   import { createEnding } from './ending';
@@ -391,7 +391,10 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       const kept = moment && game.keepLine();
       if (moment) s.moments.push(p);
       else s.taps.push(p);
-      s.card[p.hole - 1]?.push(moment ? { k: 'moment', kept } : { k: 'tap', over: p.over, caught });
+      const ev: CardEvent = moment ? { k: 'moment', kept } : { k: 'tap', over: p.over, caught };
+      s.card[p.hole - 1]?.push(ev);
+      // A line decided with a tap, then changed before the swing: the record shows it faded
+      if (ev.k === 'tap') game.watchLine(() => (ev.moved = true));
       ripple(moment);
       status.textContent = moment ? (kept ? 'Kept.' : 'Moment marked.') : caught ? 'Caught.' : 'Tap.';
     }
@@ -1082,9 +1085,29 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       box-shadow: 0 0 0 calc(2 * var(--px)) #f1c75a;
     }
   }
-  .club {
+  /* The club: a word you can press to change it, while behind the ball */
+  .meter .club {
+    padding: 0;
+    border: 0;
+    background: none;
     font: 12px/1.2 var(--pix);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    color: var(--ink);
+    text-align: left;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .meter .club:disabled {
     color: var(--faint);
+    text-decoration: none;
+    cursor: default;
+  }
+  .meter .step {
+    margin-left: auto;
+    white-space: nowrap;
   }
 
   .clubrow {
@@ -1092,14 +1115,6 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     align-items: flex-end;
     justify-content: space-between;
     gap: 8px;
-  }
-  /* The windsock: which way it blows across the board, and how hard */
-  .sock {
-    width: calc(20 * var(--px));
-    height: calc(14 * var(--px));
-    margin: calc(-6 * var(--px)) 0 0;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
   }
 
   /* ---- The close-ups: a face cuts in beside its line, at the foot of the board -------- */
@@ -1549,6 +1564,10 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   /* A catch let go by: the same tick, hollow and faint */
   .record :global(.ck.miss) {
     background-image: var(--pp-tickmiss);
+  }
+  /* Decided, then the line moved before the swing: the mark, faded */
+  .record :global(:is(.ck, .tk).moved) {
+    opacity: 0.4;
   }
   .record :global(.dm) {
     display: inline-block;

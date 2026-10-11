@@ -17,7 +17,7 @@ export type Press = { t: number; hole: number; at: [number, number]; over: boole
 export type Lie = 'fairway' | 'rough' | 'bunker' | 'trees' | 'green' | 'water' | 'out' | 'holed' | 'picked';
 // A tap may have caught a line of the inner voice; a catch said and let go by is 'missed'
 // A moment may have kept a line of the inner voice's, on the walk
-export type CardEvent = { k: 'shot'; lie: Lie; putt: boolean } | { k: 'tap'; over: boolean; caught?: boolean } | { k: 'moment'; kept?: boolean } | { k: 'missed' };
+export type CardEvent = { k: 'shot'; lie: Lie; putt: boolean } | { k: 'tap'; over: boolean; caught?: boolean; moved?: boolean } | { k: 'moment'; kept?: boolean } | { k: 'missed' };
 
 export type State = {
   stage: Stage;
@@ -98,8 +98,8 @@ function card(s: State) {
         : `<i class="g ${e.putt ? 'pt' : `s-${e.lie}`}"></i>`
       : e.k === 'tap'
         ? e.caught
-          ? '<u class="ck"></u>'
-          : `<u class="tk${e.over ? ' over' : ''}"></u>`
+          ? `<u class="ck${e.moved ? ' moved' : ''}"></u>`
+          : `<u class="tk${e.over ? ' over' : ''}${e.moved ? ' moved' : ''}"></u>`
         : e.k === 'missed'
           ? '<u class="ck miss"></u>'
           : `<s class="dm${e.kept ? ' kept' : ''}"></s>`;
@@ -111,11 +111,7 @@ function card(s: State) {
           : 'putt'
         : SAY[e.lie]
       : e.k === 'tap'
-        ? e.caught
-          ? kw.tap
-          : e.over
-            ? 'tap over the ball'
-            : 'tap'
+        ? `${e.caught ? kw.tap : e.over ? 'tap over the ball' : 'tap'}${e.moved ? ', then the line moved' : ''}`
         : e.k === 'missed'
           ? kw.miss
           : e.kept
@@ -126,9 +122,10 @@ function card(s: State) {
   const missed = all.some((e) => e.k === 'missed');
   const moments = all.some((e) => e.k === 'moment');
   const kept = all.some((e) => e.k === 'moment' && e.kept);
+  const moved = all.some((e) => e.k === 'tap' && e.moved);
   const said = rows.map((r, i) => `${shownOrdinal(i + 1)}: ${r.length ? r.map(words).join(', ') : 'nothing'}.`).join(' ');
   return `<div class="rows" aria-hidden="true">${rows.map((r, i) => `<span class="hn">${shownOrdinal(i + 1)}</span><span class="d">${r.map(glyph).join('')}</span>`).join('')}</div>
-    <p class="key" aria-hidden="true"><i class="g s-fairway"></i> shot <i class="g pt"></i> putt <u class="tk"></u> tap${caught ? ` <u class="ck"></u> ${kw.k}` : ''}${missed ? ' <u class="ck miss"></u> let pass' : ''}${moments ? ' <s class="dm"></s> moment' : ''}${kept ? ' <s class="dm kept"></s> kept' : ''}</p>
+    <p class="key" aria-hidden="true"><i class="g s-fairway"></i> shot <i class="g pt"></i> putt <u class="tk"></u> tap${caught ? ` <u class="ck"></u> ${kw.k}` : ''}${missed ? ' <u class="ck miss"></u> let pass' : ''}${moved ? ' <u class="ck moved"></u> then moved' : ''}${moments ? ' <s class="dm"></s> moment' : ''}${kept ? ' <s class="dm kept"></s> kept' : ''}</p>
     <p class="visually-hidden">${said}</p>`;
 }
 

@@ -1284,7 +1284,9 @@ export function createBoard(cv: HTMLCanvasElement) {
       if (!seen(t)) return;
       const [x, y] = toPx(t);
       const sp = treeSp[i];
-      const rk = rockT[i] != null && now - rockT[i] < 420 ? (Math.floor((now - rockT[i]) / 70) & 1 ? 1 : -1) : 0;
+      // A gust through the trees now and then, when it's blowing
+      const gust = !f.reduce && f.wind.level >= 2 && hash(i, Math.floor(now / 1300)) < (f.wind.level === 3 ? 0.12 : 0.05);
+      const rk = rockT[i] != null && now - rockT[i] < 420 ? (Math.floor((now - rockT[i]) / 70) & 1 ? 1 : -1) : gust ? (Math.floor(now / 160) & 1 ? (f.wind.dx >= 0 ? 1 : -1) : 0) : 0;
       items.push({ y, d: () => g.drawImage(sp.c, x - sp.ax + rk, y - sp.ay) });
     });
     // The flags fly with the wind: faster the harder it blows, still when it's still
@@ -1447,6 +1449,8 @@ export function createBoard(cv: HTMLCanvasElement) {
       drawCloud(g, x + (f.golfer.face > 0 ? 1 : -14), y - 19, now - f.cloud.t0, f.cloud.doubt, f.reduce);
     }
 
+    drawWind(f, now);
+
     // Particles and rings over everything
     parts = parts.filter((pt) => now - pt.t0 < pt.life);
     for (const pt of parts) {
@@ -1482,6 +1486,64 @@ export function createBoard(cv: HTMLCanvasElement) {
     veil(f, now);
     ox = OX;
     oy = OY;
+  }
+
+  // The wind, seen: short pale streaks blowing across the course, more and faster the harder
+  // it blows, none when it's still, and now and then a leaf carried with them. Worked out
+  // from the clock alone, so there's nothing to keep. Where it swirls the line wanders and
+  // the gusts come and go. Only over the course, never the clear canvas round it
+  const STREAKS = [0, 16, 30, 48] as const;
+  const SPEED = [0, 0.03, 0.05, 0.08] as const; // board pixels a millisecond
+  const LEN = [0, 5, 9, 14] as const;
+  function drawWind(f: Frame, now: number) {
+    const lv = f.wind.level;
+    if (!lv || f.cut) return;
+    const t = f.reduce ? 0 : now;
+    const n = Math.round((STREAKS[lv] * lw * lh) / (360 * 200));
+    const base = Math.atan2(f.wind.dy, f.wind.dx);
+    const padX = lw + 40;
+    const padY = lh + 40;
+    g.globalCompositeOperation = 'source-atop';
+    for (let i = 0; i < n; i++) {
+      // Each streak lives a while and comes round again somewhere else
+      const cyc = 2200 + hash(i, 1) * 1800;
+      const k = Math.floor((t + hash(i, 2) * cyc) / cyc);
+      const u = ((t + hash(i, 2) * cyc) % cyc) / cyc;
+      const ang = f.wind.swirl ? base + Math.sin(t / 1700 + i * 0.9) * 1.1 + (hash(i, k, 5) - 0.5) * 0.8 : base + (hash(i, 6) - 0.5) * 0.12;
+      const ux = Math.cos(ang);
+      const uy = Math.sin(ang);
+      const sp = SPEED[lv] * (f.wind.swirl ? 0.6 + hash(i, k, 7) * 0.9 : 0.85 + hash(i, 8) * 0.3);
+      const x0 = hash(i, k, 3) * padX - 20 + ux * sp * u * cyc;
+      const y0 = hash(i, k, 4) * padY - 20 + uy * sp * u * cyc;
+      // In, held, out: thinned by the dither at either end
+      const a = Math.min(1, u * 5, (1 - u) * 5);
+      const leaf = i % 9 === 0;
+      if (leaf) {
+        const x = Math.round(x0 + Math.sin(t / 140 + i) * 1.2);
+        const y = Math.round(y0 + Math.cos(t / 190 + i) * 1.2);
+        if (bayer(x, y) < a) {
+          g.fillStyle = i % 2 ? '#e8a6b8' : '#8fae5a';
+          g.fillRect(x, y, 1, 1);
+          g.fillRect(x + (ux >= 0 ? -1 : 1), y, 1, 1);
+        }
+        continue;
+      }
+      const L = LEN[lv] * (0.7 + hash(i, 9) * 0.6);
+      g.fillStyle = 'rgba(255,250,235,0.7)';
+      let lx = NaN;
+      let ly = NaN;
+      for (let s = 0; s < L; s++) {
+        const x = Math.round(x0 - ux * s);
+        const y = Math.round(y0 - uy * s);
+        if (x === lx && y === ly) continue;
+        lx = x;
+        ly = y;
+        // Fainter towards the tail
+        if (bayer(x, y) >= a * (1 - (s / L) * 0.7)) continue;
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+    g.globalCompositeOperation = 'source-over';
   }
 
   // A view coming in, or the board going out for a cut: pixels taken away in Bayer order
@@ -1554,8 +1616,27 @@ export function createBoard(cv: HTMLCanvasElement) {
     const L = Math.hypot(x1 - x0, y1 - y0);
     const h = clamp(L * 0.32, 3, 24);
     const n = Math.max(4, Math.round(L / 2.4));
-    const march = a.reduce ? 0 : (now / 520) % 1;
-    for (let k = 0; k < n; k++) {
+    const march = a.reduce || a.ink ? 0 : (now / 520) % 1;
+    // Decided: the line inked solid in brass, drawn out from the ball, and still
+    if (a.ink) {
+      const m = Math.max(8, Math.round(L * 1.5));
+      let lx = NaN;
+      let ly = NaN;
+      for (let k = 0; k <= m * a.ink; k++) {
+        const t = k / m;
+        if (t < 0.06 || t > 0.96) continue;
+        const x = Math.round(x0 + (x1 - x0) * t);
+        const y = Math.round(y0 + (y1 - y0) * t - Math.sin(Math.PI * t) * h);
+        if (x === lx && y === ly) continue;
+        lx = x;
+        ly = y;
+        g.fillStyle = 'rgba(38,33,26,0.45)';
+        g.fillRect(x, y + 1, 1, 1);
+        g.fillStyle = a.dim ? 'rgba(227,184,79,0.7)' : '#e3b84f';
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+    for (let k = 0; k < (a.ink ? 0 : n); k++) {
       const t = (k + march) / n;
       if (t < 0.06 || t > 0.96) continue;
       const x = Math.round(x0 + (x1 - x0) * t);
@@ -1565,11 +1646,95 @@ export function createBoard(cv: HTMLCanvasElement) {
       g.fillStyle = a.dim ? 'rgba(255,250,235,0.55)' : '#fffaeb';
       g.fillRect(x, y, 1, 1);
     }
-    drawEllipse(x1, y1, 6, 3, 'rgba(255,246,220,0.9)');
+    if (a.pattern) drawPattern(a.pattern.c, a.pattern, a.dim, now);
+    else drawEllipse(x1, y1, 6, 3, 'rgba(255,246,220,0.9)');
+  }
+
+  // The pattern: a pale dithered oval on the grass where a good strike lands, its rim
+  // dotted. Laid on the ground, so it foreshortens with the course. With the nerves on, the
+  // rim won't sit still
+  function drawPattern(c: Vec, pt: NonNullable<AimFrame['pattern']>, dim: boolean, now: number) {
+    const ux = Math.cos(pt.ang);
+    const uy = Math.sin(pt.ang);
+    const at = (t: number, k = 1): Vec => {
+      const a = Math.cos(t) * pt.along * k;
+      const b = Math.sin(t) * pt.across * k;
+      return [c[0] + ux * a - uy * b, c[1] + uy * a + ux * b];
+    };
+    // Its extent on the board, from the rim
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    const rim: Vec[] = [];
+    const n = 48;
+    for (let i = 0; i < n; i++) {
+      const p = toPx(at((i / n) * Math.PI * 2));
+      rim.push(p);
+      x0 = Math.min(x0, p[0]);
+      x1 = Math.max(x1, p[0]);
+      y0 = Math.min(y0, p[1]);
+      y1 = Math.max(y1, p[1]);
+    }
+    // The fill: a light wash, so the grass and the flag read through it
+    g.fillStyle = dim ? 'rgba(255,246,220,0.35)' : 'rgba(255,246,220,0.8)';
+    for (let y = y0; y <= y1; y++)
+      for (let x = x0; x <= x1; x++) {
+        if (bayer(x, y) >= 0.32) continue;
+        const q = unIso(x + 0.5 - ox, y + 0.5 - oy);
+        const dx = q[0] - c[0];
+        const dy = q[1] - c[1];
+        const a = (dx * ux + dy * uy) / pt.along;
+        const b = (-dx * uy + dy * ux) / pt.across;
+        if (a * a + b * b <= 1) g.fillRect(x, y, 1, 1);
+      }
+    // The rim, unbroken, with a shadow under it so it reads on the pale grass; jittered a
+    // pixel when the nerves are on
+    const jit = pt.tremble ? Math.floor(now / 90) : -1;
+    const pts: Vec[] = [];
+    const m = Math.max(48, Math.round((x1 - x0 + y1 - y0) * 2));
+    for (let i = 0; i < m; i++) {
+      const [x, y] = toPx(at((i / m) * Math.PI * 2));
+      const jx = jit >= 0 ? Math.round((hash(i >> 2, jit) - 0.5) * 2) : 0;
+      const jy = jit >= 0 ? Math.round((hash(i >> 2, jit, 3) - 0.5) * 2) : 0;
+      const last = pts[pts.length - 1];
+      if (!last || last[0] !== x + jx || last[1] !== y + jy) pts.push([x + jx, y + jy]);
+    }
+    g.fillStyle = dim ? 'rgba(38,33,26,0.12)' : 'rgba(38,33,26,0.3)';
+    for (const [x, y] of pts) g.fillRect(x, y + 1, 1, 1);
+    g.fillStyle = dim ? 'rgba(255,250,235,0.55)' : '#fffaeb';
+    for (const [x, y] of pts) g.fillRect(x, y, 1, 1);
+    // The aim itself, a pip in the middle
+    const [cx, cy] = toPx(c);
+    g.fillStyle = 'rgba(38,33,26,0.35)';
+    g.fillRect(cx, cy + 1, 1, 1);
+    g.fillStyle = '#fffaeb';
+    g.fillRect(cx, cy, 1, 1);
   }
 
   function drawRecord(r: RecordFrame, now: number) {
     const el = now - r.t0;
+    // The ovals first, in pencil: a wide one is a shot swung before it was settled
+    const pu = r.reduce ? 1 : clamp((el - 300) / 500, 0, 1);
+    if (pu > 0)
+      for (const pt of r.patterns) {
+        const ux = Math.cos(pt.ang);
+        const uy = Math.sin(pt.ang);
+        const m = 40;
+        g.fillStyle = `rgba(38,33,26,${(0.8 * pu).toFixed(2)})`;
+        let lx = NaN;
+        let ly = NaN;
+        for (let i = 0; i < m; i++) {
+          const t = (i / m) * Math.PI * 2;
+          const a = Math.cos(t) * pt.along;
+          const b = Math.sin(t) * pt.across;
+          const [x, y] = toPx([pt.c[0] + ux * a - uy * b, pt.c[1] + uy * a + ux * b]);
+          if (x === lx && y === ly) continue;
+          lx = x;
+          ly = y;
+          g.fillRect(x, y, 1, 1);
+        }
+      }
     r.trails.forEach((t, i) => {
       const u = r.reduce ? 1 : clamp((el - 500 - i * 110) / 520, 0, 1);
       if (u <= 0) return;
@@ -1637,8 +1802,12 @@ export function createBoard(cv: HTMLCanvasElement) {
 }
 export type Board = ReturnType<typeof createBoard>;
 
-export type AimFrame = { from: Vec; to: Vec; dim: boolean; reduce: boolean };
-export type RecordFrame = { t0: number; reduce: boolean; trails: { p: Vec; z: number }[][]; marks: { at: Vec; moment: boolean; over: boolean }[] };
+/** pattern: where a good strike lands, an oval on the aim, in course units along the line
+ *  and across it (play.ts eases it as the routine runs); tremble when the nerves are on */
+/** ink: the line decided, drawn out in brass from the ball, 0 to 1 */
+export type AimFrame = { from: Vec; to: Vec; dim: boolean; reduce: boolean; ink?: number; pattern?: { c: Vec; along: number; across: number; ang: number; tremble: boolean } };
+/** patterns: each full shot's oval as it was swung from, pencilled under the lines */
+export type RecordFrame = { t0: number; reduce: boolean; trails: { p: Vec; z: number }[][]; marks: { at: Vec; moment: boolean; over: boolean }[]; patterns: { c: Vec; along: number; across: number; ang: number }[] };
 export type Frame = {
   now: number;
   reduce: boolean;
@@ -1657,7 +1826,8 @@ export type Frame = {
   hush: number;
   dusk: number;
   /** The wind, as the flags show it: which way across the screen, and how hard */
-  wind: { dir: 1 | -1; level: number };
+  /** dx, dy: which way it blows on the screen, a unit vector. swirl: it won't hold a line */
+  wind: { dir: 1 | -1; level: number; dx: number; dy: number; swirl: boolean };
   cloud: { t0: number; doubt: boolean } | null;
   ghostBall: { p: Vec; z: number; a: number } | null;
   /** How much of the board is dithered away, 0 to 1 */
@@ -1749,51 +1919,4 @@ export function drawFlic(cv: HTMLCanvasElement, pressed: boolean, glow: number, 
   for (const [x, y] of [[0, -4], [-1, -3], [1, -3], [-2, -2], [2, -2], [-3, -1], [3, -1], [-3, 0], [3, 0], [-2, 1], [2, 1], [-1, 2], [1, 2], [0, 3]]) px(cx + x - 1, cy + y - 1, ink);
   px(cx - 1, cy - 1, ink);
   px(cx - 1, cy - 2, glow > 0 ? '#e3b84f' : ink);
-}
-
-// ---------------------------------------------------------------------------------------
-// The windsock, by the meter: a pole, and a striped sock blowing the way the wind goes
-// across the board, longer and straighter the harder it blows; limp when it's still.
-// 20 by 14
-
-export function drawSock(cv: HTMLCanvasElement, dx: number, dy: number, level: number, now: number, reduce: boolean) {
-  const W = 20;
-  const Hh = 14;
-  if (cv.width !== W) {
-    cv.width = W;
-    cv.height = Hh;
-  }
-  const g = cv.getContext('2d')!;
-  g.clearRect(0, 0, W, Hh);
-  const px = (x: number, y: number, c: string) => {
-    g.fillStyle = c;
-    g.fillRect(Math.round(x), Math.round(y), 1, 1);
-  };
-  // The pole stands in the middle, so the sock can blow either way
-  const bx = 9;
-  for (let y = 2; y < Hh; y++) px(bx, y, y < 4 ? '#3a3226' : '#5a4c3a');
-  px(bx - 1, Hh - 1, '#3a3226');
-  px(bx + 1, Hh - 1, '#3a3226');
-  // Where the sock points: the wind across the screen, drooping as it weakens
-  const len = [3, 5, 7, 9][level];
-  const droop = [1, 0.55, 0.22, 0.05][level];
-  const l = Math.hypot(dx, dy) || 1;
-  let ux = (dx / l) * (1 - droop);
-  let uy = (dy / l) * (1 - droop) + droop;
-  const ul = Math.hypot(ux, uy) || 1;
-  ux /= ul;
-  uy /= ul;
-  const flut = !reduce && level >= 2 ? (Math.floor(now / (level === 3 ? 90 : 140)) & 1) : 0;
-  for (let i = 0; i < len; i++) {
-    const x = bx + 0.5 + ux * (i + 1);
-    const y = 3 + uy * (i + 1) + (i > len / 2 ? flut * (i % 2 ? 1 : 0) : 0);
-    const stripe = Math.floor(i / 2) % 2 ? '#fbf6ea' : '#d6532c';
-    const shade = Math.floor(i / 2) % 2 ? '#d9d0bc' : '#9a3a1f';
-    const thick = i < len * 0.45 ? 2 : 1;
-    // Across the sock, perpendicular to its line
-    const nx = -uy;
-    const ny = ux;
-    px(x - nx * 0.5, y - ny * 0.5, stripe);
-    if (thick > 1) px(x + nx * 0.6, y + ny * 0.6, shade);
-  }
 }

@@ -36,7 +36,7 @@ export const W = 600;
 export const H = 260;
 export const PAR: Record<1 | 2 | 3, number> = { 1: 4, 2: 3, 3: 5 };
 
-type FullClub = Exclude<ClubId, 'putter'>;
+export type FullClub = Exclude<ClubId, 'putter'>;
 export const CLUBS: Record<FullClub, { tag: string; max: number; errDeg: number; apex: number; roll: number }> = {
   driver: { tag: 'driver', max: 125, errDeg: 10, apex: 22, roll: 0.18 },
   wood: { tag: 'three wood', max: 108, errDeg: 9, apex: 20, roll: 0.12 },
@@ -54,11 +54,18 @@ export const SWING = { top: 1100, centre: 1000, end: 1450, click: 200, good: 120
 // Tuning, checked against bots that let go with human jitter (scratchpad simcheck).
 // Degrees of plain scatter on a full shot, by strike: a pure one goes where it's aimed
 const LATERAL_SD: Record<Grade, number> = { pure: 0.8, good: 2.4, early: 3.2, late: 3.2, fat: 3.5, flail: 3 };
-// The most the course, the nerves, a rushed routine and a changed mind can tighten the
-// window, together
+// The most the lie can tighten the swing's window
 const K_MAX = 1.6;
-// What each tightens it by. A breath loosens it, and settles the nerves
-export const TIGHT = { rough: 1.15, bunker: 1.2, trees: 1.15, nerves: 1.4, hurried: 1.2, doubt: 1.2, breath: 0.9 } as const;
+// What each lie tightens it by
+export const TIGHT = { rough: 1.15, bunker: 1.2, trees: 1.15 } as const;
+// The mind widens the pattern instead, and the pattern is drawn, so it's never a secret.
+// The routine, by how many of its three beats were let run: none, one, two, all
+export const ROUTINE = [1.6, 1.4, 1.2, 1] as const;
+// And the rest of the moment: nerves (water near, or the rope), a changed mind, a breath
+export const WIDEN = { nerves: 1.35, doubt: 1.25, breath: 0.85 } as const;
+const SPREAD_MAX = 2.4;
+// The pattern drawn is where most good strikes land: this many deviations out
+const PATTERN_SD = 2;
 // A shot aimed this close to water, or across it, is a nervy one
 const NERVY_NEAR = 8;
 // The least scatter a full-swing shot has, in course units, however short it is
@@ -313,8 +320,9 @@ export type Ball = {
   stuckUsed: boolean;
   puttsThisHole: number;
 };
-/** The moment over the ball. doubt: the aim was changed again after it was set */
-export type Ctx = { hurried: boolean; breath: boolean; afterHeckle: boolean; doubt?: boolean };
+/** The moment over the ball. beats: how much of the routine ran, 0 to 3 (hurried is
+ *  fewer than three). doubt: the aim was changed again after it was set */
+export type Ctx = { hurried: boolean; breath: boolean; afterHeckle: boolean; doubt?: boolean; beats?: number };
 export type Situation = { nervy: boolean; approach: boolean; lines: [Line, Line] | null; caddie: string | null };
 export type Grade = 'pure' | 'good' | 'early' | 'late' | 'fat' | 'flail';
 /** errMs: release minus the sweet spot; null when it let go by itself at the end */
@@ -357,6 +365,15 @@ function reach(b: Ball, club: FullClub) {
 }
 
 const allowed = (lie: Surface) => (lie === 'tee' ? LONGEST_FIRST : LONGEST_FIRST.slice(1));
+/** The clubs that can be hit from here, longest first */
+export const clubsFor = (b: Ball): FullClub[] => allowed(b.lie);
+
+/** Where a good strike with this club finishes, aimed here: the aim, or as far along its
+ *  line as the club goes. More club than the number is swung easy and finishes the same */
+export function finishFor(b: Ball, club: FullClub, aim: Vec): Vec {
+  const most = reach(b, club) * (1 + CLUBS[club].roll * (b.lie === 'rough' ? 0.5 : 1));
+  return dist(b.at, aim) <= most ? aim : toward(b.at, angleOf(b.at, aim), most);
+}
 
 // The aim along the hole: walk forward from the ball's nearest point on the centreline
 function alongHole(h: HoleDef, from: Vec, d: number): Vec {
@@ -462,18 +479,40 @@ export function situation(b: Ball, aim: Vec, ctx: Ctx): Situation {
   return { nervy, approach, lines: l ? l.options : null, caddie: l ? l.caddie : approach ? TUCKED : null };
 }
 
-/** How much the course and the moment tighten the window: never past K_MAX */
-export function difficulty(b: Ball, s: Situation, ctx: Ctx): { k: number; tremble: boolean } {
+/** What the lie does to the swing's window (k, never past K_MAX), and what the moment does
+ *  to the pattern (spread: 1 is a full routine, calm). tremble: the nerves are on */
+export function difficulty(b: Ball, s: Situation, ctx: Ctx): { k: number; tremble: boolean; spread: number } {
   let k = 1;
   if (b.lie === 'rough') k *= TIGHT.rough;
   if (b.lie === 'bunker') k *= TIGHT.bunker;
   if (b.lie === 'trees') k *= TIGHT.trees;
   const nerves = s.nervy && !ctx.breath;
-  if (nerves) k *= TIGHT.nerves;
-  if (ctx.hurried) k *= TIGHT.hurried;
-  if (ctx.doubt) k *= TIGHT.doubt;
-  if (ctx.breath) k *= TIGHT.breath;
-  return { k: Math.min(K_MAX, k), tremble: nerves };
+  const beats = ctx.beats ?? (ctx.hurried ? 0 : 3);
+  let spread = ROUTINE[Math.max(0, Math.min(3, beats))];
+  if (nerves) spread *= WIDEN.nerves;
+  if (ctx.doubt) spread *= WIDEN.doubt;
+  if (ctx.breath) spread *= WIDEN.breath;
+  return { k: Math.min(K_MAX, k), tremble: nerves, spread: Math.min(SPREAD_MAX, spread) };
+}
+
+// A full shot's scatter, before the strike: how far its carry wanders, and its line
+function scatter(b: Ball, want: number, pure: boolean) {
+  const gs = b.lie === 'bunker' && greenside(HOLES[b.hole - 1], b.at);
+  const sigma = (b.lie === 'rough' ? 0.11 : b.lie === 'bunker' ? (gs ? 0.22 : 0.12) : b.lie === 'trees' ? 0.09 : 0.075) * (pure ? 0.4 : 1);
+  // A short one is never as precise as its length says: there's a floor to the scatter
+  const floor = pure ? SHORT_FLOOR * 0.5 : SHORT_FLOOR;
+  return { gs, carrySd: Math.max(want * sigma, floor), floor };
+}
+
+/** Where a good strike with this club lands, for the moment as it stands: an oval on the
+ *  aim, `along` the line and `across` it, in course units, and the line's angle */
+export function pattern(b: Ball, club: FullClub, aim: Vec, spread: number): { c: Vec; along: number; across: number; ang: number } {
+  const want = carryFor(b, club, aim);
+  const { carrySd, floor } = scatter(b, want, false);
+  const latSd = Math.max(LATERAL_SD.good, floor / Math.max(want, 1) / RAD);
+  const across = Math.max(1.5, Math.tan(latSd * spread * PATTERN_SD * RAD) * want);
+  const along = Math.max(2, carrySd * spread * PATTERN_SD);
+  return { c: finishFor(b, club, aim), along, across, ang: angleOf(b.at, aim) };
 }
 
 /** The furthest a shot from here can be aimed: the longest club's carry and roll */
@@ -661,7 +700,7 @@ export function windWords(w: Wind, from: Vec, aim: Vec): string {
 }
 
 /** A full shot. Every draw is made every time, in a fixed order, so the seed alone decides it */
-export function strike(b: Ball, sw: Swing, k: number, seed: number): Shot {
+export function strike(b: Ball, sw: Swing, k: number, seed: number, spread = 1): Shot {
   const h = HOLES[b.hole - 1];
   const r = rng(seed);
   const nLat = normal(r);
@@ -678,12 +717,10 @@ export function strike(b: Ball, sw: Swing, k: number, seed: number): Shot {
   if (g === 'pure') events.push('pure');
   if (g === 'fat' || g === 'flail') events.push('duff');
 
-  const gs = b.lie === 'bunker' && greenside(h, b.at);
-  const sigma = (b.lie === 'rough' ? 0.11 : b.lie === 'bunker' ? (gs ? 0.22 : 0.12) : b.lie === 'trees' ? 0.09 : 0.075) * (g === 'pure' ? 0.4 : 1);
   const want = carryFor(b, sw.club, sw.aim);
-  // A short one is never as precise as its length says: there's a floor to the scatter
-  const floor = g === 'pure' ? SHORT_FLOOR * 0.5 : SHORT_FLOOR;
-  let carry = want * G.carry + nCarry * Math.max(want * sigma, floor);
+  const { gs, carrySd, floor } = scatter(b, want, g === 'pure');
+  // The moment widens the pattern: a rushed routine, nerves, a changed mind
+  let carry = want * G.carry + nCarry * carrySd * spread;
   let rollMul = b.lie === 'rough' ? 0.5 : 1;
   let stuckUsed = b.stuckUsed;
   if (b.lie === 'rough' && uSpecial < 0.1) {
@@ -704,7 +741,7 @@ export function strike(b: Ball, sw: Swing, k: number, seed: number): Shot {
   // A flail goes anywhere; everything else by its start line and its turn
   const startOff = g === 'flail' ? nFlail * 9 : start * club.errDeg;
   const latSd = Math.max(LATERAL_SD[g], floor / Math.max(want, 1) / RAD);
-  const dev = startOff + (g === 'flail' ? nLat * 8 : curve * club.errDeg * 1.2 + nLat * latSd);
+  const dev = startOff + (g === 'flail' ? nLat * 8 : curve * club.errDeg * 1.2 + nLat * latSd * spread);
   const angAt = (s: number) => aimAng + (startOff + (dev - startOff) * smoothstep(0.4, 1, s)) * RAD;
   const zAt = (s: number) => {
     const u = s ** 0.9;

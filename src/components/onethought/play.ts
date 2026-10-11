@@ -13,7 +13,7 @@ import * as S from './sim';
 import type { Vec, Ball, Shot, Situation, Ctx, Sample } from './sim';
 import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
-import { createBoard, drawSock, drawMini, holeView, POSES, BALL_DX, lerpPose, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
+import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
@@ -144,12 +144,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   const goodEl = q('[data-good]');
   const pureEl = q('[data-pure]');
   const markEl = q('[data-mark]');
-  const clubEl = q('[data-club]');
+  const clubEl = q<HTMLButtonElement>('[data-club]');
+  const stepEl = q<HTMLButtonElement>('[data-step]');
   const chipsEl = q('[data-chips]');
   const pips = [...root.querySelectorAll<HTMLElement>('[data-pip]')];
   const pipsEl = q('[data-pips]');
   const srAim = q('[data-sraim]');
-  const sockCv = q<HTMLCanvasElement>('[data-sock]');
   const cutins = createCutins(q('[data-cutin]'), {
     reduce,
     status: (t) => opts.status(t),
@@ -281,6 +281,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let fullShots = 0;
   let lastInputKind: 'mouse' | 'touch' | 'key' = matchMedia('(pointer: coarse)').matches ? 'touch' : 'mouse';
   let trails: { p: Vec; z: number }[][] = [];
+  // Each full shot's pattern as it was swung from, for the record
+  let patterns: { c: Vec; along: number; across: number; ang: number }[] = [];
   let bounds: number[] = [];
   let record: RecordFrame | null = null;
 
@@ -342,15 +344,27 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let onChip = -1;
   let club: Club = 'driver';
   let sit: Situation = { nervy: false, approach: false, lines: null, caddie: null };
-  let diff = { k: 1, tremble: false };
+  let diff = { k: 1, tremble: false, spread: 1 };
+  // The pattern as drawn: it eases to the moment rather than jumping
+  let shownSpread = 1;
   let lastAim = 0;
   let quietSaid = false;
+  // Stepping in: aiming is free until you step in to the ball; then the routine runs and a
+  // press is a swing. Step off to think again, though changing the line then is doubt
+  let stepped = false;
+  let steppedOnce = false;
+  let stepT = 0;
+  // A club chosen by hand stays chosen while the line moves
+  let clubManual = false;
+  // A tap behind the ball, carrying Commit to the Line: told if the line moves after it
+  let lineWatch: (() => void) | null = null;
+  // And the line it decided, inked in brass on the board from then: when, or -1
+  let inkT0 = -1;
 
   // The swing
   let breath = false;
   let swingAt = 0;
   let relMs = -1;
-  let downPt: Vec | null = null;
   let shot: Shot | null = null;
   let putts: Shot[] = [];
   let shotWord = '';
@@ -399,6 +413,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     mode = m;
     mT = gt;
     scene.dataset.mode = m;
+    paintStep();
   };
 
   function caption(qt: string, by: string, ms = 2400, now = false) {
@@ -486,22 +501,25 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
   const clubFor = (p: Vec) => S.suggestClub(ball.at, p, ball.lie) as Club;
 
-  function setAim(p: Vec, why: 'click' | 'key' | 'chip' | 'start') {
+  function setAim(p: Vec, why: 'click' | 'key' | 'chip' | 'start' | 'drag') {
     let t = S.clampAim(ball, p);
     // Snap to a target within reach of it
     const near = chips.findIndex((c) => S.dist(c.at, t) < (why === 'key' ? 3 : 8));
     if (near >= 0) t = chips[near].at;
     // Settled on a line, then changed it again: that's doubt, and it costs a notch
     if (why !== 'start' && S.dist(aim, t) >= 1.5) {
-      if (aimSets >= 1 && gt - lastAim >= PIP_MS && !doubt) {
+      if (steppedOnce && !doubt) {
         doubt = true;
         ctx.doubt = true;
         onDoubt();
       }
       aimSets++;
+      lineWatch?.();
+      lineWatch = null;
+      inkT0 = -1;
     }
     aim = t;
-    club = clubFor(aim);
+    if (!clubManual) club = clubFor(aim);
     sit = S.situation(ball, aim, ctx);
     const was = onChip;
     onChip = chips.findIndex((c) => S.dist(c.at, aim) < 0.5);
@@ -515,7 +533,51 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       golfer = standAt(ball.at, aim);
     }
     hush();
-    if (why !== 'start') say(`Aiming at ${aimWords()}, ${S.CLUBS[club].tag}.`);
+    if (why !== 'start' && why !== 'drag') say(`Aiming at ${aimWords()}, ${S.CLUBS[club].tag}.`);
+  }
+
+  // Into the ball: the line and the club are set, and the routine starts
+  function stepIn() {
+    if (mode !== 'aim' || stepped) return;
+    stepped = true;
+    steppedOnce = true;
+    stepT = gt;
+    breath = false;
+    pips.forEach((pp) => pp.classList.remove('lit', 'skipped'));
+    golfer = standAt(ball.at, aim);
+    poseTo(POSES.addr, 120);
+    snd.click();
+    paintStep();
+    hint();
+    say(`Stepped in, ${S.CLUBS[club].tag}. Hold to swing; Escape steps off.`);
+  }
+  function stepOff() {
+    if (mode !== 'aim' || !stepped) return;
+    stepped = false;
+    breath = false;
+    pips.forEach((pp) => pp.classList.remove('lit', 'skipped'));
+    hush();
+    paintStep();
+    hint();
+    say('Stepped off.');
+  }
+  // The next club in the bag that can be hit from here: down the bag, or up with shift
+  function cycleClub(dir: 1 | -1 = 1) {
+    if (mode !== 'aim' || stepped || isPutt()) return;
+    const bag = S.clubsFor(ball);
+    const i = bag.indexOf(club as S.FullClub);
+    club = bag[(i + dir + bag.length) % bag.length];
+    clubManual = club !== clubFor(aim);
+    snd.click();
+    clubText();
+    say(`${cap(S.CLUBS[club].tag)}.`);
+  }
+  function paintStep() {
+    const on = mode === 'aim' && !isPutt();
+    stepEl.disabled = !on;
+    stepEl.textContent = stepped ? 'step off' : 'step in';
+    stepEl.setAttribute('aria-pressed', String(stepped));
+    clubEl.disabled = !on || stepped;
   }
 
   // The golfer's doubt shows: a thought over their head, and, now and then, the words
@@ -594,7 +656,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
   function clubText() {
     const tag = isPutt() ? 'putter' : S.CLUBS[club].tag;
-    clubEl.textContent = fullShots < 3 && !isPutt() ? `${tag} · let go in the gold` : tag;
+    clubEl.textContent = tag;
   }
 
   function aimWords() {
@@ -697,6 +759,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     firstShot = true;
     fullShots = 0;
     trails = [];
+    patterns = [];
     bounds = [];
     record = null;
     clock = 0;
@@ -763,6 +826,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     ctx.doubt = false;
     doubt = false;
     aimSets = 0;
+    lineWatch = null;
+    inkT0 = -1;
+    stepped = false;
+    steppedOnce = false;
+    clubManual = false;
     wind = S.windFor(round, hole, swings + 1);
     const s0 = S.situation(ball, d0, ctx);
     chips = [];
@@ -821,7 +889,23 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     caption('“No rush. They’re only waving.”', 'your caddie', 2600);
   }
 
-  const pipsLit = () => clamp(Math.floor((gt - lastAim) / PIP_MS), 0, 3);
+  const pipsLit = () => (stepped ? clamp(Math.floor((gt - stepT) / PIP_MS), 0, 3) : 0);
+  // The moment as it stands over the ball: the routine so far, the nerves, the mind
+  const liveDiff = () => {
+    const lit = pipsLit();
+    return S.difficulty(ball, sit, { ...ctx, breath, doubt, beats: lit, hurried: lit < 3 });
+  };
+  // The pattern on the grass, eased: it tightens as each beat of the routine lands and
+  // opens again when the line is changed. In the swing it holds where it was let go from
+  let patT = 0;
+  function patternNow() {
+    const want = mode === 'aim' ? liveDiff().spread : shownSpread;
+    const dt = Math.max(0, gt - patT);
+    patT = gt;
+    shownSpread = reduce || dt > 500 ? want : shownSpread + (want - shownSpread) * (1 - Math.exp(-dt / 140));
+    const pt = S.pattern(ball, club as S.FullClub, aim, shownSpread);
+    return { ...pt, tremble: sit.nervy && !breath && !reduce };
+  }
 
   // A swing puts the voices away, and whatever was coming
   function endForSwing() {
@@ -833,6 +917,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
   // Press and hold: the meter climbs
   function swingStart() {
+    if (!stepped) return;
     swingCleared = false;
     setMode('swing');
     swingAt = nowG();
@@ -846,18 +931,19 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   function swingEnd(auto = false) {
     if (mode !== 'swing') return;
     const held = nowG() - swingAt;
+    // Too short to be a swing: still over the ball
     if (!auto && held < SW.click) {
       setMode('aim');
       pose = POSES.addr;
-      if (downPt) setAim(downPt, 'click');
-      downPt = null;
       hint();
       return;
     }
-    downPt = null;
+    lineWatch = null;
+    stepped = false;
     const lit = pipsLit();
     const hurried = lit < 3;
     ctx.hurried = hurried;
+    ctx.beats = lit;
     ctx.breath = breath;
     ctx.doubt = doubt;
     cloud = null;
@@ -872,7 +958,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     swings++;
     relMs = Math.min(held, SW.end);
     const err = auto || held >= SW.end ? null : held - SW.centre;
-    shot = S.strike(ball, { club, aim, errMs: err, wind }, diff.k, S.shotSeed(round, hole, swings));
+    patterns.push(S.pattern(ball, club as S.FullClub, aim, diff.spread));
+    shot = S.strike(ball, { club, aim, errMs: err, wind }, diff.k, S.shotSeed(round, hole, swings), diff.spread);
     const g = shot.grade;
     snd.whoosh();
     snd.contact(g === 'pure' ? 'pure' : g === 'good' || g === 'early' || g === 'late' ? 'good' : 'thin');
@@ -1243,7 +1330,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     paintChips();
     swings++;
     const sit0 = S.situation(ball, h().cup, ctx);
-    putts = S.puttOut(ball, S.difficulty(ball, sit0, ctx).k, S.shotSeed(round, hole, swings));
+    // Nerves on the green cost a putt now and then, as a rushed window would
+    const d0 = S.difficulty(ball, sit0, ctx);
+    putts = S.puttOut(ball, d0.tremble ? 1.4 : d0.k, S.shotSeed(round, hole, swings));
     setMode('putts');
     clubText();
     say('On the green.');
@@ -1360,14 +1449,14 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       case 'aim': {
         const lit = pipsLit();
         pips.forEach((p, i) => p.classList.toggle('lit', i < lit));
-        if (lit >= 3 && !breath && gt - lastAim >= 3 * PIP_MS + BREATH_MS) {
+        if (lit >= 3 && !breath && gt - stepT >= 3 * PIP_MS + BREATH_MS) {
           breath = true;
           hush();
           say(sit.nervy ? 'A breath. Steadier.' : 'A breath.');
           if (!reduce) board.burst('puff', golfer, gt);
         }
         // The waggle, while the routine runs
-        if (!reduce && !poseTw && lit === 1) pose = Math.floor((gt - lastAim - PIP_MS) / 130) & 1 ? POSES.wag : POSES.addr;
+        if (!reduce && !poseTw && lit === 1) pose = Math.floor((gt - stepT - PIP_MS) / 130) & 1 ? POSES.wag : POSES.addr;
         else if (!poseTw && lit >= 2) pose = POSES.addr;
         break;
       }
@@ -1551,11 +1640,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         ghostBall = { p: at.p, z: at.z, a: ghostA * 0.8 };
       }
     }
-    // The wind across the screen, for the flags and the sock
+    // The wind across the screen, for the flags and the streaks over the course
     const wx = Math.cos(wind.ang);
     const wy = Math.sin(wind.ang);
     const sx = (wy + wx) * view.a;
     const sy = ((wy - wx) * view.a) / 2;
+    const sl = Math.hypot(sx, sy) || 1;
     const live = stage() === 'round' && mode !== 'idle' && mode !== 'done';
     const wLevel = live ? wind.level : 1;
 
@@ -1565,7 +1655,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       live: stage() === 'round' ? hole : 0,
       golfer: showGolfer && stage() !== 'choose' ? { p: golfer, face, st, bag: addr } : stage() === 'choose' ? { p: golfer, face, st: { kind: 'walk', phase: 0, bag: true }, bag: false } : null,
       ball: showBall ? { p: bp, z: bz, o: bo, sunk: sunk || (mode !== 'flight' && ball.lie === 'bunker'), tuft: mode !== 'flight' && ball.lie === 'rough', trail: trace } : stage() === 'choose' ? { p: S.holeDef(1).tee, z: 0, o: 1, sunk: false, tuft: false, trail: [] } : null,
-      aim: aiming ? { from: ball.at, to: aim, dim: mode === 'swing', reduce } : null,
+      aim: aiming ? { from: ball.at, to: aim, dim: mode === 'swing', reduce, pattern: patternNow(), ink: inkT0 >= 0 ? (reduce ? 1 : clamp((gt - inkT0) / 260, 0, 1)) : 0 } : null,
       chips: aiming ? chips.map((c, i) => ({ at: c.at, on: i === onChip })) : [],
       ghost: ghost && ghostA > 0 ? { pts: ghost, alpha: ghostA } : null,
       four,
@@ -1575,13 +1665,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       record,
       hush: hushLevel(),
       dusk: duskLevel(),
-      wind: { dir: live ? (sx >= 0 ? 1 : -1) : 1, level: wLevel },
+      wind: { dir: live ? (sx >= 0 ? 1 : -1) : 1, level: wLevel, dx: live ? sx / sl : -0.8, dy: live ? sy / sl : 0.6, swirl: live && hole === 2 },
       cloud: live ? cloud : null,
       ghostBall,
       veil: veilLevel(),
       cut: cutFrame(),
     });
-    if (live) drawSock(sockCv, sx, sy, wind.level, gt, reduce);
 
     chipsEl.classList.toggle('on', aiming);
     if (aiming) placeChips();
@@ -1663,7 +1752,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const live = mode === 'aim' || mode === 'swing' || mode === 'flight' || mode === 'settle';
     meterEl.classList.toggle('dim', !(mode === 'aim' || mode === 'swing'));
     const nervy = sit.nervy && !breath;
-    const k = mode === 'aim' || mode === 'swing' ? S.difficulty(ball, sit, { ...ctx, breath, hurried: pipsLit() < 3 }).k : diff.k;
+    const k = mode === 'aim' || mode === 'swing' ? liveDiff().k : diff.k;
     paintBands(k);
     meterEl.classList.toggle('jag', nervy && mode === 'swing' && !reduce);
     let held = 0;
@@ -1712,9 +1801,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     clubText();
     if (!show) return;
     const k = lastInputKind;
-    if (k === 'key') hintEl.textContent = 'arrows to aim · hold space to swing';
-    else if (small) hintEl.textContent = `${k === 'touch' ? 'tap' : 'click'} a spot · hold to swing`;
-    else hintEl.textContent = `${k === 'touch' ? 'tap' : 'click'} where you want it · hold anywhere to swing`;
+    if (stepped) hintEl.textContent = k === 'key' ? 'hold space · let go in the gold · esc steps off' : small ? 'hold · let go in the gold' : 'hold anywhere · let go in the gold · esc steps off';
+    else if (k === 'key') hintEl.textContent = 'arrows to aim · c for a club · enter to step in';
+    else if (small) hintEl.textContent = `${k === 'touch' ? 'tap' : 'click'} a spot · then step in`;
+    else hintEl.textContent = `${k === 'touch' ? 'tap' : 'click'} where you want it · c for a club · step in`;
   }
 
   // ---------------------------------------------------------------------------------
@@ -1722,6 +1812,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
   let pointerId = -1;
   let keyHeld = false;
+  let dragging = false;
 
   function thump() {
     if (mode !== 'walk') return;
@@ -1782,28 +1873,43 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (mode === 'aim') {
       e.preventDefault();
       pointerId = e.pointerId;
-      downPt = pick(e.clientX, e.clientY);
       try {
         scene.setPointerCapture(e.pointerId);
       } catch {
         /* a synthetic pointer can't be captured */
       }
-      swingStart();
+      // Over the ball a press is the swing; behind it, a press puts the target down and a
+      // drag moves it
+      if (stepped) swingStart();
+      else {
+        dragging = true;
+        const p = pick(e.clientX, e.clientY);
+        if (p) setAim(p, 'click');
+      }
       return;
     }
     skip();
   });
+  scene.addEventListener('pointermove', (e) => {
+    if (!dragging || e.pointerId !== pointerId || mode !== 'aim' || stepped) return;
+    const p = pick(e.clientX, e.clientY);
+    if (p) setAim(p, 'drag');
+  });
   scene.addEventListener('pointerup', (e) => {
     if (e.pointerId !== pointerId) return;
     pointerId = -1;
+    if (dragging) {
+      dragging = false;
+      if (mode === 'aim') say(`Aiming at ${aimWords()}, ${S.CLUBS[club].tag}.`);
+    }
     if (mode === 'swing' && !keyHeld) swingEnd();
   });
   scene.addEventListener('pointercancel', (e) => {
     if (e.pointerId !== pointerId) return;
     pointerId = -1;
+    dragging = false;
     // A cancelled press is never a swing: back to aiming
     if (mode === 'swing' && !keyHeld) {
-      downPt = null;
       pose = POSES.addr;
       setMode('aim');
     }
@@ -1818,15 +1924,23 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       e.preventDefault();
       if (e.repeat) return;
       lastInputKind = 'key';
-      if (mode === 'aim') {
+      if (mode === 'aim' && !stepped) stepIn();
+      else if (mode === 'aim') {
         keyHeld = true;
-        downPt = null;
         swingStart();
       } else if (mode === 'between') walkStage.advance(gt);
       else if (cutins.showing) cutins.skip(gt);
       else skip();
+    } else if (k === 'Escape') {
+      if (mode === 'aim' && stepped) {
+        e.preventDefault();
+        stepOff();
+      }
+    } else if (k === 'c' || k === 'C') {
+      lastInputKind = 'key';
+      cycleClub(e.shiftKey ? -1 : 1);
     } else if (k.startsWith('Arrow')) {
-      if (mode !== 'aim') return;
+      if (mode !== 'aim' || stepped) return;
       e.preventDefault();
       lastInputKind = 'key';
       const a = angOf(ball.at, aim);
@@ -1849,6 +1963,18 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       keyHeld = false;
       if (mode === 'swing') swingEnd();
     }
+  });
+  // The meter's buttons sit outside the scene; focus goes back to it after either, so space,
+  // Escape and C carry on working from there
+  clubEl.addEventListener('click', (e) => {
+    lastInputKind = (e as PointerEvent).pointerType === 'touch' ? 'touch' : 'mouse';
+    cycleClub();
+    scene.focus({ preventScroll: true });
+  });
+  stepEl.addEventListener('click', () => {
+    if (stepped) stepOff();
+    else stepIn();
+    scene.focus({ preventScroll: true });
   });
   srAim.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('[data-sr-chip]');
@@ -1897,9 +2023,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       cup: () => toClient(h().cup),
       golfer: () => toClient(golfer),
       view: () => ({ origin: board.origin, ...board.size }),
-      k: () => S.difficulty(ball, sit, { ...ctx, breath, hurried: pipsLit() < 3 }).k,
+      k: () => liveDiff().k,
+      spread: () => (mode === 'aim' ? liveDiff().spread : diff.spread),
       wind: () => ({ ...wind }),
       doubt: () => doubt,
+      stepped: () => stepped,
+      club: () => club,
       voice: () => cutins.line,
       catchUp: () => cutins.catchUp,
       momentUp: () => cutins.momentUp,
@@ -1964,6 +2093,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       say('Kept.');
       return true;
     },
+    /** A tap behind the ball, carrying Commit to the Line: `moved` is called if the line is
+     *  changed after it, before the swing. Nothing else hears of it */
+    watchLine(moved: () => void) {
+      lineWatch = mode === 'aim' && !stepped && THOUGHTS[thought].name === 'Commit to the Line' ? moved : null;
+      if (lineWatch && inkT0 < 0) inkT0 = gt;
+    },
     /** Where and when a press fell, for the record */
     stamp(): Press {
       return { t: nowT(), hole, at: [golfer[0], golfer[1]], over: OVER.has(mode) };
@@ -1983,7 +2118,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       const marks = [...taps.map((x) => ({ ...x, moment: false })), ...moments.map((x) => ({ ...x, moment: true }))]
         .sort((a, b) => a.t - b.t)
         .map((x) => ({ at: x.at as Vec, moment: x.moment, over: x.over }));
-      record = { t0: gt, reduce, trails: [...trails], marks };
+      record = { t0: gt, reduce, trails: [...trails], marks, patterns: [...patterns] };
     },
     reset() {
       setMode('idle');
@@ -1999,6 +2134,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       record = null;
       heronT = -1;
       trails = [];
+      patterns = [];
       clearShot();
       dusk = { on: false, t0: -1e9, ms: 1 };
       board.clearFx();
