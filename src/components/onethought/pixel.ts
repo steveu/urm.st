@@ -411,7 +411,7 @@ export const POSES = {
   // Three quarters, for a strike a touch early or late
   short: pose([6, -14], [1, -21], 0.3, 0.8, 0.8, 1),
   // Thrown at it: the weight falls back and the club wraps round low
-  flail: pose([2, -14], [-7, -12], -0.6, 0.55, -0.8, 1),
+  flail: pose([1, -13], [-7, -7], -0.8, 0.55, -1, 1),
   // Heavy: the club stays in the ground
   dug: pose([5, -5], [7, 1], 1, 0.2, 0.3),
   slump: pose([3, -7], [8, -1], 1),
@@ -504,6 +504,8 @@ function swinger(px: Put, line: Draw, p: Pose) {
   // Legs: knees flexed at the ball. The weight going through kicks the back knee in and
   // brings its heel up; going back, the front knee comes in
   const heel = w > 0.55;
+  // Fallen back on the back foot, the front one comes up off the ground
+  const lift = w < -0.9;
   // Each leg in three pairs of rows, two wide: thigh, knee, shin. Over the ball the seat
   // goes back and the thighs with it, the shins stood over the feet
   const bk = r(Math.max(0, b) * 0.7);
@@ -513,12 +515,13 @@ function swinger(px: Put, line: Draw, p: Pose) {
     px(ankle, -2, col, 2, toe ? 1 : 2);
   };
   px(-bk, -6, K.trouDk, 1, 2);
-  leg(1 - bk, 1 + Math.max(0, -w) * 1.2, 1, K.trou);
+  leg(1 - bk, 1 + Math.max(0, -w) * 1.2, lift ? 2 : 1, K.trou, lift);
   leg(-2 - bk, -2 + Math.max(0, w) * 2.6, heel ? 0 : -2, K.trouDk, heel);
   // Up on the toe of the back foot, or flat
   if (heel) px(0, -1, K.shoe, 2, 1);
   else px(-3, 0, K.shoe, 3, 1);
-  px(1, 0, K.shoe, 3, 1);
+  if (lift) px(2, -1, K.shoe, 3, 1);
+  else px(1, 0, K.shoe, 3, 1);
   px(-2 - bk, -7, K.belt, 5, 1);
 
   // The spine tips over the ball: the shoulders are a row lower and two along when bent
