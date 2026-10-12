@@ -1729,8 +1729,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // foot covers the waist, whatever the width. Gives back where the speaker's head is,
   // for the shout to sit beside
   const dialogueEl = q('[data-dialogue]');
-  // How far up from the plate's foot the box cuts a portrait: across the chest
-  const CHEST = 20;
+  // How far up from the plate's foot the box cuts a portrait: under the collar
+  const CHEST = 42;
   function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number }): ShoutAnchor | null {
     // The walk dimmed to dusk behind the speaker
     g.fillStyle = 'rgba(40,30,52,0.56)';
@@ -1766,7 +1766,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // frame's top
     const boxTop = dialogueEl.offsetTop / scale;
     const x = Math.round(w / 2 - FIG_W / 2 + (you ? -1 : 1) * Math.min(w * 0.17, 68));
-    const y = clamp(Math.round(Math.min(boxTop, hh) + CHEST - FIG_H), -40, 30) + breathe;
+    const y = Math.max(-40, Math.round(Math.min(boxTop, hh) + CHEST - FIG_H)) + breathe;
     const hb = headBox(who, !you);
     const head: [number, number, number, number] = [x + hb.x, y + hb.y, x + hb.x + hb.w, y + hb.y + hb.h];
     g.imageSmoothingEnabled = false;

@@ -55,16 +55,19 @@ const CADDIE_HEAD: Patch[] = [
   [8, 22, 'K566222222211333333333333344376K'],
   [8, 23, 'K566622222211133333333333344776K'],
   [8, 24, 'K566662222211144333333333347776K'],
-  [8, 25, 'K56666622221K113333333333477776K'],
-  [8, 26, 'K566666222111111122233333477777K'],
-  [7, 27, 'G56666788888888888888888777777776G'],
-  [7, 28, 'G56667888889999999999888877777776G'],
-  [7, 29, 'G56677888888887888888888877777776G'],
-  [7, 30, 'G56788887777777777777888887777776G'],
-  [7, 31, 'G5788755555MMMMMMM555557888777776G'],
-  [7, 32, 'G56776666666LLLLL7777777777777776G'],
-  // the near ear, out past the sideburn
-  [40, 19, 'KK'], [40, 20, '34K'], [40, 21, '13K'], [40, 22, '13K'], [40, 23, '23K'], [40, 24, '3K'], [40, 25, 'K'],
+  [8, 25, 'K122222222222222111133333333333K'],
+  [8, 26, 'K122222222222222333333333333333K'],
+  [9, 27, 'K12222222222222222222333333333K'],
+  [9, 28, 'K1222222222222MMMMMMM33333333K'],
+  [10, 29, 'K1222222222222LLLLL333333333K'],
+  [11, 30, 'K1222222222222222233333333K'],
+  [12, 31, 'K122222222223333333333333K'],
+  [13, 32, 'K1222222222333333333333K'],
+  [15, 33, 'K1222222233344433333K'],
+  [17, 34, 'K1222223333333333K'],
+  [19, 35, 'K122233333333K'],
+  [21, 36, 'K11111111K'],
+  [23, 37, 'KKKKKKK'],
 ];
 
 // The beard under the moustache: its outline by row, then strands down it, lit on the
@@ -175,8 +178,8 @@ function caddieJacket(): string[][] {
 const YOU_PAL: Record<string, string> = {
   K: '#2e1a12', 0: '#bd7a56', 1: '#a8664a', 2: '#d48e66', 3: '#eeb48a', 4: '#f8d2a8',
   H: '#22160e', h: '#47331f', j: '#664a30',
-  // the cap, cream, and the green under its peak
-  C: '#3a3226', c: '#a89c84', d: '#cfc4aa', e: '#e8e0cc', f: '#f8f4ea', k: '#3e4a30',
+  // the cap, brown tweed, darker under its peak
+  C: '#241a10', c: '#4a3a28', d: '#6a5438', e: '#8a7050', f: '#a88c64', k: '#2e2416',
   R: '#2e0a06', r: '#5a1a12', s: '#8c2c1a', t: '#bc4228', u: '#de6a42',
   Q: '#5e5646', q: '#cec4ae', o: '#ebe3ce', O: '#fbf6ea',
   Z: '#1a0e06', z: '#4e3018', y: '#7a5230',
@@ -267,30 +270,24 @@ function youHead(): Patch[] {
   ] as Patch[]) put(x, y, s);
   // The near ear
   for (const [x, y, s] of [[5, 17, 'KK'], [4, 18, 'K23'], [4, 19, 'K12'], [4, 20, 'K12'], [4, 21, 'K22'], [5, 22, 'K2'], [6, 23, 'K']] as Patch[]) put(x, y, s);
-  // The golf cap: a domed crown in panels, a button on top, the peak curving out over the
-  // brow towards them, green under it
-  const CROWN: [number, number][] = [[20, 30], [15, 34], [12, 37], [10, 38], [9, 39], [8, 40], [8, 40], [7, 40], [7, 40], [7, 40]];
+  // The flat cap: a wide crown pulled forward over a short peak, three flat tones, no
+  // more
+  const CROWN: [number, number][] = [[14, 32], [10, 36], [8, 39], [6, 41], [5, 42], [5, 43], [5, 44], [5, 44]];
   CROWN.forEach(([a, b], i) => {
-    const y = i + 1;
+    const y = i + 2;
     for (let x = a; x <= b; x++) {
       const u = (x - a) / (b - a);
-      g[y][x] = x === a || x === b || y === 1 ? 'C' : u < 0.2 ? 'c' : u < 0.55 ? 'd' : u < 0.85 ? 'e' : 'f';
-    }
-    // the seams down from the button, one to the front, one round the near side
-    if (y > 1) {
-      g[y][25 + Math.round((y - 1) * 0.55)] = 'c';
-      g[y][22 - Math.round((y - 1) * 0.9)] = 'c';
+      g[y][x] = x === a || x === b || y === 2 ? 'C' : u < 0.25 ? 'c' : u < 0.62 ? 'd' : u < 0.9 || y > 4 ? 'e' : 'f';
     }
   });
-  put(24, 0, 'CCC');
-  for (let x = 7; x <= 40; x++) g[11][x] = 'C';
-  for (let x = 22; x <= 46; x++) {
-    if (x >= 24 && x <= 45) g[10][x] = x === 24 || x === 45 ? 'C' : x > 40 ? 'f' : 'e';
-    g[11][x] = x === 22 || x === 46 ? 'C' : x > 41 ? 'e' : 'd';
-    if (x >= 21) g[12][x] = x === 46 ? 'C' : 'k';
-    if (x >= 24 && x <= 44) g[13][x] = 'C';
-  }
-  g[12][21] = 'C';
+  // where the crown overhangs the peak, a line; the band round the back
+  for (let x = 5; x <= 44; x++) g[9][x] = x < 22 ? (x === 5 ? 'C' : 'c') : 'C';
+  for (let x = 5; x <= 21; x++) g[10][x] = x === 5 ? 'C' : x < 9 ? 'c' : 'd';
+  for (let x = 6; x <= 21; x++) g[11][x] = 'C';
+  // the peak, its top catching the light, dark under it
+  for (let x = 22; x <= 45; x++) g[10][x] = x === 22 || x === 45 ? 'C' : x > 38 ? 'f' : 'e';
+  for (let x = 21; x <= 44; x++) g[11][x] = x === 21 || x === 44 ? 'C' : 'k';
+  for (let x = 22; x <= 42; x++) g[12][x] = 'C';
   return rows(g);
 }
 
@@ -460,7 +457,7 @@ const FIGS: Record<Actor, Fig> = {
     },
     pose: { normal: [[0, 0], [0, 0]], pleased: [[0, -1], [0, 0]], shocked: [[-1, -1], [-1, -2]], thinking: [[1, 1], [1, 2]], shout: [[0, 0], [1, -1]] },
     sweat: [40, 13],
-    box: { x: 4, y: 0, w: 42, h: 38 },
+    box: { x: 4, y: 2, w: 42, h: 36 },
   },
   caddie: {
     pal: CADDIE_PAL,
@@ -497,11 +494,11 @@ const FIGS: Record<Actor, Fig> = {
   },
 };
 
-/** The figures are drawn at twice the board's pixel, big enough for a face to carry the
- *  scene, on a plate cut at the chest: the box at the foot of the frame covers the rest */
-const SCALE = 2;
+/** The figures are drawn at the board's own pixel, on a plate cut at the collar: the box at
+ *  the foot of the frame covers the rest */
+const SCALE = 1;
 const GRID_W = 80;
-const GRID_H = 60;
+const GRID_H = 90;
 export const PLATE_W = GRID_W * SCALE;
 export const PLATE_H = GRID_H * SCALE;
 /** Where the head sits against the body */
