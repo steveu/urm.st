@@ -1,11 +1,11 @@
 // The walks between holes, as scenes: a short dialogue on the walk to the next tee (or to
-// the clubhouse after the last), between you, your caddie and your partner, with the rope
-// heard but never seen. Each is one concrete situation with people taking sides and you
-// wavering, and somewhere in it is a key line, which is the moment the thought's tap means:
+// the clubhouse after the last), between you, your caddie and your partner, and nobody
+// else. Each is one concrete situation with people taking sides and you wavering, and
+// somewhere in it is a key line, which is the moment the thought's tap means:
 //
-//   The Heckler (tap when you let it show): the rope says one thing about your golf and
-//     won't let it go; your partner sides with them, your caddie with you; the key line
-//     is where it gets to you.
+//   The Heckler (tap when you let it show): the heckler is you, in brackets, to yourself,
+//     and it knows where it hurts; your partner gives it something to go on, your caddie
+//     tells you to leave it; the key line is where it gets to you.
 //   Commit to the Line (tap as you commit): the caddie frames the next decision, your
 //     partner pushes the other way, you go back and forth; the key line is the pick.
 //   Pins Are a Psyop (tap when you take the boring target): the next flag is tucked, your
@@ -59,72 +59,68 @@ export type Trouble = 'water' | 'out' | 'trees' | 'sand' | 'rough';
 const you = (face: Face, text: string): Line => ({ who: 'you', face, text });
 const caddie = (face: Face, text: string): Line => ({ who: 'caddie', face, text });
 const partner = (face: Face, text: string): Line => ({ who: 'partner', face, text });
-// The rope is heard, not seen: every line of theirs lands with a jolt
-const rope = (text: string): Line => ({ who: 'rope', text, shake: true });
 
 /** Per thought, the three walks: to the 12th, to the 13th, to the clubhouse */
 export const SCENES: Record<string, [Scene, Scene, Scene]> = {
   'The Heckler': [
-    // To the 12th: the short hole, with the gallery stood right by its tee
+    // To the 12th: the short hole over the water, and the heckler's first go. It's you,
+    // to yourself, so it talks to you as you
     {
       open: {
-        trouble: [rope('Ooh! Straight into {trouble}! Seen it all now!'), partner('pleased', 'Ha. They’ve got you there, mind.')],
-        well: [rope('Fluke! Pure fluke! Bet you can’t do it twice!'), partner('pleased', 'They’re not wrong. I’ve seen you play.')],
-        fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'They’ve a point.')],
+        trouble: [partner('pleased', 'Into {trouble}. I won’t say a word.'), you('thinking', '(They will, though. You know they will.)')],
+        well: [partner('shocked', 'Where did that come from?'), you('thinking', '(Nowhere. It won’t happen twice.)')],
+        fine: [partner('pleased', 'Steady. Very steady. Bit dull.'), you('thinking', '(Dull. That’s the word they’ll use.)')],
       },
-      build: {
-        trouble: [rope('Next one’s over the creek! Brought your trunks?'), you('thinking', '(…Wind’s got up a bit.)')],
-        well: [rope('Twice, then! Go on! We’ll all be watching!'), you('thinking', '(…Wind’s got up a bit.)')],
-        fine: [rope('See you at the next! Bring your best one. Or any one.'), you('thinking', '(…Wind’s got up a bit.)')],
-      },
+      build: [partner('pleased', 'Short one next, over the water. Don’t think about the water.'), you('thinking', '(…Wind’s got up a bit.)')],
       keyAt: [1, 2],
       key: [you('thinking', '(…My ears have gone warm.)')],
       caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.')],
       missed: [caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
     },
-    // To the 13th: the four-ball waiting on the last tee, and the rope's favourite line
+    // To the 13th: the long one, the creek, and last year, which your partner remembers
+    // and the heckler won't let go of
     {
       open: {
-        trouble: [rope('How was {trouble}? Lovely this time of year!'), caddie('normal', 'It’s not that good. Keep walking.')],
-        well: [rope('Shot! …Was that the practice one?'), caddie('normal', 'Keep the first word. Leave the rest.')],
-        fine: [rope('Thrilling stuff! Wake us up for the last!'), caddie('normal', 'Let them. The last hole’s ours, not theirs.')],
+        trouble: [caddie('normal', 'That’s {trouble}. It happens. Keep walking.'), you('thinking', '(It happens to you. Specifically.)')],
+        well: [caddie('pleased', 'Good hole. Take it.'), you('thinking', '(Lovely. Now the long one. You know what you do on the long one.)')],
+        fine: [caddie('normal', 'Fine. One to go.'), you('thinking', '(One to go. Plenty of time to make a mess of it.)')],
       },
       back: {
         caught: partner('pleased', 'You went red on the short hole. Then it passed. Annoying.'),
-        missed: partner('pleased', 'You held it in on the short hole. They’ll only try harder.'),
+        missed: partner('pleased', 'You went quiet on the short hole. I’ll have to try harder.'),
       },
       build: [
-        rope('Here! That four-ball on the next tee’s been waiting all night!'),
-        rope('Any chance this year?'),
-        partner('pleased', 'Ha! Sorry. Sorry. That one was good.'),
+        partner('pleased', 'Last one’s long. Remember last year? The creek? Twice? …Sorry. Sorry.'),
+        you('thinking', '(Twice. And the drop. They all watched the drop.)'),
+        caddie('thinking', 'Leave last year where it is.'),
         you('thinking', '(…Light’s going.)'),
       ],
-      keyAt: [3],
+      keyAt: [1, 2],
       key: [you('thinking', '(…My own partner.)')],
       caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.')],
       missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.')],
     },
-    // To the clubhouse: they'll all be in the same bar
+    // To the clubhouse: they'll all be in the bar, and they all saw
     {
       open: {
-        trouble: [rope('Shame about {trouble} on the last! Lovely round otherwise!'), partner('pleased', 'They’ll be telling that one in the bar.'), caddie('normal', 'Everyone finds {trouble}. Not everyone gets a commentary.')],
-        well: [rope('Well played! …Don’t let it go to your head!'), partner('shocked', 'Was that a compliment? From the rope?'), caddie('pleased', 'It was. Mostly.')],
-        fine: [rope('Same time next week? We’ll bring chairs!'), partner('pleased', 'They’re fans, really. Deep down.'), caddie('normal', 'Very deep down.')],
+        trouble: [partner('pleased', 'Into {trouble} on the last. That’s the one they’ll remember.'), you('thinking', '(That’s the one you’ll remember. At three in the morning.)'), caddie('normal', 'Everyone finds {trouble}. Walk.')],
+        well: [partner('shocked', 'Well played. Genuinely.'), you('thinking', '(Genuinely. As if it were a surprise. It was a surprise.)'), caddie('pleased', 'Take it. It was earned.')],
+        fine: [partner('pleased', 'Not bad. Not memorable. Not bad.'), you('thinking', '(Not memorable. Put that on the stone.)'), caddie('normal', 'Not bad’s a round. Take it.')],
       },
       build: [
-        partner('normal', 'They’re all going in the bar after, you know. Same bar as us.'),
-        you('thinking', '(Same bar. Of all the bars.)'),
-        rope('See you inside, champ! First round’s on you!'),
-        caddie('thinking', 'You don’t have to buy them anything.'),
-        partner('pleased', 'You should, though. Shut them up for good.'),
+        partner('normal', 'They’ll all be in the bar after. The four-ball, the lot.'),
+        you('thinking', '(The four-ball. They saw the last. They saw all of it.)'),
+        caddie('thinking', 'Nobody saw anything. They were looking for their own balls.'),
+        partner('pleased', 'Someone’ll call you champ. Bound to.'),
+        you('thinking', '(And you’ll hear it the way they don’t mean it.)'),
       ],
       heron: 2,
       key: [you('thinking', '(Champ. All night, that.)')],
       caught: [partner('pleased', 'Come on, champ. First one’s mine.')],
       missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
       verdict: {
-        all: caddie('pleased', 'Short hole, last tee. Let it show, let it go, both times. Good round.'),
-        none: caddie('thinking', 'They had you on the short hole and the last tee. You never let on.'),
+        all: caddie('pleased', 'Short hole, last tee. It got to you, and you let it. Both times. Good round.'),
+        none: caddie('thinking', 'Short hole, last tee. You kept it all in. It’s still in there.'),
         some: caddie('normal', 'Once out there you let it show. Once you swallowed it. That’s most people.'),
       },
     },
@@ -302,11 +298,11 @@ const movedOpen = [
 const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>>>>> = {
   'The Heckler': {
     sound: {
-      trouble: [rope('Took your time over that! For all the good it did!'), partner('pleased', 'Ha. You did take your time, mind.'), caddie('normal', 'Full routine, and it still found {trouble}. That happens. Walk.')],
+      trouble: [partner('pleased', 'You took your time over that one.'), you('thinking', '(All that time. Still found {trouble}. Typical.)'), caddie('normal', 'Full routine, and it still found {trouble}. That happens. Walk.')],
     },
     shaky: {
-      trouble: [rope('Quick, weren’t you! Somewhere to be?'), partner('pleased', 'You did rush that one. Even I saw.'), caddie('thinking', 'They had you hurrying. That’s their whole game.')],
-      well: [rope('Quick and lucky! Try it slowly!'), partner('shocked', 'You barely stood over it.'), caddie('thinking', 'It came off. Don’t count on the quick ones.')],
+      trouble: [partner('pleased', 'You did rush that one. Even I saw.'), you('thinking', '(Couldn’t stand there. Never can.)'), caddie('thinking', 'Something had you hurrying. It wasn’t the course.')],
+      well: [partner('shocked', 'You barely stood over it.'), you('thinking', '(Got away with it. Don’t tell anyone.)'), caddie('thinking', 'It came off. Don’t count on the quick ones.')],
     },
   },
   'Commit to the Line': {

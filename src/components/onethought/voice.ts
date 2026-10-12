@@ -64,17 +64,17 @@ export const XEXAM: Record<string, Partial<Record<Sit, RunSpec>>> = {
     heckled: {
       p: 0.9,
       catchP: 0.85,
-      catch: ['Say something.', 'Who asked you?', 'Turn round. Tell them.', 'Give them a look.'],
+      catch: ['Ears are going.', 'That’s got in.', 'Face is giving it away.', 'Right. That stung.'],
       catchExpr: 'wince',
-      foils: ['They’re still watching.', 'Don’t look round.', 'Was that meant for you?', 'Ears are burning.'],
+      foils: ['They heard. Course they heard.', 'They’ve a point, though.', 'Everyone saw that.', 'You were always going to.'],
       expr: 'tense',
     },
     gallery: {
       p: 0.75,
       catchP: 0.75,
-      catch: ['Just a look at them. Just one.', 'Give them a look.', 'Who asked you?'],
+      catch: ['Hands have gone.', 'That’s got in.', 'Ears are going.'],
       catchExpr: 'wince',
-      foils: ['Everyone’s watching this one.', 'They’re only waving.', 'Quiet lot today.', 'Not the water.'],
+      foils: ['Short hole. You know what you do here.', 'Over the water. In front of everyone.', 'Don’t top it. You’ll top it.', 'Not the water.'],
       expr: 'tense',
     },
     bad: {
@@ -150,7 +150,7 @@ export const XEXAM: Record<string, Partial<Record<Sit, RunSpec>>> = {
 
 /** A tell let go by follows you onto the next tee */
 export const FOLLOW: Record<string, readonly string[]> = {
-  'The Heckler': ['Same lot on this tee, is it.', 'They’re watching this one too.'],
+  'The Heckler': ['You’re still chewing on that.', 'Same hands as last time.'],
   'Commit to the Line': ['Which line here, then? Which line?', 'Still not sure about that last one.'],
   'Pins Are a Psyop': ['Flag’s right there, though.', 'Could just have a go at this one.'],
   'Ancient History': ['Still thinking about that last hole.', 'Leave it. Can’t, though.'],
