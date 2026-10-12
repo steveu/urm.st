@@ -87,8 +87,9 @@ export function tempo(club: FullClub, share: number): Tempo {
 export const TEMPO_STD: Tempo = { ...SWING };
 
 // Tuning, checked against bots that let go with human jitter (scratchpad simcheck).
-// Degrees of plain scatter on a full shot, by strike: a pure one goes where it's aimed
-const LATERAL_SD: Record<Grade, number> = { pure: 0.8, good: 2.4, early: 3.2, late: 3.2, fat: 3.5, flail: 3 };
+// Degrees of plain scatter on a full shot, by strike: a pure one goes where it's aimed, and
+// anything less spreads half as wide again as it once did, so the pure is worth having
+const LATERAL_SD: Record<Grade, number> = { pure: 0.8, good: 3.6, early: 4.8, late: 4.8, fat: 5.25, flail: 3 };
 // The most the lie can tighten the swing's window
 const K_MAX = 1.6;
 // What each lie tightens it by
