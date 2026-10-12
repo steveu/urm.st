@@ -14,7 +14,7 @@ import * as snd from './sound';
 import { letteringEl, BRASS_PAL, SHOUT_HOLD } from './lettering';
 
 const CPS = 34; // letters a second: readable, unhurried
-const AUTO_MS = 8000; // a line left alone this long goes on by itself
+const AUTO_MS = 8000; // a line left alone this long goes on by itself, bar the key line
 const FLASH_MS = 180;
 const SHAKE_MS = 280;
 
@@ -119,7 +119,9 @@ export function createStage(els: Els, opts: Opts) {
       els.box.classList.add('on');
       show(now);
     },
-    /** Each frame: type, blip, and go on by itself if left long enough */
+    /** Each frame: type, blip, and go on by itself if left long enough. The key line,
+     *  unanswered, waits: letting it go is the player's to do, with a click, never the
+     *  clock's. A click still moves it on, so the scene can't stall */
     step(now: number) {
       const b = cur();
       if (!b) return;
@@ -132,7 +134,7 @@ export function createStage(els: Els, opts: Opts) {
           els.line.textContent = txt.slice(0, n);
         }
         if (n >= txt.length) finishTyping(now);
-      } else if (now - doneAt >= AUTO_MS) this.advance(now, true);
+      } else if (now - doneAt >= AUTO_MS && !(b.key && !answered)) this.advance(now, true);
     },
     /** A click or Enter: finish the line if it's typing, else on to the next */
     advance(now: number, auto = false) {
