@@ -1,18 +1,17 @@
-// The cast on the walk's stage: you, your caddie and your partner, from the waist up, 128
-// by 144 pixels, drawn at the board's own pixel size, so they're finer than the board's
-// sprites rather than a small face blown up. The box at the foot of the frame covers
-// their waist, as a courtroom's would.
+// The cast on the walk's stage: you, your caddie and your partner, head and shoulders, on
+// a 128 by 144 plate, drawn at the board's own pixel size, so they're finer than the
+// board's sprites rather than a small face blown up. The box at the foot of the frame
+// cuts them at the chest.
 //
-// Each is built from named parts (torso, arms, neck, head, ear, nose, hair, hat), every
+// Each is built from named parts (torso, neck, head, ear, nose, hair, hat), every
 // part a shape filled with a material: four tones lit from the right, where the low sun
 // is, a warm rim on the sunny edge, and a dark line all round. Textures go
 // on as the tones are worked out: the knit of a jumper, the weave of a hat, the grain of a
 // beard. The face is drawn over that, by expression: brows, eyes, lids and mouth.
 //
-// Every expression is a pose as much as a face: where the hands go says more than the
-// brows. Each pose has a second frame, a small move (a tap of the finger, a bob of the
-// shoulders, a jitter of the hands) that the stage swaps in now and then, on top of the
-// blink and the talking mouth.
+// The face carries each expression, with a tilt of the head. Each has a second frame, a
+// small move of the head (a jolt, a nod, a bob) that the stage swaps in now and then, on
+// top of the blink and the talking mouth.
 //
 // Drawn facing right. The others face left on the stage, so they're drawn mirrored with
 // the light reversed, which keeps the sun on the right for everyone.
@@ -29,7 +28,6 @@ export const W = 128;
 export const H = 144;
 
 type Pt = [number, number];
-const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 
 // ---------------------------------------------------------------------------------------
 // Materials: four tones, darkest first; the sun's rim; the line on the shaded side
@@ -46,8 +44,6 @@ const MATS = {
   beanie: { tones: ['#252f1a', '#3c4a26', '#5a6a38', '#7c8e50'], rim: '#b8c47a', line: '#161c0e' },
   beard: { tones: ['#5c5852', '#87827a', '#b0aba0', '#d8d3c6'], rim: '#f2e8cc', line: '#3a3632' },
   jacket: { tones: ['#121c2e', '#1e314c', '#2e486a', '#48688c'], rim: '#a8a890', line: '#0a1220' },
-  towel: { tones: ['#9a907e', '#cdc4ae', '#e9e2cd', '#fbf8ee'], rim: '#fffaf0', line: '#5e5646' },
-  towelStripe: { tones: ['#28361c', '#3c5028', '#567038', '#76904c'], rim: '#b0c27a', line: '#18200e' },
   bucket: { tones: ['#6a5636', '#927a52', '#bea474', '#dcc492'], rim: '#f6e0a8', line: '#463820' },
   bucketBand: { tones: ['#4a3a22', '#64502e', '#7e683e', '#9a8250'], rim: '#d6b878', line: '#2e2414' },
   jumperPink: { tones: ['#783246', '#a64e68', '#d4687c', '#ea8c96'], rim: '#ffc2a8', line: '#4a1a28' },
@@ -127,50 +123,6 @@ function poly(p: Pic, pts: Pt[], m: MatName, o: { tex?: Tex; base?: number } = {
       p.v[i] = base + 0.3 * ((x - (x0 + x1) / 2) / ((x1 - x0) / 2 || 1)) * p.ls + tex(x, y);
     }
 }
-// A capsule between two points: an arm, a finger. Lit across its width. It casts a short
-// shadow on whatever it lies over, which is what keeps an arm apart from a jumper of the
-// same wool
-function capsule(p: Pic, a: Pt, b: Pt, r: number, m: MatName, o: { tex?: Tex; base?: number; shade?: boolean } = {}) {
-  const mi = MAT_LIST.indexOf(m);
-  const tex = o.tex ?? flat;
-  const base = o.base ?? 0.55;
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const len = Math.hypot(dx, dy) || 1;
-  // The normal across the arm, turned to point sunward (right), or up for a level arm
-  let nx = dy / len;
-  let ny = -dx / len;
-  if (nx < 0 || (nx === 0 && ny > 0)) {
-    nx = -nx;
-    ny = -ny;
-  }
-  const x0 = Math.max(0, Math.floor(Math.min(a[0], b[0]) - r - 3));
-  const x1 = Math.min(W - 1, Math.ceil(Math.max(a[0], b[0]) + r + 3));
-  const y0 = Math.max(0, Math.floor(Math.min(a[1], b[1]) - r - 3));
-  const y1 = Math.min(H - 1, Math.ceil(Math.max(a[1], b[1]) + r + 3));
-  const near = (x: number, y: number) => {
-    const t = clamp(((x + 0.5 - a[0]) * dx + (y + 0.5 - a[1]) * dy) / (len * len), 0, 1);
-    const px = a[0] + dx * t;
-    const py = a[1] + dy * t;
-    return { d: Math.hypot(x + 0.5 - px, y + 0.5 - py), s: (x + 0.5 - px) * nx + (y + 0.5 - py) * ny };
-  };
-  if (o.shade !== false)
-    for (let y = y0; y <= y1; y++)
-      for (let x = x0; x <= x1; x++) {
-        const i = y * W + x;
-        if (p.mat[i] < 0) continue;
-        const { d } = near(x, y);
-        if (d > r && d <= r + 2) p.v[i] -= d <= r + 1 ? 0.24 : 0.1;
-      }
-  for (let y = y0; y <= y1; y++)
-    for (let x = x0; x <= x1; x++) {
-      const { d, s } = near(x, y);
-      if (d > r) continue;
-      const i = y * W + x;
-      p.mat[i] = mi;
-      p.v[i] = base + (s / r) * (0.4 * nx * p.ls - 0.22 * ny) + tex(x, y);
-    }
-}
 // Darken (or lighten) what's already there, where a shape says: shadows cast by a brim,
 // a jaw, a collar
 function tint(p: Pic, test: (x: number, y: number) => boolean, dv: number, only?: MatName[]) {
@@ -194,143 +146,40 @@ function line(p: Pic, x0: number, y0: number, x1: number, y1: number, c: string)
 }
 
 // ---------------------------------------------------------------------------------------
-// Poses: where each arm goes, which layer it's drawn on, what the hand does, and the
-// head's tilt. `f1` is the second frame's nudge
+// Poses: head and shoulders only, the face carrying it. Each face tilts the head its own
+// way, and `headF1` is the second frame's nudge (a jolt while caught out, a nod while
+// thinking, a bob while pleased)
 
-type Layer = 'back' | 'mid' | 'front';
-type Hand = 'fist' | 'open' | 'point' | 'thumb' | 'hide';
-type Arm = { e: Pt; h: Pt; layer: Layer; hand: Hand; f1?: Pt };
-type Pose = { L: Arm; R: Arm; head: Pt; headF1?: Pt };
-
-const SH_L: Pt = [30, 92];
-const SH_R: Pt = [94, 92];
-
-// Hands in the pockets: the arms straight down, the hands under the box
-const pockets: Pose = {
-  L: { e: [24, 118], h: [26, 148], layer: 'mid', hand: 'hide' },
-  R: { e: [102, 118], h: [100, 148], layer: 'mid', hand: 'hide' },
-  head: [0, 0],
-};
-// Arms folded: the near forearm over the far
-const folded: Pose = {
-  L: { e: [20, 122], h: [82, 118], layer: 'front', hand: 'fist' },
-  R: { e: [108, 122], h: [46, 116], layer: 'front', hand: 'fist' },
-  head: [0, 0],
-};
-// Hands on the hips, elbows out: the fists on the waist, above the box's edge
-const hips: Pose = {
-  L: { e: [8, 110], h: [30, 113], layer: 'mid', hand: 'fist' },
-  R: { e: [118, 110], h: [96, 113], layer: 'mid', hand: 'fist' },
-  head: [0, 0],
-};
-// Caught out: hands up by the shoulders, the head back, the hands shaking
-const handsUp: Pose = {
-  L: { e: [14, 114], h: [18, 84], layer: 'mid', hand: 'open', f1: [-1, 1] },
-  R: { e: [112, 114], h: [108, 84], layer: 'mid', hand: 'open', f1: [1, 1] },
-  head: [-2, -1],
-};
+type Pose = { head: Pt; headF1?: Pt };
 
 const POSES: Record<Actor, Record<Face, Pose>> = {
   you: {
-    normal: pockets,
-    // A thumb hooked in the bag's strap
-    pleased: {
-      L: pockets.L,
-      R: { e: [112, 120], h: [82, 100], layer: 'front', hand: 'fist', f1: [0, -1] },
-      head: [0, 1],
-      headF1: [0, -1],
-    },
-    shocked: handsUp,
-    // A knuckle to the chin, the other arm across, a finger tapping
-    thinking: {
-      L: { e: [20, 122], h: [80, 118], layer: 'front', hand: 'fist' },
-      R: { e: [112, 124], h: [78, 68], layer: 'front', hand: 'fist', f1: [0, -1] },
-      head: [1, 2],
-    },
-    // The shout: an arm thrust out, the other fist at the hip, leaning into it
-    shout: {
-      L: { e: [16, 118], h: [30, 114], layer: 'mid', hand: 'fist' },
-      R: { e: [112, 76], h: [120, 54], layer: 'front', hand: 'point', f1: [2, -1] },
-      head: [2, -2],
-    },
+    normal: { head: [0, 0] },
+    pleased: { head: [0, 1], headF1: [0, -1] },
+    shocked: { head: [-2, -1], headF1: [-1, 0] },
+    thinking: { head: [1, 2], headF1: [0, 1] },
+    shout: { head: [2, -2], headF1: [1, -1] },
   },
   caddie: {
-    normal: folded,
-    // A thumb up, no more than that
-    pleased: {
-      L: { e: [22, 118], h: [26, 148], layer: 'mid', hand: 'hide' },
-      R: { e: [112, 122], h: [100, 94], layer: 'mid', hand: 'thumb', f1: [0, -2] },
-      head: [0, 1],
-    },
-    // A shrug: what did I say
-    shocked: {
-      L: { e: [16, 120], h: [12, 96], layer: 'mid', hand: 'open', f1: [0, 1] },
-      R: { e: [112, 120], h: [116, 96], layer: 'mid', hand: 'open', f1: [0, 1] },
-      head: [-1, -1],
-    },
-    // Stroking the beard
-    thinking: {
-      L: { e: [20, 122], h: [82, 118], layer: 'front', hand: 'fist' },
-      R: { e: [112, 120], h: [74, 72], layer: 'front', hand: 'fist', f1: [0, 2] },
-      head: [1, 1],
-    },
-    shout: folded,
+    normal: { head: [0, 0] },
+    pleased: { head: [0, 1], headF1: [0, -1] },
+    shocked: { head: [-1, -1], headF1: [-1, 0] },
+    thinking: { head: [1, 1], headF1: [0, 1] },
+    shout: { head: [0, 0] },
   },
   partner: {
-    normal: hips,
-    // A laugh: the head back, a hand flat on the chest, the other held out level towards
-    // you, palm up: see, what did I say
-    pleased: {
-      L: { e: [14, 122], h: [50, 100], layer: 'front', hand: 'open' },
-      R: { e: [102, 110], h: [117, 100], layer: 'front', hand: 'open', f1: [0, -2] },
-      head: [-1, -1],
-      headF1: [0, -2],
-    },
-    // Both hands to the hat, the elbows out
-    shocked: {
-      L: { e: [8, 72], h: [42, 36], layer: 'front', hand: 'open', f1: [0, 1] },
-      R: { e: [118, 72], h: [88, 36], layer: 'front', hand: 'open', f1: [0, 1] },
-      head: [-2, -1],
-    },
-    // A scratch under the brim
-    thinking: {
-      L: hips.L,
-      R: { e: [118, 104], h: [94, 36], layer: 'front', hand: 'open', f1: [1, -1] },
-      head: [1, 2],
-    },
-    shout: hips,
+    normal: { head: [0, 0] },
+    pleased: { head: [-1, -1], headF1: [0, -2] },
+    shocked: { head: [-2, -1], headF1: [-1, 0] },
+    thinking: { head: [1, 2], headF1: [0, 1] },
+    shout: { head: [0, 0] },
   },
 };
 
 const add = (a: Pt, b: Pt | undefined, k: number): Pt => (b ? [a[0] + b[0] * k, a[1] + b[1] * k] : a);
 
-// An arm: the upper arm from the shoulder, the forearm, then the hand
-function arm(p: Pic, sh: Pt, a: Arm, frame: 0 | 1, m: MatName, tex: Tex) {
-  const e = add(a.e, a.f1, frame * 0.5);
-  const h = add(a.h, a.f1, frame);
-  capsule(p, sh, e, 7, m, { tex, base: 0.5 });
-  capsule(p, e, h, 6, m, { tex, base: 0.55 });
-  hand(p, e, h, a.hand);
-}
-// The hand, at the end of the forearm, doing what the pose asks
-function hand(p: Pic, e: Pt, h: Pt, kind: Hand) {
-  if (kind === 'hide') return;
-  const dx = h[0] - e[0];
-  const dy = h[1] - e[1];
-  const L = Math.hypot(dx, dy) || 1;
-  const ux = dx / L;
-  const uy = dy / L;
-  const at = (k: number, s: number): Pt => [h[0] + ux * k - uy * s, h[1] + uy * k + ux * s];
-  capsule(p, at(-1, 0), at(2, 0), 5, 'skin', { base: 0.58 });
-  if (kind === 'open') for (const s of [-3.4, 0, 3.4]) capsule(p, at(3, s), at(8, s * 1.1), 1.8, 'skin', { base: 0.6 });
-  else if (kind === 'point') capsule(p, at(3, 0), at(13, 0), 2.2, 'skin', { base: 0.62 });
-  else if (kind === 'thumb') capsule(p, [h[0], h[1] - 2], [h[0], h[1] - 10], 2.2, 'skin', { base: 0.62 });
-  // The knuckles: a shade across a closed hand
-  if (kind === 'fist' || kind === 'point') tint(p, (x, y) => Math.abs((x + 0.5 - h[0]) * ux + (y + 0.5 - h[1]) * uy - 1) < 0.6 && Math.hypot(x + 0.5 - h[0], y + 0.5 - h[1]) < 4.5, -0.18, ['skin']);
-}
-
 // ---------------------------------------------------------------------------------------
-// The common figure: the torso, the arms by layer, the neck, the head, the ear, the nose.
+// The common figure: the torso, the neck, the head, the ear, the nose.
 // The head's parts are placed from its centre, so a pose can tilt it
 
 type Head = { cx: number; cy: number; rx: number; ry: number; eyeY: number; nearX: number; farX: number; mouthX: number; mouthY: number };
@@ -338,11 +187,6 @@ type Head = { cx: number; cy: number; rx: number; ry: number; eyeY: number; near
 function torso(p: Pic, body: MatName, bodyTex: Tex) {
   poly(p, [[14, 146], [18, 104], [24, 90], [36, 82], [50, 78], [62, 77], [74, 78], [88, 82], [100, 90], [106, 104], [110, 146]], body, { tex: bodyTex, base: 0.48 });
   tint(p, (_x, y) => y >= 134, -0.1, [body]);
-}
-function arms(p: Pic, pose: Pose, layer: Layer, frame: 0 | 1, m: MatName, tex: Tex) {
-  // The near forearm (the right) goes over the far one when both are in front
-  if (pose.L.layer === layer) arm(p, SH_L, pose.L, frame, m, tex);
-  if (pose.R.layer === layer) arm(p, SH_R, pose.R, frame, m, tex);
 }
 function neck(p: Pic, head: Head) {
   for (let y = head.cy + 12; y < 84; y++)
@@ -506,9 +350,9 @@ function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: s
 // The three of them
 
 const HEAD: Record<Actor, Head> = {
-  you: { cx: 62, cy: 42, rx: 18, ry: 21, eyeY: 43, nearX: 57, farX: 70, mouthX: 67, mouthY: 56 },
-  caddie: { cx: 62, cy: 43, rx: 18, ry: 21, eyeY: 45, nearX: 57, farX: 70, mouthX: 67, mouthY: 58 },
-  partner: { cx: 62, cy: 43, rx: 20, ry: 21, eyeY: 45, nearX: 56, farX: 70, mouthX: 68, mouthY: 60 },
+  you: { cx: 62, cy: 50, rx: 18, ry: 21, eyeY: 51, nearX: 57, farX: 70, mouthX: 67, mouthY: 64 },
+  caddie: { cx: 62, cy: 51, rx: 18, ry: 21, eyeY: 53, nearX: 57, farX: 70, mouthX: 67, mouthY: 66 },
+  partner: { cx: 62, cy: 51, rx: 20, ry: 21, eyeY: 53, nearX: 56, farX: 70, mouthX: 68, mouthY: 68 },
 };
 // The head, tilted by the pose and its frame
 function headAt(who: Actor, pose: Pose, frame: 0 | 1): Head {
@@ -520,7 +364,6 @@ function headAt(who: Actor, pose: Pose, frame: 0 | 1): Head {
 function drawYou(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   const pose = POSES.you[f];
   const h = headAt('you', pose, frame);
-  arms(p, pose, 'back', frame, 'jumperRed', knit);
   torso(p, 'jumperRed', knit);
   // The bag's strap, across the chest from the far shoulder
   poly(p, [[84, 80], [96, 84], [66, 146], [54, 146]], 'strap', { base: 0.5 });
@@ -529,7 +372,6 @@ function drawYou(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   poly(p, [[52, 80], [62, 96], [72, 80], [67, 78], [62, 87], [57, 78]], 'shirt', { base: 0.6 });
   poly(p, [[53, 78], [58, 78], [62, 86], [55, 86]], 'shirt', { base: 0.75 });
   poly(p, [[71, 78], [66, 78], [62, 86], [69, 86]], 'shirt', { base: 0.75 });
-  arms(p, pose, 'mid', frame, 'jumperRed', knit);
   neck(p, h);
   skull(p, h);
   // Hair at the back of the head and over the ear, under the cap
@@ -542,23 +384,17 @@ function drawYou(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   tint(p, (_x, y) => y === h.cy - 8 || y === h.cy - 7, -0.25, ['capTweed']);
   tint(p, (x, y) => y >= h.cy - 7 && y <= h.cy - 3 && x > h.cx - 16, -0.35, ['skin']);
   face(p, h, f, blink, mouth, MATS.hairBrown.tones[0]);
-  arms(p, pose, 'front', frame, 'jumperRed', knit);
   return h;
 }
 
 function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   const pose = POSES.caddie[f];
   const h = headAt('caddie', pose, frame);
-  arms(p, pose, 'back', frame, 'jacket', flat);
   torso(p, 'jacket', flat);
   // The zip, and a turned-up collar either side of the neck
   tint(p, (x, y) => x === 62 && y > 92, -0.3, ['jacket']);
   poly(p, [[46, 80], [56, 74], [58, 90], [48, 94]], 'jacket', { base: 0.65 });
   poly(p, [[78, 80], [68, 74], [66, 90], [76, 94]], 'jacket', { base: 0.7 });
-  // The towel over the shoulder, striped
-  poly(p, [[72, 80], [92, 78], [96, 118], [76, 118]], 'towel', { base: 0.6 });
-  for (const sy of [92, 104]) poly(p, [[73, sy], [94, sy - 1], [94.5, sy + 2], [73.5, sy + 3]], 'towelStripe', { base: 0.55 });
-  arms(p, pose, 'mid', frame, 'jacket', flat);
   neck(p, h);
   skull(p, h);
   // Grey hair at the back
@@ -593,19 +429,16 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
   tint(p, (_x, y) => y === h.cy - 15 || y === h.cy - 14, 0.15, ['beanie']);
   tint(p, (x, y) => y >= h.cy - 7 && y <= h.cy - 5 && x > h.cx - 18, -0.3, ['skin']);
   face(p, h, f, blink, mouth, MATS.hairGrey.tones[0], { lip: true });
-  arms(p, pose, 'front', frame, 'jacket', flat);
   return h;
 }
 
 function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   const pose = POSES.partner[f];
   const h = headAt('partner', pose, frame);
-  arms(p, pose, 'back', frame, 'jumperPink', cable);
   torso(p, 'jumperPink', cable);
   // A white polo collar
   poly(p, [[50, 80], [62, 82], [59, 90], [48, 86]], 'shirt', { base: 0.7 });
   poly(p, [[74, 80], [63, 82], [66, 90], [76, 86]], 'shirt', { base: 0.75 });
-  arms(p, pose, 'mid', frame, 'jumperPink', cable);
   neck(p, h);
   skull(p, h);
   // Ginger at the back, rosy in the cheek
@@ -623,7 +456,6 @@ function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth
   const my = h.mouthY - (mouth === 2 ? 1 : 0);
   poly(p, [[mx - 8, my - 7], [mx - 2, my - 9], [mx + 2, my - 9], [mx + 8, my - 7], [mx + 13, my - 2], [mx + 10, my - 1], [mx + 5, my - 4], [mx, my - 4], [mx - 5, my - 4], [mx - 11, my - 1], [mx - 14, my - 2]], 'ginger', { tex: grain, base: 0.55 });
   face(p, h, f, blink, mouth, MATS.ginger.tones[1], { thick: 3, lip: true });
-  arms(p, pose, 'front', frame, 'jumperPink', cable);
   return h;
 }
 
