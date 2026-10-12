@@ -22,16 +22,16 @@ const HUSH_MS = 2800; // a hush, the same, sooner
 const FLASH_MS = 180;
 const SHAKE_MS = 280;
 
-const TAB: Record<Speaker, string> = { you: 'you', caddie: 'your caddie', partner: 'your partner', rope: 'from the rope' };
+const TAB: Record<Speaker, string> = { you: 'you', caddie: 'your caddie', partner: 'your partner' };
 
 // A line in brackets is thought, not said: shown without them, in its own colour
 const isThought = (b: Beat) => b.who === 'you' && /^\(.*\)$/.test(b.text);
 const shownText = (b: Beat) => (isThought(b) ? b.text.slice(1, -1) : b.text);
 
 // When each letter of a line lands: a beat on a comma, a longer one on a full stop, longer
-// still on an ellipsis; the rope shouts quicker, a thought comes slower
+// still on an ellipsis; a thought comes slower
 function timing(b: Beat, text: string): number[] {
-  const per = 1000 / (b.who === 'rope' ? CPS * 1.3 : isThought(b) ? CPS * 0.85 : CPS);
+  const per = 1000 / (isThought(b) ? CPS * 0.85 : CPS);
   const out: number[] = [0];
   let t = 0;
   for (let i = 0; i < text.length; i++) {
@@ -91,14 +91,9 @@ export function createStage(els: Els, opts: Opts) {
     if (b.hush) return opts.status(b.text);
     els.tab.textContent = TAB[b.who];
     els.box.dataset.who = b.who;
-    els.box.classList.toggle('off', b.who === 'rope');
     els.box.classList.toggle('thought', isThought(b));
     els.box.classList.remove('done', 'kept');
     els.line.textContent = '';
-    if (b.shake && !reduce) {
-      shakeT0 = now;
-      snd.sting();
-    }
     opts.status(`${TAB[b.who].replace(/^./, (m) => m.toUpperCase())}: ${b.text}`);
   }
 

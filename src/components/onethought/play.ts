@@ -18,7 +18,7 @@ import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
 import { walkScene, type Went, type MomentKind, type Trouble, type Beat, type Did } from './scenes';
-import { portraitFrame, galleryFigures, headBox, W as FIG_W, H as FIG_H, type Face as CastFace } from './cast';
+import { portraitFrame, headBox, W as FIG_W, H as FIG_H, type Face as CastFace } from './cast';
 import { drawShout, SHOUT_HOLD, type ShoutAnchor } from './lettering';
 import { createStage } from './stage';
 import * as snd from './sound';
@@ -927,7 +927,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       } else fourBall();
     } else if (first && hole === 2 && strokes[0] >= S.PAR[1] + 2) fourBall();
     // Two lines: the caddie cuts in to offer them. Twice a round, and outside the budget,
-    // which is the inner voice's and the rope's
+    // which is the inner voice's
     if (s0.lines && H.lines) cutins.say({ who: 'caddie', expr: 'calm', line: `“${H.lines.caddie}”`, by: 'your caddie' }, gt);
     else if (chips.length && !tuckedSaid) {
       tuckedSaid = true;
@@ -1414,15 +1414,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         lastHeckleShot = swings;
         if (hk.by === 'from the rope') galleryBob = gt;
         snd.groan();
-        // From the rope, the heckler's face cuts in; the worst get a shake
-        if (hk.by === 'from the rope' && spoken < VOICE_BUDGET) {
-          spoken++;
-          const worst = s.events.some((e) => e === 'water' || e === 'out');
-          cutins.say({ who: 'heckler', expr: 'calm', line: hk.q, by: hk.by, shake: worst }, gt);
-        } else {
-          caption(hk.q, hk.by, 2800, true);
-          say(`${cap(hk.by)}: ${hk.q}`);
-        }
+        // Said off the side, as a caption: nobody from the course cuts in
+        caption(hk.q, hk.by, 2800, true);
+        say(`${cap(hk.by)}: ${hk.q}`);
       }
     }
     const ghosted = BAD.has(lie) || s.events.includes('treeHit');
@@ -1859,9 +1853,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const u = reduce ? 0.55 : clamp(walkU * 1.1, 0, 1);
     const sp = walkStage.speaker;
     // The walking golfer stays out of the frame while a portrait is up, or you'd be in
-    // two places at once; the rope's lines keep them. In a hush they stop and watch
+    // two places at once. In a hush they stop and watch
     const hush = walkStage.hushT0;
-    const f = { u, n: hole < 3 ? hole + 1 : 0, walking: !reduce && cutEnd < 0 && hush < 0, bow: walkBow, cloud: null, top: false, golfer: !sp || sp.who === 'rope', heron: hush >= 0 ? gt - hush : -1 };
+    const f = { u, n: hole < 3 ? hole + 1 : 0, walking: !reduce && cutEnd < 0 && hush < 0, bow: walkBow, cloud: null, top: false, golfer: !sp, heron: hush >= 0 ? gt - hush : -1 };
     const [shx, shy] = walkStage.shake(gt);
     const flash = walkStage.flash(gt);
     const shout = walkStage.shout(gt);
@@ -1883,10 +1877,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // you a little left looking in, the others a little right looking back. A cut, not a
   // slide, between speakers. They breathe, a pixel up and down; they blink now and then;
   // their mouth goes shut, half, open while their words come; their pose has a second
-  // frame that comes and goes (a tap of the finger, a bob, a jitter). The rope is heard
-  // from the edge of the frame, a gallery in silhouette against the light. The box at the
-  // foot covers the waist, whatever the width. Gives back where the speaker's head is,
-  // for the shout to sit beside
+  // frame that comes and goes (a tap of the finger, a bob, a jitter). The box at the foot
+  // covers the waist, whatever the width. Gives back where the speaker's head is, for the
+  // shout to sit beside
   const dialogueEl = q('[data-dialogue]');
   // How far up from the plate's foot the box cuts a portrait, in the plate's pixels: across
   // the chest
@@ -1895,10 +1888,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // The walk dimmed to dusk behind the speaker
     g.fillStyle = 'rgba(40,30,52,0.56)';
     g.fillRect(0, 0, w, hh);
-    if (sp.who === 'rope') {
-      drawGallery(g, w, hh, sp.t0);
-      return null;
-    }
     const who = sp.who as 'you' | 'caddie' | 'partner';
     const you = who === 'you';
     const still = reduce;
@@ -1932,43 +1921,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     g.imageSmoothingEnabled = false;
     g.drawImage(fig, x, y);
     return { head, waist: Math.round(Math.min(boxTop, hh)) };
-  }
-
-  // The gallery at the rope: three of them in silhouette against the low sun (cast.ts),
-  // near, in the left third of the frame with the box over their feet, so their heads
-  // break the horizon. The one in the cap leans in as the line lands. The rope runs in
-  // front of them at waist height across the left third on its posts, the rail catching
-  // the sun
-  function drawGallery(g: CanvasRenderingContext2D, w: number, hh: number, t0: number) {
-    const t = gt - t0;
-    const lean = !reduce && t < 450 ? 1 : 0;
-    const base = Math.min(Math.round(dialogueEl.offsetTop / scale) + 10, hh);
-    const wide = w >= 300;
-    const [bobble, cap, scarf] = galleryFigures();
-    g.imageSmoothingEnabled = false;
-    g.drawImage(bobble, 2, base - bobble.height);
-    g.drawImage(cap, (wide ? 22 : 14) + lean, base - cap.height - lean);
-    g.drawImage(scarf, wide ? 58 : 40, base - scarf.height);
-    // The rope: posts every so far across the left third, the rail sagging a pixel
-    // between them, its top edge in the sun
-    const end = Math.round(w / 3) + 16;
-    const ry = base - 38;
-    for (let x = 6; x < end; x += 44) {
-      g.fillStyle = '#1c1424';
-      g.fillRect(x, ry - 5, 3, base - ry + 5);
-      g.fillStyle = '#6e4c66';
-      g.fillRect(x + 2, ry - 5, 1, 7);
-      g.fillStyle = '#c09aac';
-      g.fillRect(x, ry - 5, 3, 1);
-    }
-    for (let x = 0; x < end; x++) {
-      const u = ((x - 6) % 44) / 44;
-      const sag = Math.round(Math.sin(Math.PI * u) * 1.5);
-      g.fillStyle = '#c09aac';
-      g.fillRect(x, ry + sag, 1, 1);
-      g.fillStyle = '#1c1424';
-      g.fillRect(x, ry + sag + 1, 1, 1);
-    }
   }
 
   function renderMeter() {

@@ -1,4 +1,4 @@
-// The voices at the foot of the board: the golfer's own, the rope's and the caddie's. A
+// The voices at the foot of the board: the golfer's own and the caddie's. A
 // pixel portrait cuts in beside a text box and the line types out, holds, and goes. On
 // the walk between holes the whole cast takes turns, large, in a scene (scenes.ts).
 //
@@ -21,7 +21,6 @@ export type Cut = {
   expr: Expr;
   line: string;
   by: string;
-  shake?: boolean;
   /** Which run of the inner voice this line belongs to */
   run?: number;
   /** The line the carried thought is about */
@@ -161,7 +160,6 @@ export const KEPT = ['Still got that one.', 'Hang on to that.'];
 
 export const BY: Record<Who, string> = {
   you: 'you, to yourself',
-  heckler: 'from the rope',
   caddie: 'your caddie',
   partner: 'your partner',
 };
@@ -222,12 +220,10 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     drawFace(c, c.expr);
     whoEl.textContent = c.by || BY[c.who];
     lineEl.textContent = reduce ? c.line : '';
-    el.classList.remove('on', 'out', 'shake', 'caught', 'kept');
+    el.classList.remove('on', 'out', 'caught', 'kept');
     void el.offsetWidth;
     el.classList.add('on');
     el.classList.toggle('run', c.run != null);
-    if (c.shake && !reduce) el.classList.add('shake');
-    if (c.shake) snd.sting();
     if (c.run != null) {
       const r = runs.get(c.run);
       if (r && c.catch) r.offered = true;
@@ -289,7 +285,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       const c = cur.cut;
       if (cur.out >= 0) {
         if (now - cur.out >= (reduce ? 0 : OUT_MS)) {
-          el.classList.remove('on', 'out', 'shake', 'caught', 'kept', 'run');
+          el.classList.remove('on', 'out', 'caught', 'kept', 'run');
           cur = null;
           const next = queue.shift();
           if (c.run != null && next?.run !== c.run) endRun(c.run);

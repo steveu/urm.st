@@ -2,7 +2,7 @@
 // noise, chiptune in character, quiet. Nothing plays until the player has started a round
 // (a gesture opens the audio), and a mute is remembered. No audio files.
 
-type Voice = 'you' | 'caddie' | 'partner' | 'rope' | 'heckler';
+type Voice = 'you' | 'caddie' | 'partner';
 
 let ac: AudioContext | null = null;
 let out: GainNode | null = null;
@@ -96,8 +96,6 @@ const BLIP: Record<Voice, [number, OscillatorType]> = {
   you: [520, 'square'],
   caddie: [300, 'triangle'],
   partner: [700, 'square'],
-  rope: [210, 'sawtooth'],
-  heckler: [210, 'sawtooth'],
 };
 /** A letter typed: each voice its own pitch and grain */
 export function blip(who: string) {
@@ -106,11 +104,6 @@ export function blip(who: string) {
 }
 /** The next line */
 export const click = () => tone(1400, 1100, 0.025, 0.05, 'square');
-/** A jolt: a flash, a shake, the rope landing one */
-export function sting() {
-  tone(880, 870, 0.07, 0.07, 'square');
-  tone(660, 650, 0.12, 0.07, 'square', 0.07);
-}
 /** The shout: the key line caught */
 export function shout() {
   noise(0.18, 0.12, 3000, 800, 'bandpass');

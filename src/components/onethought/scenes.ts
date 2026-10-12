@@ -27,10 +27,10 @@
 // the worst of the hole: the water, the trees, the bunker, the great beyond. Never a
 // number; nothing here says what to press; nothing here reaches the sim.
 
-export type Speaker = 'you' | 'caddie' | 'partner' | 'rope';
+export type Speaker = 'you' | 'caddie' | 'partner';
 /** A face: as they are, pleased with it, caught out, or thinking it over */
 export type Face = 'normal' | 'pleased' | 'shocked' | 'thinking';
-export type Line = { who: Speaker; face?: Face; text: string; shake?: boolean };
+export type Line = { who: Speaker; face?: Face; text: string };
 export type Branch = 'trouble' | 'well' | 'fine';
 export type Scene = {
   open: Record<Branch, Line[]>;

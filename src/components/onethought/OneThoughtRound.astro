@@ -1183,10 +1183,6 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     visibility: visible;
     animation: cutin 0.15s steps(3, end) both;
   }
-  .cutin:global(.on.shake) .box,
-  .cutin:global(.on.shake) .face {
-    animation: shake 0.24s 0.15s steps(4, end) 2;
-  }
   .cutin:global(.out) {
     visibility: visible;
     animation: cutout 0.15s steps(3, end) both;
@@ -1200,14 +1196,6 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   @keyframes cutout {
     to {
       opacity: 0;
-    }
-  }
-  @keyframes shake {
-    25% {
-      transform: translateX(calc(2 * var(--px)));
-    }
-    75% {
-      transform: translateX(calc(-2 * var(--px)));
     }
   }
   /* Caught: the tap's word lands on the line in the shout's lettering, small; a moment
@@ -1271,9 +1259,6 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   .dialogue[data-who='caddie'] {
     --plate: #3c4a26;
   }
-  .dialogue[data-who='rope'] {
-    --plate: #5a4636;
-  }
   .dialogue .line {
     min-height: 2.6em;
     font-size: 22px;
@@ -1285,19 +1270,6 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   .dialogue:global(.thought) .line {
     color: #b9d9a4;
     font-style: italic;
-  }
-  /* The rope is off the side of the stage, at the left: its words come in from there, in
-     a shout */
-  .dialogue:global(.off) .line {
-    color: #f3cf96;
-    font-style: italic;
-    animation: offside 0.2s steps(3, end) both;
-  }
-  @keyframes offside {
-    from {
-      transform: translateX(calc(-10 * var(--px)));
-      opacity: 0;
-    }
   }
   .dialogue .next {
     position: absolute;
@@ -2014,11 +1986,8 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     .band[data-stage='sealed'] .sealcopy > :global(*),
     .cutin:global(.on),
     .cutin:global(.out),
-    .cutin:global(.on.shake) .box,
-    .cutin:global(.on.shake) .face,
     .cutin:global(.caught) .stamp,
     .cutin:global(.kept) .stamp,
-    .dialogue:global(.off) .line,
     .dialogue:global(.done) .next,
     .dialogue:global(.kept) .stamp {
       animation: none;
