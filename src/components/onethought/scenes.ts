@@ -13,11 +13,13 @@
 //
 // Each scene opens on how the hole just played went (trouble, well, or fine), may carry a
 // moment worth keeping from it (a hold keeps it), and closes on whether the key line was
-// caught. The opening also knows what you did over the ball, where the thought has a view
-// of it: a sound call that didn't come off isn't a bad one, and a shaky one that did isn't
-// a good one (CALLED, below). Lines in brackets are thought, not said. {trouble} is the worst of the hole:
-// the water, the trees, the bunker, the great beyond. Never a number; nothing here says
-// what to press; nothing here reaches the sim.
+// caught. The walks get longer as the round does: a few lines to the 12th, a few more to
+// the 13th, and the clubhouse walk has the room. The opening also knows what you did over
+// the ball, where the thought has a view of it: a sound call that didn't come off isn't a
+// bad one, and a shaky one that did isn't a good one (CALLED, below). Lines in brackets
+// are thought, not said. {trouble} is the worst of the hole: the water, the trees, the
+// bunker, the great beyond. Never a number; nothing here says what to press; nothing here
+// reaches the sim.
 
 export type Speaker = 'you' | 'caddie' | 'partner' | 'rope';
 /** A face: as they are, pleased with it, caught out, or thinking it over */
@@ -48,55 +50,34 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     // To the 12th: the short hole, with the gallery stood right by its tee
     {
       open: {
-        trouble: [rope('Ooh! Straight into {trouble}! Seen it all now!'), partner('pleased', 'Ha. They’ve got you there, mind.'), caddie('normal', 'Don’t look round. Walk.')],
-        well: [rope('Fluke! Pure fluke! Bet you can’t do it twice!'), partner('pleased', 'They’re not wrong. I’ve seen you play.'), caddie('normal', 'That was no fluke. Walk on.')],
-        fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'They’ve a point.'), caddie('normal', 'It was a perfectly good hole. Eyes front.')],
+        trouble: [rope('Ooh! Straight into {trouble}! Seen it all now!'), partner('pleased', 'Ha. They’ve got you there, mind.')],
+        well: [rope('Fluke! Pure fluke! Bet you can’t do it twice!'), partner('pleased', 'They’re not wrong. I’ve seen you play.')],
+        fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'They’ve a point.')],
       },
       build: {
-        trouble: [
-          you('thinking', '(One shot. Everyone finds {trouble} now and then.)'),
-          rope('Next one’s over the creek! Brought your trunks?'),
-          partner('pleased', 'Go on. Say something back. You know you want to.'),
-          caddie('thinking', 'Don’t. That’s exactly what they’re after.'),
-          you('thinking', '(Don’t turn round. …They’ll be stood right by the next tee, though.)'),
-        ],
-        well: [
-          you('thinking', '(It wasn’t a fluke. I hit it where I looked.)'),
-          rope('Twice, then! Go on! We’ll all be watching!'),
-          partner('pleased', 'They will, too. Right by the tee, the lot of them.'),
-          caddie('thinking', 'Let them watch. You swing.'),
-          you('thinking', '(Right by the tee. Every one of them. Watching.)'),
-        ],
-        fine: [
-          you('thinking', '(It was fine. It was a fine hole.)'),
-          rope('See you at the next! Bring your best one. Or any one.'),
-          partner('pleased', 'Ooh. They’re coming with us.'),
-          caddie('thinking', 'Course they are. Ignore it.'),
-          you('thinking', '(Any one. Cheeky. …They’ll be right behind me on that tee.)'),
-        ],
+        trouble: [rope('Next one’s over the creek! Brought your trunks?')],
+        well: [rope('Twice, then! Go on! We’ll all be watching!')],
+        fine: [rope('See you at the next! Bring your best one. Or any one.')],
       },
       key: [you('shocked', '(…Right. That’s got to me. My face is going.)')],
-      caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.'), partner('pleased', 'Have a scowl, then. Get it out before the tee.')],
-      missed: [rope('Touchy!'), caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
+      caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.')],
+      missed: [caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
     },
     // To the 13th: the four-ball waiting on the last tee, and the rope's favourite line
     {
       open: {
-        trouble: [rope('How was {trouble}? Lovely this time of year!'), partner('shocked', 'Oof. That’s a good one, to be fair.'), caddie('normal', 'It’s not that good. Keep walking.')],
-        well: [rope('Shot! …Was that the practice one?'), partner('pleased', 'Ha! Even the compliments come with a sting.'), caddie('normal', 'Keep the first word. Leave the rest.')],
-        fine: [rope('Thrilling stuff! Wake us up for the last!'), partner('pleased', 'They’re saving the good ones for you tonight.'), caddie('normal', 'Let them. The last hole’s ours, not theirs.')],
+        trouble: [rope('How was {trouble}? Lovely this time of year!'), caddie('normal', 'It’s not that good. Keep walking.')],
+        well: [rope('Shot! …Was that the practice one?'), caddie('normal', 'Keep the first word. Leave the rest.')],
+        fine: [rope('Thrilling stuff! Wake us up for the last!'), caddie('normal', 'Let them. The last hole’s ours, not theirs.')],
       },
       build: [
         rope('Here! That four-ball on the next tee’s been waiting all night!'),
-        partner('normal', 'They have, mind. Look at them. Arms folded.'),
-        caddie('thinking', 'Nobody’s in a hurry. Take your time on it.'),
-        you('thinking', '(Don’t rush it. …Are they tapping their watches?)'),
         rope('Any chance this year?'),
         partner('pleased', 'Ha! Sorry. Sorry. That one was good.'),
       ],
       key: [you('shocked', '(My own partner. Right. That’s under my skin.)')],
-      caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.'), caddie('pleased', 'Better on your face than in your swing.')],
-      missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.'), you('thinking', '(I’m fine. Completely fine.)')],
+      caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.')],
+      missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.')],
     },
     // To the clubhouse: they'll all be in the same bar
     {
@@ -122,40 +103,30 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     // To the 12th: the short hole over the creek, and which club
     {
       open: {
-        trouble: [partner('pleased', 'Well, you committed to {trouble}. I’ll give you that.'), you('thinking', 'I was between two lines on that tee.'), caddie('normal', 'You were between two all the way down. That’s what did it.')],
-        well: [partner('shocked', 'You didn’t even hesitate on that tee.'), you('pleased', 'Picked it. Hit it.'), caddie('pleased', 'That’s the whole trick.')],
-        fine: [partner('normal', 'Not bad. Not quite the one you wanted?'), you('thinking', 'Half of me wanted the other line.'), caddie('normal', 'Half of you hit it, then.')],
+        trouble: [you('thinking', 'I was between two lines on that tee.'), caddie('normal', 'You were between two all the way down. That’s what did it.')],
+        well: [partner('shocked', 'You didn’t even hesitate on that tee.'), caddie('pleased', 'That’s the whole trick.')],
+        fine: [you('thinking', 'Half of me wanted the other line.'), caddie('normal', 'Half of you hit it, then.')],
       },
-      build: [
-        caddie('thinking', 'Short one now, over the creek. The club for the number, or one more swung easy.'),
-        partner('pleased', 'One more. Swing easy. Nobody ever came up long and wet.'),
-        caddie('normal', 'The club for the number’s the honest one. Full swing, no thinking.'),
-        you('thinking', '(One more is safe over the water… the right club’s the cleaner swing…)'),
-        partner('pleased', 'One more. Trust me. When have I ever been wrong?'),
-        caddie('thinking', 'Do you want the list?'),
-      ],
+      build: [caddie('thinking', 'Short one now, over the creek. The club for the number, or one more swung easy.')],
       key: [you('normal', '(The club for the number. Full swing. That’s the one.)'), you('normal', '(One more, swung easy. Decided.)')],
-      caught: [caddie('pleased', 'Good. Decided before the tee. That’s the job done.'), partner('shocked', 'On the walk? I haven’t even found a ball yet.')],
-      missed: [caddie('thinking', 'Still weighing it, aren’t you. It’ll be heavier on the tee.'), you('thinking', '(That one. Or one more. I’ll know when I’m stood over it.)')],
+      caught: [caddie('pleased', 'Good. Decided before the tee. That’s the job done.')],
+      missed: [caddie('thinking', 'Still weighing it, aren’t you. It’ll be heavier on the tee.')],
     },
     // To the 13th: lay up short of the creek, or take it on
     {
       open: {
-        trouble: [caddie('thinking', 'That one found {trouble}. Were you sure over it?'), you('thinking', 'I was sure until I wasn’t.'), partner('pleased', 'Story of my life, that.')],
-        well: [caddie('pleased', 'Picked the club, swung it. Lovely.'), partner('pleased', 'Show-off.'), you('pleased', 'Committed, that’s all.')],
-        fine: [caddie('normal', 'Middling. You fiddled with it on the tee.'), you('thinking', 'I re-gripped. A bit.'), partner('pleased', 'A lot. I was watching.')],
+        trouble: [caddie('thinking', 'That one found {trouble}. Were you sure over it?'), you('thinking', 'I was sure until I wasn’t.')],
+        well: [caddie('pleased', 'Picked the club, swung it. Lovely.'), partner('pleased', 'Show-off.')],
+        fine: [caddie('normal', 'Middling. You fiddled with it on the tee.'), you('thinking', 'I re-gripped. A bit.')],
       },
       build: [
         caddie('normal', 'Long one now. The creek cuts across before the green. Lay up short of it, or take it on.'),
         partner('pleased', 'Take it on. You only live once.'),
         caddie('thinking', 'Laying up leaves you a wedge in. Taking it on leaves you a story.'),
-        you('thinking', '(Laying up’s sensible. Taking it on’s… tempting.)'),
-        partner('pleased', 'Stories are better than wedges.'),
-        caddie('normal', 'Not when the story’s wet.'),
       ],
       key: [you('normal', '(Lay up. Decided. Not thinking about it again.)'), you('normal', '(Taking it on. Decided. No looking back.)')],
-      caught: [partner('shocked', 'Just like that? I’ve changed mine three times.'), caddie('pleased', 'Good. Now it’s only a swing.')],
-      missed: [caddie('thinking', 'You’ll decide over the ball, then. Lovely. My favourite.'), you('thinking', '(I’ll know when I see it. Probably.)')],
+      caught: [caddie('pleased', 'Good. Now it’s only a swing.')],
+      missed: [caddie('thinking', 'You’ll decide over the ball, then. Lovely. My favourite.')],
     },
     // To the clubhouse: the last decision of the day
     {
@@ -181,39 +152,30 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     // To the 12th: the hole cut front right, just over the creek
     {
       open: {
-        trouble: [partner('pleased', 'You found {trouble}. Going at something, were you?'), you('thinking', 'It looked so close.'), caddie('thinking', 'They always look close. That’s the idea of them.')],
-        well: [partner('shocked', 'Middle of the green and you still walked off happy. How?'), you('pleased', 'Boring golf. It works.'), caddie('pleased', 'It does. Don’t tell anyone.')],
-        fine: [partner('pleased', 'I went straight at that flag. Missed it by a mile.'), you('normal', 'I saw.'), caddie('normal', 'Everyone saw. It’s on the bank.')],
+        trouble: [partner('pleased', 'You found {trouble}. Going at something, were you?'), you('thinking', 'It looked so close.')],
+        well: [partner('shocked', 'Middle of the green and you still walked off happy. How?'), you('pleased', 'Boring golf. It works.')],
+        fine: [partner('pleased', 'I went straight at that flag. Missed it by a mile.'), caddie('normal', 'Everyone saw. It’s on the bank.')],
       },
-      build: [
-        caddie('thinking', 'Short one next. They’ve cut the hole front right, just over the creek.'),
-        partner('pleased', 'Front right! Lovely. I’m going right at it.'),
-        caddie('normal', 'Plenty of green the other side. Back left’s huge.'),
-        you('thinking', '(Front right… a little cut in over the water… it’d be close…)'),
-        partner('pleased', 'Go on. Have a go with me. Flags are for aiming at.'),
-        caddie('thinking', 'Flags are for putting at. From the middle.'),
-      ],
+      build: [caddie('thinking', 'Short one next. They’ve cut the hole front right, just over the creek.')],
       key: [you('normal', '(No. Middle of the green. Boring. Fine.)')],
-      caught: [partner('shocked', 'The middle? You’re no fun at all.'), caddie('pleased', 'That’s my golfer.')],
-      missed: [partner('pleased', 'That’s the spirit! Straight at it, both of us!'), caddie('thinking', '…Right. I’ll get the towel ready.')],
+      caught: [partner('shocked', 'The middle? You’re no fun at all.')],
+      missed: [caddie('thinking', '…Right. I’ll get the towel ready.')],
     },
     // To the 13th: the last green, the creek across its front, the flag behind it
     {
       open: {
-        trouble: [caddie('thinking', 'That was {trouble}. You were aiming at the flag, weren’t you.'), you('thinking', '…Maybe.'), partner('pleased', 'Course you were. We all were.')],
-        well: [partner('shocked', 'The fat of the green again? And you made it look easy.'), you('pleased', 'It is easy. That’s the point.'), caddie('pleased', 'Keep that between us.')],
-        fine: [partner('pleased', 'I had a look at that flag. The flag had a look back.'), you('normal', 'And?'), partner('shocked', 'And I’m in the bunker. Again.')],
+        trouble: [caddie('thinking', 'That was {trouble}. You were aiming at the flag, weren’t you.'), you('thinking', '…Maybe.')],
+        well: [partner('shocked', 'The fat of the green again? And you made it look easy.'), you('pleased', 'It is easy. That’s the point.')],
+        fine: [partner('pleased', 'I had a look at that flag. The flag had a look back.'), partner('shocked', 'And I’m in the bunker. Again.')],
       },
       build: [
         caddie('normal', 'The last green’s worse. Creek right across the front, flag tucked front left behind it.'),
         partner('pleased', 'Front left behind water. They’re daring us.'),
         caddie('thinking', 'They are. Right of it, there’s room for a tent.'),
-        you('thinking', '(If it comes off it’s close… if it’s short it’s wet…)'),
-        partner('normal', 'Well? You going at it with me?'),
       ],
       key: [you('normal', '(No. Right of it. The fat. Boring target.)')],
-      caught: [partner('shocked', 'Again? Where’s your sense of adventure?'), caddie('pleased', 'Boring wins. Not every night. But most.')],
-      missed: [partner('pleased', 'Both going at it, then. Brilliant.'), caddie('thinking', 'I’ll walk on ahead and fetch the ball out.')],
+      caught: [partner('shocked', 'Again? Where’s your sense of adventure?')],
+      missed: [caddie('thinking', 'I’ll walk on ahead and fetch the ball out.')],
     },
     // To the clubhouse: tomorrow's flags
     {
