@@ -2,7 +2,8 @@
 // frame, a name tab on its edge, the words typing out with a blip a letter, and an arrow
 // when the line's done. The player moves it on with a click on the scene or Enter or
 // Space; that's never the Flic. The Flic answers the line that's up: a tap on the key line
-// catches it (the shout), a hold on a moment keeps it. Neither ever moves the scene on,
+// catches it (the shout), or on the heckle that leads to it, carrying the Heckler; a hold
+// on a moment keeps it. Neither ever moves the scene on,
 // and nothing here reaches the sim.
 //
 // A hush is a beat with nobody speaking: no box, no face, the walk left to itself for a
@@ -159,12 +160,15 @@ export function createStage(els: Els, opts: Opts) {
       if (i >= lines.length) end();
       else show(now);
     },
-    /** The Flic, tapped on the line it went down on: the key line, caught */
+    /** The Flic, tapped on the line it went down on: the key line, caught, or the heckle
+     *  that leads to it, which is the same catch. Then what's said to it goes in after the
+     *  key line, so on a heckle the key line's still said, already answered */
     catchNow(armed: Beat | null, word: string, now: number) {
       const b = cur();
-      if (!b || !armed || armed !== b || !b.key || answered) return false;
+      if (!b || !armed || armed !== b || !(b.key || b.lead) || answered) return false;
       answered = 'caught';
-      lines.splice(i + 1, 0, ...after.caught);
+      const k = b.key ? i : lines.findIndex((l, j) => j > i && l.key);
+      lines.splice(k + 1, 0, ...after.caught);
       finishTyping(now);
       shoutWord = word;
       shoutT0 = now;

@@ -644,14 +644,20 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const spec = book[sit]!;
     if (u >= spec.p * (runs ? 0.5 : 1)) return false;
     const catchLine = c < spec.catchP ? fresh(spec.catch, p1) : null;
+    // Carrying the Heckler, the jab and what it does to you are one moment: the jab said,
+    // and straight after it how it lands, a tap on either the catch. Never a jab with
+    // nothing after it, so no catch, no run
+    const heckler = THOUGHTS[thought].name === 'The Heckler';
+    if (heckler && !catchLine) return false;
     const n = 2 + (len < (catchLine ? 0.55 : 0.4) ? 1 : 0);
     const cuts: Cut[] = [];
-    const foil = fresh(spec.foils, p2);
+    const foil = heckler ? null : fresh(spec.foils, p2);
     if (foil) {
       said.add(foil);
       cuts.push({ who: 'you', expr: spec.expr, line: foil, by: '' });
     }
-    while (cuts.length < n - (catchLine ? 1 : 0)) {
+    // Room for the catch, and for the jab before it, so the run's no longer for it
+    while (cuts.length < n - (catchLine ? 1 : 0) - (heckler ? 1 : 0)) {
       const o = fresh(ORDINARY, p3 + cuts.length * 0.37);
       if (!o) break;
       said.add(o);
@@ -662,7 +668,13 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (catchLine) {
       said.add(catchLine);
       const commit = THOUGHTS[thought].name === 'Commit to the Line';
-      cuts.splice(Math.floor(at * (cuts.length + 1)), 0, { who: 'you', expr: spec.catchExpr, line: catchLine, by: '', catch: true, alt: commit ? commitSays : undefined });
+      const caught: Cut[] = [{ who: 'you', expr: spec.catchExpr, line: catchLine, by: '', catch: true, alt: commit ? commitSays : undefined }];
+      const jab = heckler ? fresh(spec.foils, p2) : null;
+      if (jab) {
+        said.add(jab);
+        caught.unshift({ who: 'you', expr: spec.expr, line: jab, by: '', lead: true });
+      }
+      cuts.splice(Math.floor(at * (cuts.length + 1)), 0, ...caught);
     }
     if (cuts.length < 2) return false;
     const cue = cues[sit];

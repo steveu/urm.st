@@ -25,6 +25,9 @@ export type Cut = {
   run?: number;
   /** The line the carried thought is about */
   catch?: boolean;
+  /** Carrying the Heckler, the jab said straight before the catch: a tap on it is the same
+   *  catch, and the line after goes unsaid */
+  lead?: boolean;
   /** A better line, worked out as it's said (the aim may have changed since) */
   alt?: () => string | null;
   /** On the walk: a moment worth keeping from the hole, for a hold */
@@ -226,7 +229,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     el.classList.toggle('run', c.run != null);
     if (c.run != null) {
       const r = runs.get(c.run);
-      if (r && c.catch) r.offered = true;
+      if (r && (c.catch || c.lead)) r.offered = true;
       setLive(true);
     }
     opts.status(c.who === 'you' ? `You think: ${c.line}` : `${(c.by || BY[c.who]).replace(/^./, (m) => m.toUpperCase())}: ${c.line}`);
@@ -317,7 +320,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       if (!cur || !armed || cur.cut !== armed || cur.cut.run == null || cur.caught >= 0) return false;
       // Going out counts: the press began while it was there
       if (cur.out >= 0 && now - cur.out > OUT_MS + 300) return false;
-      if (!cur.cut.catch) return false;
+      if (!cur.cut.catch && !cur.cut.lead) return false;
       const run = cur.cut.run;
       const r = runs.get(run);
       if (r) r.caught = true;

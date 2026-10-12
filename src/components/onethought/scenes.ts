@@ -4,8 +4,9 @@
 // somewhere in it is a key line, which is the moment the thought's tap means:
 //
 //   The Heckler (tap when you let it show): the heckler is you, in brackets, to yourself,
-//     and it knows where it hurts; your partner gives it something to go on, your caddie
-//     tells you to leave it; the key line is where it gets to you.
+//     once a walk, and it knows where it hurts; your partner gives it something to go
+//     on, your caddie tells you to leave it; the key line is where it gets to you, said
+//     straight after it, and a tap on either catches it.
 //   Commit to the Line (tap as you commit): the caddie frames the next decision, your
 //     partner pushes the other way, you go back and forth; the key line is the pick.
 //   Pins Are a Psyop (tap when you take the boring target): the next flag is tucked, your
@@ -37,6 +38,9 @@ export type Scene = {
   build: Line[] | Record<Branch, Line[]>;
   /** The key line: one, or a choice of them, picked by the round's seed */
   key: Line[];
+  /** The Heckler: the heckle the key line answers, said straight before it wherever it
+   *  falls, and a place to catch it too: a tap on either is the same catch */
+  lead?: Line;
   /** Where in the build the key line may fall, before which of its lines, picked by the
    *  round's seed; after all of them if none. Only places where what's said to it, and
    *  what's left of the build after that, still follow */
@@ -64,15 +68,16 @@ const partner = (face: Face, text: string): Line => ({ who: 'partner', face, tex
 export const SCENES: Record<string, [Scene, Scene, Scene]> = {
   'The Heckler': [
     // To the 12th: the short hole over the water, and the heckler's first go. It's you,
-    // to yourself, so it talks to you as you
+    // to yourself, so it talks to you as you, once a walk, and the key line is where it lands
     {
       open: {
-        trouble: [partner('pleased', 'Into {trouble}. I won’t say a word.'), you('thinking', '(They will, though. You know they will.)')],
-        well: [partner('shocked', 'Where did that come from?'), you('thinking', '(Nowhere. It won’t happen twice.)')],
-        fine: [partner('pleased', 'Steady. Very steady. Bit dull.'), you('thinking', '(Dull. That’s the word they’ll use.)')],
+        trouble: [partner('pleased', 'Into {trouble}. Bad luck. Mostly.')],
+        well: [partner('shocked', 'Where did that come from?')],
+        fine: [partner('pleased', 'Steady. Very steady. Bit dull.')],
       },
-      build: [partner('pleased', 'Short one next, over the water. Don’t think about the water.'), you('thinking', '(…Wind’s got up a bit.)')],
-      keyAt: [1, 2],
+      build: [partner('pleased', 'Short one next, over the water. Don’t worry, nobody’s watching.'), you('thinking', '(…Wind’s got up a bit.)')],
+      keyAt: [1],
+      lead: you('thinking', '(They will, though. You know they will.)'),
       key: [you('thinking', '(…My ears have gone warm.)')],
       caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.')],
       missed: [caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
@@ -81,9 +86,9 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     // and the heckler won't let go of
     {
       open: {
-        trouble: [caddie('normal', 'That’s {trouble}. It happens. Keep walking.'), you('thinking', '(It happens to you. Specifically.)')],
-        well: [caddie('pleased', 'Good hole. Take it.'), you('thinking', '(Lovely. Now the long one. You know what you do on the long one.)')],
-        fine: [caddie('normal', 'Fine. One to go.'), you('thinking', '(One to go. Plenty of time to make a mess of it.)')],
+        trouble: [caddie('normal', 'That’s {trouble}. It happens. Keep walking.'), partner('pleased', 'It does happen. Mostly to you.')],
+        well: [caddie('pleased', 'Good hole. Take it.'), partner('shocked', 'Two in a row? Who are you?')],
+        fine: [caddie('normal', 'Fine. One to go.'), partner('pleased', 'One to go. Plenty of time.')],
       },
       back: {
         caught: partner('pleased', 'You went red on the short hole. Then it passed. Annoying.'),
@@ -91,30 +96,30 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
       },
       build: [
         partner('pleased', 'Last one’s long. Remember last year? The creek? Twice? …Sorry. Sorry.'),
-        you('thinking', '(Twice. And the drop. They all watched the drop.)'),
         caddie('thinking', 'Leave last year where it is.'),
         you('thinking', '(…Light’s going.)'),
       ],
       keyAt: [1, 2],
+      lead: you('thinking', '(Twice. And the drop. They all watched the drop.)'),
       key: [you('thinking', '(…My own partner.)')],
       caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.')],
       missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.')],
     },
-    // To the clubhouse: they'll all be in the bar, and they all saw
+    // To the clubhouse: they'll all be in the bar, and the heckler's sure they all saw
     {
       open: {
-        trouble: [partner('pleased', 'Into {trouble} on the last. That’s the one they’ll remember.'), you('thinking', '(That’s the one you’ll remember. At three in the morning.)'), caddie('normal', 'Everyone finds {trouble}. Walk.')],
-        well: [partner('shocked', 'Well played. Genuinely.'), you('thinking', '(Genuinely. As if it were a surprise. It was a surprise.)'), caddie('pleased', 'Take it. It was earned.')],
-        fine: [partner('pleased', 'Not bad. Not memorable. Not bad.'), you('thinking', '(Not memorable. Put that on the stone.)'), caddie('normal', 'Not bad’s a round. Take it.')],
+        trouble: [partner('pleased', 'Into {trouble} on the last. That’s the one they’ll remember.'), caddie('normal', 'Everyone finds {trouble}. Walk.')],
+        well: [partner('shocked', 'Well played. Genuinely.'), caddie('pleased', 'Take it. It was earned.')],
+        fine: [partner('pleased', 'Not bad. Not memorable. Not bad.'), caddie('normal', 'Not bad’s a round. Take it.')],
       },
       build: [
         partner('normal', 'They’ll all be in the bar after. The four-ball, the lot.'),
-        you('thinking', '(The four-ball. They saw the last. They saw all of it.)'),
         caddie('thinking', 'Nobody saw anything. They were looking for their own balls.'),
+        you('thinking', '(…Cold, now the sun’s gone.)'),
         partner('pleased', 'Someone’ll call you champ. Bound to.'),
-        you('thinking', '(And you’ll hear it the way they don’t mean it.)'),
       ],
-      heron: 2,
+      heron: 1,
+      lead: you('thinking', '(The four-ball. They saw the last. They saw all of it.)'),
       key: [you('thinking', '(Champ. All night, that.)')],
       caught: [partner('pleased', 'Come on, champ. First one’s mine.')],
       missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
@@ -298,11 +303,11 @@ const movedOpen = [
 const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>>>>> = {
   'The Heckler': {
     sound: {
-      trouble: [partner('pleased', 'You took your time over that one.'), you('thinking', '(All that time. Still found {trouble}. Typical.)'), caddie('normal', 'Full routine, and it still found {trouble}. That happens. Walk.')],
+      trouble: [partner('pleased', 'You took your time over that one.'), caddie('normal', 'Full routine, and it still found {trouble}. That happens. Walk.')],
     },
     shaky: {
-      trouble: [partner('pleased', 'You did rush that one. Even I saw.'), you('thinking', '(Couldn’t stand there. Never can.)'), caddie('thinking', 'Something had you hurrying. It wasn’t the course.')],
-      well: [partner('shocked', 'You barely stood over it.'), you('thinking', '(Got away with it. Don’t tell anyone.)'), caddie('thinking', 'It came off. Don’t count on the quick ones.')],
+      trouble: [partner('pleased', 'You did rush that one. Even I saw.'), caddie('thinking', 'Something had you hurrying. It wasn’t the course.')],
+      well: [partner('shocked', 'You barely stood over it.'), caddie('thinking', 'It came off. Don’t count on the quick ones.')],
     },
   },
   'Commit to the Line': {
@@ -332,7 +337,7 @@ const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>
 };
 /** A line on the stage: who, which face, the words, a jolt, whether it's the key line or a
  *  moment to keep, or a hush: nobody speaking, its words only for the status */
-export type Beat = Line & { key?: boolean; moment?: boolean; hush?: boolean };
+export type Beat = Line & { key?: boolean; lead?: boolean; moment?: boolean; hush?: boolean };
 
 /** The walk after the hole just played, for the thought carried: the lines with the key
  *  line among them, and what's said to it if it's caught or let go */
@@ -351,9 +356,11 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const back = sc.back && st.caught.length ? [sc.back[st.caught[0] ? 'caught' : 'missed']] : [];
   const arc: Arc = st.caught.every(Boolean) ? 'all' : st.caught.some(Boolean) ? 'some' : 'none';
   const last = sc.verdict && st.caught.length ? [sc.verdict[arc]] : [];
-  const body: Beat[] = [...build.slice(0, at).map(fill), { ...fill(key), key: true }, ...build.slice(at).map(fill)];
-  // The heron, on its rounds: the argument stops for it, then picks up where it was
-  if (st.heron && sc.heron !== undefined) body.splice(sc.heron + (at < sc.heron ? 1 : 0), 0, { who: 'you', text: 'A heron comes over the path.', hush: true });
+  const pair: Beat[] = [...(sc.lead ? [{ ...fill(sc.lead), lead: true }] : []), { ...fill(key), key: true }];
+  const body: Beat[] = [...build.slice(0, at).map(fill), ...pair, ...build.slice(at).map(fill)];
+  // The heron, on its rounds: the argument stops for it, then picks up where it was. Never
+  // between the heckle and the key line
+  if (st.heron && sc.heron !== undefined) body.splice(sc.heron + (at < sc.heron ? pair.length : 0), 0, { who: 'you', text: 'A heron comes over the path.', hush: true });
   return {
     lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...body, ...last],
     caught: sc.caught.map(fill),
