@@ -261,7 +261,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     const word = label.replace(/\.$/, '').replace(/^./, (m) => m.toUpperCase());
     stampEl.replaceChildren(kind === 'kept' ? letteringEl(word, 1, BRASS_PAL) : letteringEl(`${word}!`, 1, STAMP_PAL));
     if (kind === 'kept') snd.kept();
-    else snd.shout();
+    else snd.shout(label);
     el.classList.remove('out');
     el.classList.add(kind);
     drawFace(cur.cut, 'settled');

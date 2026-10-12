@@ -134,7 +134,9 @@ export function createStage(els: Els, opts: Opts) {
         let n = reduce ? txt.length : Math.max(0, shown);
         if (!reduce) while (n < txt.length && at[n + 1] <= now - t0) n++;
         if (n !== shown) {
-          if (n > shown && n % 2 === 0 && /\S/.test(txt.charAt(n - 1))) snd.blip(b.who);
+          // Your own thoughts blip half as often and softer: said to yourself, not aloud
+          const inner = isThought(b);
+          if (n > shown && n % (inner ? 4 : 2) === 0 && /\S/.test(txt.charAt(n - 1))) snd.blip(b.who, inner);
           shown = n;
           els.line.textContent = txt.slice(0, n);
         }
@@ -178,7 +180,7 @@ export function createStage(els: Els, opts: Opts) {
         flashK = 1;
         shakeT0 = now;
       }
-      snd.shout();
+      snd.shout(word);
       opts.onKey(true);
       return true;
     },
