@@ -13,7 +13,7 @@ import * as S from './sim';
 import type { Vec, Ball, Shot, Situation, Ctx, Sample } from './sim';
 import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
-import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, arcAt, crownOver, PLATE, ROPE, OVERVIEW_VIEW, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
+import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, arcAt, crownOver, PLATE, ROPE, OVERVIEW_VIEW, LIGHT, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
@@ -221,10 +221,17 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // straight away when the view changes (it dithers in); eased when only the place does
   function show(n: number, animate: boolean) {
     const changed = board.setView(n ? holeView(n, lw, LH) : OVERVIEW_VIEW, gt, animate && !reduce);
-    board.setGround(groundMode(), n, gt, animate && !reduce);
+    board.setGround(groundMode(), n, gt, animate && !reduce, lightFor(n));
     if (n) return;
     const [x, y] = placeFor();
     board.place(x, y, animate && !reduce && !changed ? 800 : 0, gt);
+  }
+
+  // The light the board's in: the hole's own in a round; the whole table before one in the
+  // 11th's, and after it, on the record, in the 13th's, as the round ended
+  function lightFor(n: number) {
+    if (n) return LIGHT.holes[n - 1];
+    return stage() === 'record' ? LIGHT.holes[2] : LIGHT.holes[0];
   }
 
   function groundMode(): GroundMode {
@@ -1867,7 +1874,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // The walking golfer stays out of the frame while a portrait is up, or you'd be in
     // two places at once. In a hush they stop and watch
     const hush = walkStage.hushT0;
-    const f = { u, n: hole < 3 ? hole + 1 : 0, walking: !reduce && cutEnd < 0 && hush < 0, bow: walkBow, cloud: null, top: false, golfer: !sp, heron: hush >= 0 ? gt - hush : -1 };
+    const f = { u, n: hole < 3 ? hole + 1 : 0, hour: LIGHT.walks[hole - 1], walking: !reduce && cutEnd < 0 && hush < 0, bow: walkBow, cloud: null, top: false, golfer: !sp, heron: hush >= 0 ? gt - hush : -1 };
     const [shx, shy] = walkStage.shake(gt);
     const flash = walkStage.flash(gt);
     const shout = walkStage.shout(gt);
