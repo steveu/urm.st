@@ -17,7 +17,7 @@ import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, li
 import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
-import { walkScene, type Went, type MomentKind, type Trouble, type Beat } from './scenes';
+import { walkScene, type Went, type MomentKind, type Trouble, type Beat, type Did } from './scenes';
 import { portraitFrame, galleryFigures, headBox, W as FIG_W, H as FIG_H, type Face as CastFace } from './cast';
 import { drawShout, SHOUT_HOLD, type ShoutAnchor } from './lettering';
 import { createStage } from './stage';
@@ -310,10 +310,13 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let walkBow = false;
   let walkU = 0;
   let nextTee: 'none' | 'caught' | 'follow' | 'kept' = 'none';
-  // What happened on each hole, for the walk after it: worth keeping, trouble, the
-  // targets swung at
+  // What happened on each hole, for the walk after it: worth keeping, trouble, and what
+  // was done over the ball (the targets swung at, the clubs, doubt, a hurry, a line
+  // decided with a tap and then moved off)
   let feats: Set<MomentKind>[] = [new Set(), new Set(), new Set()];
   let trouble: Set<Trouble>[] = [new Set(), new Set(), new Set()];
+  const noDid = (): Did => ({ swung: [], doubt: false, hurried: false, moved: false });
+  let did: Did[] = [noDid(), noDid(), noDid()];
   // The line up when the Flic went down: a tap is held against it when it's let go
   let armed: Cut | Beat | null = null;
   const walk = createWalk();
@@ -528,6 +531,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         onDoubt();
       }
       aimSets++;
+      // Heard by the walk too, which may say so. Never by the shot
+      if (lineWatch) did[hole - 1].moved = true;
       lineWatch?.();
       lineWatch = null;
       inkT0 = -1;
@@ -797,6 +802,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     runHole.clear();
     feats = [new Set(), new Set(), new Set()];
     trouble = [new Set(), new Set(), new Set()];
+    did = [noDid(), noDid(), noDid()];
     nextTee = 'none';
     strokes = [0, 0, 0];
     heckledEver = false;
@@ -1001,6 +1007,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     cloud = null;
     endForSwing();
     diff = S.difficulty(ball, sit, ctx);
+    // Kept for the walk: what it was swung at, with what, and how
+    const dd = did[hole - 1];
+    dd.swung.push({ pick: chips[onChip]?.name ?? null, club });
+    if (doubt) dd.doubt = true;
+    if (hurried) dd.hurried = true;
     if (hurried) {
       pips.forEach((p, i) => p.classList.toggle('skipped', i >= lit));
       pipsEl.classList.add('rushed');
@@ -1490,7 +1501,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     pendingRun = null;
     cuedRun = null;
     cloud = null;
-    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1] }, voiceRng);
+    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1] }, voiceRng);
     walkT0 = -1;
     root.dataset.walk = '';
     setMode('between');

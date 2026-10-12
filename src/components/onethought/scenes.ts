@@ -13,7 +13,9 @@
 //
 // Each scene opens on how the hole just played went (trouble, well, or fine), may carry a
 // moment worth keeping from it (a hold keeps it), and closes on whether the key line was
-// caught. Lines in brackets are thought, not said. {trouble} is the worst of the hole:
+// caught. The opening also knows what you did over the ball, where the thought has a view
+// of it: a sound call that didn't come off isn't a bad one, and a shaky one that did isn't
+// a good one (CALLED, below). Lines in brackets are thought, not said. {trouble} is the worst of the hole:
 // the water, the trees, the bunker, the great beyond. Never a number; nothing here says
 // what to press; nothing here reaches the sim.
 
@@ -244,8 +246,64 @@ export const MOMENT: Record<MomentKind, Line> = {
 
 const TROUBLE_WORDS: Record<Exclude<Trouble, 'rough'>, string> = { water: 'the water', out: 'the great beyond', trees: 'the trees', sand: 'the bunker' };
 
+/** What was done over the ball on the hole: each full swing's target by name (null if it
+ *  was on none) and club, a line changed after stepping in, a swing let go before the
+ *  routine was through, a line decided with a tap and then moved off */
+export type Did = { swung: { pick: string | null; club: string }[]; doubt: boolean; hurried: boolean; moved: boolean };
 /** The hole just played, as a scene needs it */
-export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind> };
+export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind>; did: Did };
+
+// How the call over the ball looked to the thought carried: sound, shaky, or, carrying
+// Commit to the Line, a line decided out loud and then left. None if the thought had no
+// call to judge on that hole (no flag to go at or leave, say)
+type Call = 'sound' | 'shaky' | 'moved';
+const callOf = (thought: string, d: Did): Call | null => {
+  if (thought === 'Commit to the Line') return d.moved ? 'moved' : d.doubt ? 'shaky' : 'sound';
+  if (thought === 'Pins Are a Psyop') {
+    const picks = d.swung.map((s) => s.pick);
+    return picks.includes('flag') ? 'shaky' : picks.includes('fat of the green') ? 'sound' : null;
+  }
+  return d.swung.length ? (d.hurried ? 'shaky' : 'sound') : null;
+};
+
+// The opening, where the call and the result disagree, or where a scene's own opening
+// would say something that didn't happen. Any walk of the round; where nothing here
+// fits, the scene opens as written
+const movedOpen = [
+  partner('pleased', 'You said “that one”. Then you hit the other one.'),
+  you('thinking', 'I’d decided. Then I hadn’t.'),
+  caddie('normal', 'Deciding’s the easy half. Staying decided is the job.'),
+];
+const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>>>>> = {
+  'The Heckler': {
+    sound: {
+      trouble: [rope('Took your time over that! For all the good it did!'), partner('pleased', 'Ha. You did take your time, mind.'), caddie('normal', 'Full routine, and it still found {trouble}. That happens. Walk.')],
+    },
+    shaky: {
+      trouble: [rope('Quick, weren’t you! Somewhere to be?'), partner('pleased', 'You did rush that one. Even I saw.'), caddie('thinking', 'They had you hurrying. That’s their whole game.')],
+      well: [rope('Quick and lucky! Try it slowly!'), partner('shocked', 'You barely stood over it.'), caddie('thinking', 'It came off. Don’t count on the quick ones.')],
+    },
+  },
+  'Commit to the Line': {
+    sound: {
+      trouble: [partner('pleased', 'Picked it, hit it, and straight into {trouble}.'), you('thinking', 'I picked it. It didn’t come off.'), caddie('normal', 'Then it was the right way to get it wrong.')],
+      fine: [partner('normal', 'Nothing special, that.'), you('normal', 'I picked a line and hit it.'), caddie('pleased', 'Then it was a good hole, whatever it looked like.')],
+    },
+    shaky: {
+      well: [partner('shocked', 'Changed your mind over it and it still came off.'), you('pleased', 'The second line was the right one.'), caddie('thinking', 'Or the first was, and you got away with it.')],
+    },
+    moved: { trouble: movedOpen, well: movedOpen, fine: movedOpen },
+  },
+  'Pins Are a Psyop': {
+    sound: {
+      trouble: [partner('pleased', 'All that boring and you still found {trouble}.'), you('thinking', 'I picked the middle. It didn’t come off.'), caddie('normal', 'Right target. Wrong bounce. Same target next time.')],
+    },
+    shaky: {
+      well: [partner('shocked', 'You went straight at it! And it came off!'), you('pleased', 'It did, didn’t it.'), caddie('thinking', 'It did. Don’t make a habit of it.')],
+      fine: [partner('pleased', 'You went at that flag with me. Welcome aboard.'), you('thinking', 'Just the once.'), caddie('normal', 'That’s what they all say.')],
+    },
+  },
+};
 /** A line on the stage: who, which face, the words, a jolt, whether it's the key line or a
  *  moment to keep */
 export type Beat = Line & { key?: boolean; moment?: boolean };
@@ -260,8 +318,10 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const mk = (['chip', 'putt', 'escape', 'pure'] as const).find((k) => st.feats.has(k)) ?? (st.went === 'well' ? 'tidy' : null);
   const key = sc.key[Math.floor(r() * sc.key.length)];
   const build = Array.isArray(sc.build) ? sc.build : sc.build[branch];
+  const call = callOf(thought, st.did);
+  const open = (call && CALLED[thought]?.[call]?.[branch]) || sc.open[branch];
   return {
-    lead: [...sc.open[branch].map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...build.map(fill), { ...fill(key), key: true }],
+    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...build.map(fill), { ...fill(key), key: true }],
     caught: sc.caught.map(fill),
     missed: sc.missed.map(fill),
   };
