@@ -350,9 +350,9 @@ function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: s
 // The three of them
 
 const HEAD: Record<Actor, Head> = {
-  you: { cx: 62, cy: 50, rx: 18, ry: 21, eyeY: 53, nearX: 55, farX: 70, mouthX: 67, mouthY: 64 },
-  caddie: { cx: 62, cy: 51, rx: 18, ry: 21, eyeY: 55, nearX: 55, farX: 70, mouthX: 67, mouthY: 66 },
-  partner: { cx: 62, cy: 51, rx: 20, ry: 21, eyeY: 55, nearX: 54, farX: 70, mouthX: 68, mouthY: 68 },
+  you: { cx: 62, cy: 50, rx: 18, ry: 21, eyeY: 51, nearX: 57, farX: 70, mouthX: 67, mouthY: 64 },
+  caddie: { cx: 62, cy: 51, rx: 18, ry: 21, eyeY: 53, nearX: 57, farX: 70, mouthX: 67, mouthY: 66 },
+  partner: { cx: 62, cy: 51, rx: 20, ry: 21, eyeY: 53, nearX: 56, farX: 70, mouthX: 68, mouthY: 68 },
 };
 // The head, tilted by the pose and its frame
 function headAt(who: Actor, pose: Pose, frame: 0 | 1): Head {
