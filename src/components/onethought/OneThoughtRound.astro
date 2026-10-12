@@ -423,14 +423,27 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       held = undefined;
       press(false, tryCatch());
     };
-    flic.addEventListener('pointerup', release);
-    flic.addEventListener('pointercancel', () => {
-      fromPointer = false;
+    // Let go without a tap. The armed line can stay: the next press arms its own
+    const cancel = () => {
       setDown(false);
       clearTimeout(held);
       held = undefined;
+    };
+    flic.addEventListener('pointerup', release);
+    flic.addEventListener('pointercancel', () => {
+      fromPointer = false;
+      cancel();
     });
-    flic.addEventListener('pointerleave', release);
+    // Sliding off the button is a change of mind, not a tap. A touch only leaves after it
+    // lifts, by when it's already counted. The mouse can come back and lift on the button,
+    // which still clicks, so the flag stays up until that lift, wherever it lands
+    flic.addEventListener('pointerleave', () => {
+      if (!fromPointer || !down) return;
+      cancel();
+      window.addEventListener('pointerup', () => window.setTimeout(() => (fromPointer = false), 0), {
+        once: true,
+      });
+    });
     flic.addEventListener('contextmenu', (e) => e.preventDefault());
     flic.addEventListener('click', () => {
       if (fromPointer) {
