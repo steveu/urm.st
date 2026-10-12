@@ -51,6 +51,41 @@ export const CLUBS: Record<FullClub, { tag: string; max: number; errDeg: number;
  *  it comes from where you aimed. The release only adds error. */
 export const SWING = { top: 1100, centre: 1000, end: 1450, click: 200, good: 120, pure: 40, fat: 320 } as const;
 
+/** The swing as long as the shot: SWING above is the yardstick, and a swing is that, scaled
+ *  so it takes TOP ms to get to the top. The sweet spot sits at the same share of it, and
+ *  the windows scale with it, so the meter reads the same at any length; the club's WINDOW
+ *  then loosens or tightens them a touch. CLICK is a press too quick to be a swing. */
+export type Tempo = { top: number; centre: number; end: number; click: number; good: number; pure: number; fat: number };
+// To the top on a full swing, by club, in ms. A shot asks for its share of the club's
+// reach, and the swing shrinks towards a chip as the share does, never below TEMPO_MIN
+export const TEMPO_FULL: Record<FullClub, number> = { driver: 1300, wood: 1220, iron: 1080, wedge: 900 };
+export const TEMPO_MIN = 420;
+// How much of the full swing even the shortest shot keeps, before TEMPO_MIN
+const TEMPO_FLOOR = 0.4;
+// The windows by club: the driver's a touch tighter, the wedge's a touch wider
+export const WINDOW: Record<FullClub, number> = { driver: 0.9, wood: 0.95, iron: 1, wedge: 1.1 };
+
+/** The swing for a club and a shot asking `share` of what the club goes at most */
+export function tempo(club: FullClub, share: number): Tempo {
+  const u = Math.max(0, Math.min(1, share));
+  const top = Math.max(TEMPO_MIN, TEMPO_FULL[club] * (TEMPO_FLOOR + (1 - TEMPO_FLOOR) * u));
+  const s = top / SWING.top;
+  const w = s * WINDOW[club];
+  const centre = SWING.centre * s;
+  return {
+    top,
+    centre,
+    end: SWING.end * s,
+    // Never more than under half the way to the sweet spot, so a chip's still a swing
+    click: Math.min(SWING.click, 0.45 * centre),
+    good: SWING.good * w,
+    pure: SWING.pure * w,
+    fat: SWING.fat * w,
+  };
+}
+/** The yardstick swing, as a tempo: the full swing as it was before swings had lengths */
+export const TEMPO_STD: Tempo = { ...SWING };
+
 // Tuning, checked against bots that let go with human jitter (scratchpad simcheck).
 // Degrees of plain scatter on a full shot, by strike: a pure one goes where it's aimed
 const LATERAL_SD: Record<Grade, number> = { pure: 0.8, good: 2.4, early: 3.2, late: 3.2, fat: 3.5, flail: 3 };
@@ -326,7 +361,7 @@ export type Ctx = { hurried: boolean; breath: boolean; afterHeckle: boolean; dou
 export type Situation = { nervy: boolean; approach: boolean; lines: [Line, Line] | null; caddie: string | null };
 export type Grade = 'pure' | 'good' | 'early' | 'late' | 'fat' | 'flail';
 /** errMs: release minus the sweet spot; null when it let go by itself at the end */
-export type Swing = { club: FullClub; aim: Vec; errMs: number | null; wind?: Wind };
+export type Swing = { club: FullClub; aim: Vec; errMs: number | null; wind?: Wind; tempo?: Tempo };
 export type Sample = { p: Vec; z: number; s: number };
 export type ShotEvent =
   | 'pure' | 'duff' | 'flyer' | 'treeHit' | 'water' | 'out' | 'drop' | 'bunker' | 'stuckInBunker'
@@ -538,6 +573,11 @@ export function carryFor(b: Ball, club: FullClub, aim: Vec) {
   return Math.min(dist(b.at, aim) / (1 + roll), reach(b, club));
 }
 
+/** The swing this shot asks for: its carry as a share of the most the club goes */
+export function tempoFor(b: Ball, club: FullClub, aim: Vec): Tempo {
+  return tempo(club, carryFor(b, club, aim) / CLUBS[club].max);
+}
+
 const GRADES: Record<Grade, { carry: number; apex: number; roll: number }> = {
   pure: { carry: 1, apex: 1, roll: 1 },
   good: { carry: 1, apex: 1, roll: 1 },
@@ -550,9 +590,10 @@ const GRADES: Record<Grade, { carry: number; apex: number; roll: number }> = {
 /** Release timing to a grade, and which way it goes. Early is pulled: it starts left and
  *  flies straight. Late is hooked: it starts on line and turns left. Both by up to `mag`
  *  of the club's error, and never at all for a pure one */
-export function grade(errMs: number | null, k: number): { grade: Grade; start: number; curve: number } {
+export function grade(errMs: number | null, k: number, t: Tempo = TEMPO_STD): { grade: Grade; start: number; curve: number } {
   if (errMs == null) return { grade: 'flail', start: 0, curve: 0 };
-  const e = errMs * k;
+  // Measured against this swing's windows, so a miss is the same share of any swing
+  const e = (errMs * k * SWING.good) / t.good;
   const a = Math.abs(e);
   const g: Grade = a <= SWING.pure ? 'pure' : a <= SWING.good ? 'good' : e < -SWING.fat ? 'fat' : e < 0 ? 'early' : 'late';
   const mag = a <= SWING.pure ? 0 : a <= SWING.good ? (0.25 * (a - SWING.pure)) / (SWING.good - SWING.pure) : Math.min(2, 0.25 + (a - SWING.good) / 100);
@@ -711,7 +752,7 @@ export function strike(b: Ball, sw: Swing, k: number, seed: number, spread = 1):
   const nFlail = normal(r);
 
   const club = CLUBS[sw.club];
-  const { grade: g, start, curve } = grade(sw.errMs, k);
+  const { grade: g, start, curve } = grade(sw.errMs, k, sw.tempo);
   const G = GRADES[g];
   const events: ShotEvent[] = [];
   if (g === 'pure') events.push('pure');

@@ -45,7 +45,19 @@ const PAR_WORD: Record<number, string> = { 3: 'three', 4: 'four', 5: 'five' };
 const OVER: ReadonlySet<Mode> = new Set(['aim', 'swing', 'flight', 'putts']);
 // How the status line names a target line
 const LINE_WORDS: Record<string, string> = { 'lay up': 'the lay-up', 'take it on': 'the carry', 'the corner': 'the corner', 'out right': 'out to the right' };
-const SW = S.SWING;
+
+// How far back the swing goes at the top of the meter, by how long it is: a chip's
+// (TEMPO_MIN) about halfway, anything as long as a full wedge or more all the way
+const backswing = (t: S.Tempo) => clamp(0.5 + (0.5 * (t.top - S.TEMPO_MIN)) / (S.TEMPO_FULL.wedge - S.TEMPO_MIN), 0.5, 1);
+// The backswing at `p` of the way to the top: over the ball, the takeaway, halfway, the top
+function backPose(p: number): Pose {
+  const at = [0, 0.32, 0.66, 1];
+  const keys = [POSES.addr, POSES.take, POSES.half, POSES.top];
+  if (p >= 1) return lerpPose(POSES.top, POSES.over, clamp((p - 1) / 0.25, 0, 1));
+  const i = p >= at[2] ? 2 : p >= at[1] ? 1 : 0;
+  const u = (Math.max(0, p) - at[i]) / (at[i + 1] - at[i]);
+  return lerpPose(keys[i], keys[i + 1], i === 0 ? u * u : u);
+}
 const PIP_MS = 400;
 const BREATH_MS = 800;
 // The board's height in its own pixels, whatever the scale
@@ -384,6 +396,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // The routine as it stood when the swing began: the hold itself is not a beat of it
   let swingLit = 0;
   let relMs = -1;
+  // The swing in hand, as long as the shot it's for: set on the press, kept to the release
+  let tmp: S.Tempo = S.TEMPO_STD;
   let shot: Shot | null = null;
   // How high the shot in hand is drawn against the sim's heights (pixel.ts)
   let lift = 1;
@@ -507,15 +521,30 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // The meter: one bar, from nothing to the top and on into the overswing. The sweet spot
   // is marked near the top: gold for pure, pale for good. It narrows with the nerves
 
-  const pct = (ms: number) => `${((clamp(ms, 0, SW.end) / SW.end) * 100).toFixed(2)}%`;
+  // The bar is the whole swing, however long: a chip's climbs it faster
+  const pct = (ms: number, t: S.Tempo) => `${((clamp(ms, 0, t.end) / t.end) * 100).toFixed(2)}%`;
   let mK = 0;
-  function paintBands(k: number) {
-    if (k === mK) return;
+  let mTempo: S.Tempo | null = null;
+  function paintBands(k: number, t: S.Tempo) {
+    if (k === mK && t === mTempo) return;
     mK = k;
-    goodEl.style.left = pct(SW.centre - SW.good / k);
-    goodEl.style.width = `${(((2 * SW.good) / k / SW.end) * 100).toFixed(2)}%`;
-    pureEl.style.left = pct(SW.centre - SW.pure / k);
-    pureEl.style.width = `${(((2 * SW.pure) / k / SW.end) * 100).toFixed(2)}%`;
+    mTempo = t;
+    goodEl.style.left = pct(t.centre - t.good / k, t);
+    goodEl.style.width = `${(((2 * t.good) / k / t.end) * 100).toFixed(2)}%`;
+    pureEl.style.left = pct(t.centre - t.pure / k, t);
+    pureEl.style.width = `${(((2 * t.pure) / k / t.end) * 100).toFixed(2)}%`;
+  }
+  // The swing the shot lined up asks for; in the swing and after it, the one taken
+  let tAim: S.Tempo = S.TEMPO_STD;
+  let tAimKey = '';
+  function tempoNow(): S.Tempo {
+    if (mode !== 'aim' || isPutt()) return tmp;
+    const key = `${club} ${aim[0]} ${aim[1]} ${ball.at[0]} ${ball.at[1]}`;
+    if (key !== tAimKey) {
+      tAimKey = key;
+      tAim = S.tempoFor(ball, club, aim);
+    }
+    return tAim;
   }
 
   // ---------------------------------------------------------------------------------
@@ -996,6 +1025,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (!stepped) return;
     swingCleared = false;
     swingLit = pipsLit();
+    tmp = S.tempoFor(ball, club, aim);
     setMode('swing');
     swingAt = nowG();
     relMs = -1;
@@ -1009,7 +1039,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (mode !== 'swing') return;
     const held = nowG() - swingAt;
     // Too short to be a swing: still over the ball
-    if (!auto && held < SW.click) {
+    if (!auto && held < tmp.click) {
       setMode('aim');
       pose = POSES.addr;
       hint();
@@ -1049,10 +1079,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     }
     phase('shot', 0, () => 0.5);
     swings++;
-    relMs = Math.min(held, SW.end);
-    const err = auto || held >= SW.end ? null : held - SW.centre;
+    relMs = Math.min(held, tmp.end);
+    const err = auto || held >= tmp.end ? null : held - tmp.centre;
     patterns.push(S.pattern(ball, club as S.FullClub, aim, diff.spread));
-    shot = S.strike(ball, { club, aim, errMs: err, wind }, diff.k, S.shotSeed(round, hole, swings), diff.spread);
+    shot = S.strike(ball, { club, aim, errMs: err, wind, tempo: tmp }, diff.k, S.shotSeed(round, hole, swings), diff.spread);
     const g = shot.grade;
     lift = liftFor(club as S.FullClub);
     snd.whoosh();
@@ -1622,19 +1652,19 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       }
       case 'swing': {
         // The backswing, driven by the hold: low and slow away, the wrists setting, wound
-        // up at the top as the meter gets there, then on past it into the overswing. With
-        // less motion it steps: over the ball, halfway, the top
+        // up as the meter gets to the top, then on past it into the overswing. As long as
+        // the shot: a chip's goes back about halfway, a full one all the way. With less
+        // motion it steps: over the ball, halfway, the top
         const held = gt - swingAt;
-        if (held >= SW.click) endForSwing();
-        const s = Math.max(0, held) / SW.top;
-        if (s <= 1) {
-          const at = [0, 0.32, 0.66, 1];
-          const keys = [POSES.addr, POSES.take, POSES.half, POSES.top];
-          const i = s >= at[2] ? 2 : s >= at[1] ? 1 : 0;
-          const u = (s - at[i]) / (at[i + 1] - at[i]);
-          pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 ? POSES.half : POSES.top) : lerpPose(keys[i], keys[i + 1], i === 0 ? u * u : u);
-        } else pose = reduce ? POSES.top : lerpPose(POSES.top, POSES.over, clamp((held - SW.top) / (SW.end - SW.top), 0, 1) ** 1.5);
-        if (held >= SW.end) swingEnd(true);
+        if (held >= tmp.click) endForSwing();
+        const amp = backswing(tmp);
+        const s = Math.max(0, held) / tmp.top;
+        if (s <= 1) pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 || amp < 0.9 ? POSES.half : POSES.top) : backPose(s * amp);
+        else {
+          const u = clamp((held - tmp.top) / (tmp.end - tmp.top), 0, 1) ** 1.5;
+          pose = reduce ? (amp < 0.9 ? POSES.half : POSES.top) : amp >= 1 ? lerpPose(POSES.top, POSES.over, u) : backPose(amp + (1.25 - amp) * u * 0.5);
+        }
+        if (held >= tmp.end) swingEnd(true);
         break;
       }
       case 'flight':
@@ -1940,14 +1970,15 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     meterEl.classList.toggle('dim', !(mode === 'aim' || mode === 'swing'));
     const nervy = sit.nervy && !breath;
     const k = mode === 'aim' || mode === 'swing' ? liveDiff().k : diff.k;
-    paintBands(k);
+    const t = tempoNow();
+    paintBands(k, t);
     meterEl.classList.toggle('jag', nervy && mode === 'swing' && !reduce);
     let held = 0;
     if (mode === 'swing') held = gt - swingAt;
     else if (live && relMs >= 0) held = relMs;
-    fillEl.style.width = pct(held);
-    fillEl.classList.toggle('over', held > SW.top);
-    markEl.style.left = pct(relMs);
+    fillEl.style.width = pct(held, t);
+    fillEl.classList.toggle('over', held > t.top);
+    markEl.style.left = pct(relMs, t);
     markEl.classList.toggle('on', relMs >= 0 && mode !== 'swing');
   }
 
