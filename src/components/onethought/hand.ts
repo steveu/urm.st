@@ -491,11 +491,11 @@ const FIGS: Record<Actor, Fig> = {
   },
 };
 
-/** The figures are drawn at the board's own pixel, on a plate cut at the collar: the box at
- *  the foot of the frame covers the rest */
-const SCALE = 1;
+/** The figures are drawn at twice the board's pixel, big enough for a face to carry the
+ *  scene, on a plate the box at the foot of the frame cuts at the chest */
+const SCALE = 2;
 const GRID_W = 80;
-const GRID_H = 90;
+const GRID_H = 60;
 export const PLATE_W = GRID_W * SCALE;
 export const PLATE_H = GRID_H * SCALE;
 /** Where the head sits against the body */

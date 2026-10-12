@@ -1729,8 +1729,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // foot covers the waist, whatever the width. Gives back where the speaker's head is,
   // for the shout to sit beside
   const dialogueEl = q('[data-dialogue]');
-  // How far up from the plate's foot the box cuts a portrait: under the collar
-  const CHEST = 42;
+  // How far up from the plate's foot the box cuts a portrait, in the plate's pixels: across
+  // the chest
+  const CHEST = 20;
   function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number }): ShoutAnchor | null {
     // The walk dimmed to dusk behind the speaker
     g.fillStyle = 'rgba(40,30,52,0.56)';
