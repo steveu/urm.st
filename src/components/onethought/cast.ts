@@ -420,11 +420,12 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
   ell(p, bx, by, 18, 17, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) + 1 && hash(x, y, 23) > 0.62 });
   ell(p, bx, by, 16, 15, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) && (y > beardTop(x) + 1 || hash(x, y, 29) > 0.3) });
   ear(p, h);
-  // The lips, bare in the beard, then the moustache over the top one, lifting a pixel as
-  // the mouth opens wide
+  // The lips, bare in the beard, then the moustache over the top one, hung from under the
+  // nose, lifting a pixel as the mouth opens wide
   ell(p, mx, my + 1, 7, 3.5, 'skin', { base: 0.5 });
   const lift = mouth === 2 ? 1 : 0;
-  poly(p, [[mx - 7, my - 6 - lift], [mx - 2, my - 8 - lift], [mx + 1, my - 8 - lift], [mx + 4, my - 6 - lift], [mx + 6, my - 2 - lift], [mx + 4, my - 2 - lift], [mx + 2, my - 4 - lift], [mx, my - 4 - lift], [mx - 4, my - 4 - lift], [mx - 8, my - 2 - lift], [mx - 11, my - 2 - lift]], 'beard', { tex: grain, base: 0.62 });
+  const px = h.cx + h.rx - 1;
+  poly(p, [[px + 2, my - 7 - lift], [px - 3, my - 8 - lift], [px - 9, my - 7 - lift], [px - 12, my - 4 - lift], [px - 13, my - 1 - lift], [px - 10, my - 2 - lift], [px - 4, my - 2 - lift], [px, my - 2 - lift], [px + 2, my - 5 - lift]], 'beard', { tex: grain, base: 0.62 });
   // The nose, over the moustache's top edge, or the beard swallows it
   nose(p, { ...h, cy: h.cy - 2 });
   // The wool hat: a dome and a ribbed band turned up
@@ -454,11 +455,12 @@ function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth
   poly(p, [[h.cx - 19, h.cy - 14], [h.cx + 17, h.cy - 14], [h.cx + 17, h.cy - 11], [h.cx - 19, h.cy - 11]], 'bucketBand', { base: 0.5 });
   ell(p, h.cx - 1, h.cy - 10, 29, 5, 'bucket', { tex: weave, base: 0.5, keep: (_x, y) => y >= h.cy - 12 });
   tint(p, (x, y) => y >= h.cy - 6 && y <= h.cy - 3 && x > h.cx - 24 && x < h.cx + 28, -0.35, ['skin', 'ginger']);
-  // The moustache: full under the nose, tapering out and down at the ends, lifting a
-  // pixel as the mouth opens wide
+  // The moustache: hung from under the nose, its near side sweeping back across the lip
+  // and down at the end, lifting a pixel as the mouth opens wide
   const mx = h.mouthX;
   const my = h.mouthY - (mouth === 2 ? 1 : 0);
-  poly(p, [[mx - 8, my - 7], [mx - 2, my - 9], [mx + 1, my - 9], [mx + 4, my - 7], [mx + 6, my - 2], [mx + 5, my - 1], [mx + 2, my - 4], [mx, my - 4], [mx - 5, my - 4], [mx - 11, my - 1], [mx - 14, my - 2]], 'ginger', { tex: grain, base: 0.55 });
+  const px = h.cx + h.rx - 1;
+  poly(p, [[px + 2, my - 7], [px - 4, my - 8], [px - 10, my - 7], [px - 15, my - 4], [px - 17, my - 1], [px - 15, my], [px - 11, my - 3], [px - 4, my - 2], [px, my - 2], [px + 2, my - 4]], 'ginger', { tex: grain, base: 0.55 });
   face(p, h, f, blink, mouth, MATS.ginger.tones[1], { thick: 3, lip: true });
   return h;
 }
