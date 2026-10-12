@@ -51,40 +51,28 @@ export const CLUBS: Record<FullClub, { tag: string; max: number; errDeg: number;
  *  it comes from where you aimed. The release only adds error. */
 export const SWING = { top: 1100, centre: 1000, end: 1450, click: 200, good: 120, pure: 40, fat: 320 } as const;
 
-/** The swing as long as the shot: SWING above is the yardstick, and a swing is that, scaled
- *  so it takes TOP ms to get to the top. The sweet spot sits at the same share of it, and
- *  the windows scale with it, so the meter reads the same at any length; the club's WINDOW
- *  then loosens or tightens them a touch. CLICK is a press too quick to be a swing. */
-export type Tempo = { top: number; centre: number; end: number; click: number; good: number; pure: number; fat: number };
-// To the top on a full swing, by club, in ms. A shot asks for its share of the club's
-// reach, and the swing shrinks towards a chip as the share does, never below TEMPO_MIN
-export const TEMPO_FULL: Record<FullClub, number> = { driver: 1300, wood: 1220, iron: 1080, wedge: 900 };
-export const TEMPO_MIN = 420;
-// How much of the full swing even the shortest shot keeps, before TEMPO_MIN
-const TEMPO_FLOOR = 0.4;
-// The windows by club: the driver's a touch tighter, the wedge's a touch wider
+/** The swing for a shot: always SWING's timing, the same pace for every club, so the
+ *  meter reads the same whatever's in your hands. What changes with the club is the
+ *  windows, the driver's a touch tighter, the wedge's a touch wider; and with the shot,
+ *  how far back the swing goes (BACK, 0.5 to 1), a chip about halfway, a full wedge or
+ *  more all the way. CLICK is a press too quick to be a swing. */
+export type Tempo = { top: number; centre: number; end: number; click: number; good: number; pure: number; fat: number; back: number };
+// The windows by club
 export const WINDOW: Record<FullClub, number> = { driver: 0.9, wood: 0.95, iron: 1, wedge: 1.1 };
 
-/** The swing for a club and a shot asking `share` of what the club goes at most */
-export function tempo(club: FullClub, share: number): Tempo {
-  const u = Math.max(0, Math.min(1, share));
-  const top = Math.max(TEMPO_MIN, TEMPO_FULL[club] * (TEMPO_FLOOR + (1 - TEMPO_FLOOR) * u));
-  const s = top / SWING.top;
-  const w = s * WINDOW[club];
-  const centre = SWING.centre * s;
+/** The swing for a club and a shot carrying `carry` */
+export function tempo(club: FullClub, carry: number): Tempo {
+  const w = WINDOW[club];
   return {
-    top,
-    centre,
-    end: SWING.end * s,
-    // Never more than under half the way to the sweet spot, so a chip's still a swing
-    click: Math.min(SWING.click, 0.45 * centre),
+    ...SWING,
     good: SWING.good * w,
     pure: SWING.pure * w,
     fat: SWING.fat * w,
+    back: 0.5 + 0.5 * Math.max(0, Math.min(1, carry / CLUBS.wedge.max)),
   };
 }
 /** The yardstick swing, as a tempo: the full swing as it was before swings had lengths */
-export const TEMPO_STD: Tempo = { ...SWING };
+export const TEMPO_STD: Tempo = { ...SWING, back: 1 };
 
 // Tuning, checked against bots that let go with human jitter (scratchpad simcheck).
 // Degrees of plain scatter on a full shot, by strike: a pure one goes where it's aimed, and
@@ -604,9 +592,9 @@ export function carryFor(b: Ball, club: FullClub, aim: Vec) {
   return Math.min(dist(b.at, aim) / (1 + roll), reach(b, club));
 }
 
-/** The swing this shot asks for: its carry as a share of the most the club goes */
+/** The swing this shot asks for */
 export function tempoFor(b: Ball, club: FullClub, aim: Vec): Tempo {
-  return tempo(club, carryFor(b, club, aim) / CLUBS[club].max);
+  return tempo(club, carryFor(b, club, aim));
 }
 
 const GRADES: Record<Grade, { carry: number; apex: number; roll: number }> = {

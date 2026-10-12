@@ -46,9 +46,6 @@ const OVER: ReadonlySet<Mode> = new Set(['aim', 'swing', 'flight', 'putts']);
 // How the status line names a target line
 const LINE_WORDS: Record<string, string> = { 'lay up': 'the lay-up', 'take it on': 'the carry', 'the corner': 'the corner', 'out right': 'out to the right' };
 
-// How far back the swing goes at the top of the meter, by how long it is: a chip's
-// (TEMPO_MIN) about halfway, anything as long as a full wedge or more all the way
-const backswing = (t: S.Tempo) => clamp(0.5 + (0.5 * (t.top - S.TEMPO_MIN)) / (S.TEMPO_FULL.wedge - S.TEMPO_MIN), 0.5, 1);
 // The backswing at `p` of the way to the top: over the ball, the takeaway, halfway, the top
 function backPose(p: number): Pose {
   const at = [0, 0.32, 0.66, 1];
@@ -1657,7 +1654,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         // motion it steps: over the ball, halfway, the top
         const held = gt - swingAt;
         if (held >= tmp.click) endForSwing();
-        const amp = backswing(tmp);
+        const amp = tmp.back;
         const s = Math.max(0, held) / tmp.top;
         if (s <= 1) pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 || amp < 0.9 ? POSES.half : POSES.top) : backPose(s * amp);
         else {
