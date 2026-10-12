@@ -97,9 +97,9 @@ const CADDIE_FACE: Record<Face, Patch[]> = {
     [12, 19, '2KKKK2'], [25, 19, '3KKKK3'], [12, 20, 'K2222K'], [25, 20, 'K3333K'], [12, 21, '222222'], [25, 21, '33333'],
     [18, 31, '5MMMMM5'],
   ],
-  // brows high, the eyes wide with the pupils small in them, the mouth open
+  // brows up, the eyes wide with the pupils small in them, the mouth open
   shocked: [
-    [12, 15, '5555555'], [26, 15, '55555566'], [11, 17, '22222222'], [26, 17, '33333333'], [12, 18, '2222222'], [26, 18, '3333333'],
+    [12, 16, '5555555'], [26, 16, '55555566'], [12, 18, '2222222'], [26, 18, '3333333'],
     [12, 20, 'KWWIWK'], [25, 20, 'WWIWWK'], [12, 21, 'KWWWWK'], [25, 21, 'KWWWWK'], [13, 22, '1111'], [26, 22, '2222'],
     [18, 31, 'MMMMMMM'], [19, 32, 'MMMMM'],
   ],
@@ -169,13 +169,14 @@ function caddieJacket(): string[][] {
 
 // ---------------------------------------------------------------------------------------
 // You: a flat cap, brown hair, a red jumper with a white collar in its V, the bag's strap
-// across it. In profile, facing right across the stage to whoever's talking: the nose
-// breaks the outline, one eye shows, the ear sits halfway back
+// across it. Built like your partner, turned a touch, but the other way, towards them;
+// still lit from the right, so the near cheek is in the shade and the far one in the sun
 
 const YOU_PAL: Record<string, string> = {
   K: '#2e1a12', 0: '#bd7a56', 1: '#a8664a', 2: '#d48e66', 3: '#eeb48a', 4: '#f8d2a8',
   H: '#22160e', h: '#47331f', j: '#664a30',
-  C: '#20160c', c: '#3a2c1e', d: '#5c4830', e: '#7c6446', f: '#9e845e',
+  // the cap, cream, and the green under its peak
+  C: '#3a3226', c: '#a89c84', d: '#cfc4aa', e: '#e8e0cc', f: '#f8f4ea', k: '#3e4a30',
   R: '#2e0a06', r: '#5a1a12', s: '#8c2c1a', t: '#bc4228', u: '#de6a42',
   Q: '#5e5646', q: '#cec4ae', o: '#ebe3ce', O: '#fbf6ea',
   Z: '#1a0e06', z: '#4e3018', y: '#7a5230',
@@ -197,8 +198,8 @@ const rows = (g: string[][]): Patch[] => g.map((r, y) => [0, y, r.join('')] as P
 function youBody(): string[][] {
   const [g, put] = grid(80, 114);
   // The jumper's shoulders, lit on the right
-  const edge: [number, number, number][] = [[38, 20, 58], [40, 14, 64], [42, 9, 69], [44, 6, 72], [47, 5, 74], [51, 4, 75]];
-  for (let y = 36; y < g.length; y++) {
+  const edge: [number, number, number][] = [[40, 24, 57], [42, 18, 63], [44, 13, 68], [46, 10, 71], [48, 7, 74], [51, 5, 76], [55, 4, 77]];
+  for (let y = 38; y < g.length; y++) {
     let r: [number, number] | null = null;
     for (const [yy, a, b] of edge) if (y >= yy) r = [a, b];
     if (!r) continue;
@@ -207,108 +208,112 @@ function youBody(): string[][] {
       g[y][x] = x === r[0] || x === r[1] ? 'R' : u < 0.25 ? 'r' : u < 0.62 ? 's' : u < 0.9 ? 't' : 'u';
     }
   }
-  // The neck, in the head's shade at the top
-  for (let y = 34; y < 41; y++) for (let x = 31; x <= 47; x++) g[y][x] = x === 31 || x === 47 ? 'K' : x < 35 ? '1' : y < 37 || x < 42 ? '0' : '2';
-  // The V, a white shirt in it
-  for (let y = 41; y < 57; y++) {
-    const l = 30 + Math.floor((y - 41) * 0.6);
-    const rr = 48 - Math.floor((y - 41) * 0.6);
+  // The neck, in the chin's shade at the top
+  for (let y = 33; y < 46; y++) for (let x = 31; x <= 48; x++) g[y][x] = x === 31 || x === 48 ? 'K' : x < 35 ? '1' : y < 38 ? '0' : x > 44 ? '3' : '2';
+  // The V, a white shirt in it, its trim lit
+  for (let y = 44; y < 58; y++) {
+    const l = 31 + Math.floor((y - 44) * 0.7);
+    const rr = 48 - Math.floor((y - 44) * 0.7);
     if (l >= rr) break;
-    for (let x = l; x <= rr; x++) g[y][x] = x === l || x === rr ? 'R' : x === l + 1 || x === rr - 1 ? 'u' : 'O';
+    for (let x = l; x <= rr; x++) g[y][x] = x === l || x === rr ? 'R' : x === l + 1 || x === rr - 1 ? 'u' : x < 39 ? 'o' : 'O';
   }
-  // The collar, a white band round the neck's foot, its point hanging into the V
-  put(30, 39, 'QqqqqqoooooooOOOQ');
-  put(30, 40, 'QqqqqooooooooOOOOQ');
-  put(31, 41, 'QQQQQQQQQQQoOOOQ');
-  put(43, 42, 'QOOQ');
-  put(44, 43, 'QQ');
+  // The shirt's collar, either side of the neck, over the V
+  for (const [x, y, s] of [
+    [28, 39, 'QQQQ'], [27, 40, 'QqqqQ'], [26, 41, 'QqqqqQ'], [26, 42, 'QqqqooQ'], [27, 43, 'QqooooQ'], [29, 44, 'QQooOQ'], [32, 45, 'QQQ'],
+    [48, 39, 'QQQQ'], [48, 40, 'QoOOQ'], [48, 41, 'QooOOQ'], [47, 42, 'QoooOOQ'], [46, 43, 'QooooOQ'], [46, 44, 'QOooQQ'], [45, 45, 'QQQ'],
+  ] as Patch[]) put(x, y, s);
   // The strap, from the far shoulder down across the chest
-  for (let y = 40; y < g.length; y++) put(62 - Math.floor((y - 40) * 0.55), y, 'ZzyyZ');
+  for (let y = 41; y < g.length; y++) put(64 - Math.floor((y - 41) * 0.6), y, 'ZzyyZ');
   return g;
 }
 
+const YOU_HEAD_ROWS: Patch[] = [
+  [8, 12, 'K111111111111111111111111111111K'],
+  [8, 13, 'K122222222222222233333333333333K'],
+  [8, 14, 'K122222222222222222333333333333K'],
+  [8, 15, 'K12222hhHHHHHH2222333HHHHHHHh33K'],
+  [8, 16, 'K122222HHHHHHH2222333HHHHHHH333K'],
+  [8, 17, 'K12222222KKKKKK2223333KKKKKK333K'],
+  [8, 18, 'K12222222KWWIIW21133333WIIWK333K'],
+  [8, 19, 'K122222222111122113333332222333K'],
+  [8, 20, 'K122222222222222113333333333333K'],
+  [8, 21, 'K122222222222222113333333333333K'],
+  [8, 22, 'K122222222222222114433333333333K'],
+  [8, 23, 'K1222222222222221K1113333333333K'],
+  [8, 24, 'K122222222222211111111133333333K'],
+  [8, 25, 'K122222222222222111133333333333K'],
+  [8, 26, 'K122222222222222333333333333333K'],
+  [8, 27, 'K122222222222222222222333333333K'],
+  [8, 28, 'K12222222222222MMMMMMM333333333K'],
+  [8, 29, 'K122222222222222LLLLL3333333333K'],
+  [8, 30, 'K122222222222222222223333333333K'],
+  [8, 31, 'K122222222222222333333333333333K'],
+  [9, 32, 'K1222222222222233333333333333K'],
+  [10, 33, 'K12222222222223333333333333K'],
+  [12, 34, 'K12222222222334443333333K'],
+  [14, 35, 'K1222222223333333333K'],
+  [17, 36, 'K1111111111111K'],
+  [20, 37, 'KKKKKKKKK'],
+];
+
 function youHead(): Patch[] {
   const [g, put] = grid(48, 40);
-  // The head by row: the back of it, the front of the face
-  const FRONT: Record<number, number> = { 11: 36, 12: 37, 13: 37, 14: 37, 15: 38, 16: 37, 17: 37, 18: 38, 19: 39, 20: 40, 21: 41, 22: 42, 23: 41, 24: 39, 25: 38, 26: 39, 27: 38, 28: 39, 29: 38, 30: 37, 31: 38, 32: 38, 33: 37, 34: 35, 35: 32 };
-  const BACK: Record<number, number> = { 11: 6, 12: 6, 13: 6, 14: 6, 15: 6, 16: 6, 17: 6, 18: 6, 19: 6, 20: 7, 21: 7, 22: 8, 23: 9, 24: 10, 25: 11, 26: 13, 27: 14, 28: 15, 29: 15, 30: 15, 31: 15, 32: 15, 33: 15, 34: 15, 35: 15 };
-  for (let y = 11; y <= 35; y++) {
-    const a = BACK[y];
-    const b = FRONT[y];
+  for (const [x, y, s] of YOU_HEAD_ROWS) put(x, y, s);
+  // Brown hair under the cap: over the near ear and down to a sideburn, a little at the far side
+  for (const [x, y, s] of [
+    [5, 12, 'Hhhh'], [5, 13, 'Hhhhhh'], [5, 14, 'Hhhhhh'], [6, 15, 'Hhhhh'], [6, 16, 'Hhhh'], [7, 17, 'Hh'],
+    [9, 17, 'hh'], [9, 18, 'hh'], [9, 19, 'hh'], [9, 20, 'h'],
+    [38, 12, 'hjH'], [38, 13, 'jH'], [39, 14, 'H'],
+  ] as Patch[]) put(x, y, s);
+  // The near ear
+  for (const [x, y, s] of [[5, 17, 'KK'], [4, 18, 'K23'], [4, 19, 'K12'], [4, 20, 'K12'], [4, 21, 'K22'], [5, 22, 'K2'], [6, 23, 'K']] as Patch[]) put(x, y, s);
+  // The golf cap: a domed crown in panels, a button on top, the peak curving out over the
+  // brow towards them, green under it
+  const CROWN: [number, number][] = [[20, 30], [15, 34], [12, 37], [10, 38], [9, 39], [8, 40], [8, 40], [7, 40], [7, 40], [7, 40]];
+  CROWN.forEach(([a, b], i) => {
+    const y = i + 1;
     for (let x = a; x <= b; x++) {
-      // The face's front in the light, its side a tone down, the shade under the cap
-      let ch = x === a || x === b ? 'K' : y === 11 ? '1' : x >= b - 4 ? '3' : '2';
-      // The jaw's line from under the ear to the chin, the neck in its shade
-      const jaw = 25 + Math.round((x - 20) * 0.47);
-      if (x > 18 && x !== b && y === jaw + 1) ch = '1';
-      if (x > 18 && x !== b && y > jaw + 1) ch = '0';
-      g[y][x] = ch;
+      const u = (x - a) / (b - a);
+      g[y][x] = x === a || x === b || y === 1 ? 'C' : u < 0.2 ? 'c' : u < 0.55 ? 'd' : u < 0.85 ? 'e' : 'f';
     }
+    // the seams down from the button, one to the front, one round the near side
+    if (y > 1) {
+      g[y][25 + Math.round((y - 1) * 0.55)] = 'c';
+      g[y][22 - Math.round((y - 1) * 0.9)] = 'c';
+    }
+  });
+  put(24, 0, 'CCC');
+  for (let x = 7; x <= 40; x++) g[11][x] = 'C';
+  for (let x = 22; x <= 46; x++) {
+    if (x >= 24 && x <= 45) g[10][x] = x === 24 || x === 45 ? 'C' : x > 40 ? 'f' : 'e';
+    g[11][x] = x === 22 || x === 46 ? 'C' : x > 41 ? 'e' : 'd';
+    if (x >= 21) g[12][x] = x === 46 ? 'C' : 'k';
+    if (x >= 24 && x <= 44) g[13][x] = 'C';
   }
-  // The hair: over the back of the head and the temple, down to the ear, a sideburn
-  const HAIR: Record<number, [number, number]> = { 11: [7, 22], 12: [7, 22], 13: [7, 22], 14: [7, 21], 15: [7, 21], 16: [7, 21], 17: [7, 13], 18: [7, 13], 19: [7, 13], 20: [8, 13], 21: [8, 13], 22: [9, 13], 23: [10, 13], 24: [11, 13] };
-  for (const [ys, [a, b]] of Object.entries(HAIR)) {
-    const y = +ys;
-    for (let x = a; x <= b; x++) g[y][x] = x === a || y === 11 || (x === a + 3 && y % 4 === 1) ? 'H' : x === b && y < 20 ? 'j' : 'h';
-  }
-  put(20, 17, 'hh');
-  put(20, 18, 'hh');
-  put(20, 19, 'hh');
-  put(20, 20, 'h');
-  // The ear, shaded where it meets the cheek
-  put(15, 17, 'KKK');
-  put(14, 18, 'K2331');
-  put(14, 19, 'K2131');
-  put(14, 20, 'K2131');
-  put(14, 21, 'K2231');
-  put(15, 22, 'K221');
-  put(16, 23, 'KK');
-  // The brow, the eye, the light down the nose and the nostril, the mouth, the chin's light
-  for (const [x, y, s] of [
-    [29, 13, 'HHHH'], [28, 14, 'HHHHHHH3'], [30, 15, 'KKKKK'], [30, 16, 'KWWII'], [31, 17, '1111'],
-    [33, 18, '4'], [34, 19, '4'], [37, 20, '4'], [38, 21, '44'], [38, 22, '3443'], [36, 23, '1K11'], [35, 24, '1111'],
-    [35, 26, '11'], [33, 27, 'MMMMM'], [35, 28, 'LLL'], [35, 31, '44'],
-  ] as Patch[]) put(x, y, s);
-  // The flat cap over it all, its peak out over the eyes
-  for (const [x, y, s] of [
-    [14, 0, 'CCCCCCCCCCCCC'],
-    [11, 1, 'CCCcccdddddddeeeCCC'],
-    [9, 2, 'CCcccddddddddeeeeeffeCC'],
-    [8, 3, 'CccccddddddddeeeeeeefffeCC'],
-    [7, 4, 'CcccccddddddddeeeeeeeefffeeC'],
-    [6, 5, 'CcccccdddddddddeeeeeeeeeffeeeC'],
-    [6, 6, 'CccccddddddddddeeeeeeeeeeeeeeeC'],
-    [5, 7, 'CcccccdddddddddddeeeeeeeeeeeeeeeCCCC'],
-    [5, 8, 'CcccccddddddddddddddeeeeeeeeeeeefffffCC'],
-    [5, 9, 'CCcccccccddddddddddddddddddddeeeeeeeeeeC'],
-    [6, 10, 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCdddddddddCC'],
-    [37, 11, 'CCCCCCCC'],
-  ] as Patch[]) put(x, y, s);
+  g[12][21] = 'C';
   return rows(g);
 }
 
-// The eye (x28 on, rows 12 to 17) and the mouth (x32 on, rows 26 to 30), whole rows of
-// each by expression, up to the face's line
 const YOU_FACE: Record<Face, Patch[]> = {
   normal: [],
   pleased: [
-    [28, 12, '2HHHH3333'], [28, 13, 'HHHHHHH33'], [28, 14, '222223333'], [28, 15, '222KKK3333'], [28, 16, '22K223K33'], [28, 17, '222223333'],
-    [32, 26, '2M21133'], [32, 27, '22MMMM'], [32, 28, '222LLL3'],
+    [29, 14, 'HHHHHHH'], [14, 14, 'hhHHHHHH'], [29, 16, '3333333'], [15, 16, '2222222'], [30, 17, '3KKKK3'], [17, 17, '2KKKK2'], [30, 18, 'K3333K'], [17, 18, 'K2222K'], [30, 19, '333333'], [18, 19, '22222'],
+    [22, 27, 'M'], [30, 27, 'M'],
   ],
   shocked: [
-    [28, 12, '2HHHHHH33'], [28, 13, '222223333'], [28, 14, '22KKKKK33'], [28, 15, '22KWWIW333'], [28, 16, '22KWWWK33'], [28, 17, '222111133'],
-    [32, 27, '222LLL'], [32, 28, '222MMM3'], [32, 29, '223LL3'],
+    [29, 14, 'HHHHHHH'], [14, 14, 'hhHHHHHH'], [29, 16, '3333333'], [15, 16, '2222222'], [30, 18, 'KWIWWK'], [17, 18, 'KWWIWW'], [30, 19, 'KWWWWK'], [17, 19, 'KWWWWK'], [31, 20, '2222'], [18, 20, '1111'],
+    [23, 28, '2MMMMM3'], [24, 29, 'MMMMM'], [25, 30, 'LLL'],
   ],
   thinking: [
-    [28, 13, '222223333'], [28, 14, 'HHHHHHH33'], [28, 15, '22KKKKK333'], [28, 16, '22KKKII33'],
-    [32, 27, '222MMM'], [32, 28, '2222LL3'],
+    [29, 14, 'HHHHHHH'], [29, 16, '3333333'], [14, 15, '22222HHH'], [15, 16, 'HHHHHHH'], [31, 18, 'WWII'], [18, 18, 'WWWII'],
+    [23, 28, '222MMMM'], [24, 29, '22LLL'],
   ],
-  // The shout: brows down hard into the eye, the mouth wide, teeth along its top
   shout: [
-    [28, 13, 'HH2223333'], [28, 14, '2HHHHH333'], [28, 15, '22KKKKKH33'], [28, 16, '22KWIIK33'],
-    [32, 26, '22LLLL3'], [32, 27, '2TTTTT'], [32, 28, '2MMMMMM'], [32, 29, '2MMMMM'], [32, 30, '22LLL'],
+    [29, 15, 'HHHHHHH3'], [29, 16, 'HHHHH333'], [15, 15, '2HHHHHH'], [14, 16, '2222HHHH'],
+    [22, 27, 'LLLLLLLLL'], [22, 28, 'MTTTTTTTM'], [22, 29, 'MMMMMMMMM'], [23, 30, 'MMMMMMM'], [24, 31, 'LLLLL'],
   ],
 };
+const YOU_BLINK: Patch[] = [[30, 17, '333333'], [17, 17, '222222'], [30, 18, '3KKKK3'], [17, 18, '2KKKK2']];
 
 // ---------------------------------------------------------------------------------------
 // Your partner: a bucket hat, ginger hair and a ginger moustache sweeping off the lip,
@@ -448,14 +453,14 @@ const FIGS: Record<Actor, Fig> = {
     body: youBody,
     head: youHead,
     face: YOU_FACE,
-    blink: [[28, 15, '2222223333'], [28, 16, '22KKKKK33']],
+    blink: YOU_BLINK,
     talk: {
-      1: [[32, 27, '2MMMMM'], [32, 28, '22MMMM3'], [32, 29, '222LL3']],
-      2: [[32, 27, '2TTTTT'], [32, 28, '2MMMMM3'], [32, 29, '22MMMM'], [32, 30, '22LLL']],
+      1: [[23, 28, 'MMMMMMM'], [24, 29, 'MMMMM'], [24, 30, 'LLLLL']],
+      2: [[23, 28, 'MMMMMMM'], [23, 29, 'MTTTTTM'], [24, 30, 'MMMMM'], [24, 31, 'LLLLL']],
     },
-    pose: { normal: [[0, 0], [0, 0]], pleased: [[0, 0], [0, 1]], shocked: [[0, -1], [-1, -1]], thinking: [[0, 1], [0, 2]], shout: [[1, -1], [1, -2]] },
-    sweat: [24, 12],
-    box: { x: 5, y: 0, w: 41, h: 36 },
+    pose: { normal: [[0, 0], [0, 0]], pleased: [[0, -1], [0, 0]], shocked: [[-1, -1], [-1, -2]], thinking: [[1, 1], [1, 2]], shout: [[0, 0], [1, -1]] },
+    sweat: [40, 13],
+    box: { x: 4, y: 0, w: 42, h: 38 },
   },
   caddie: {
     pal: CADDIE_PAL,
@@ -492,35 +497,41 @@ const FIGS: Record<Actor, Fig> = {
   },
 };
 
-/** Where the figures sit on the plate: the body's top left, and the head's against it */
-const AT = { x: 24, y: 30 };
+/** The figures are drawn at twice the board's pixel, big enough for a face to carry the
+ *  scene, on a plate cut at the chest: the box at the foot of the frame covers the rest */
+const SCALE = 2;
+const GRID_W = 80;
+const GRID_H = 60;
+export const PLATE_W = GRID_W * SCALE;
+export const PLATE_H = GRID_H * SCALE;
+/** Where the head sits against the body */
 const HEAD_AT = { x: 16, y: 0 };
 
 const built = new Map<string, { body: string[][]; head: Patch[] }>();
 
-/** One frame of a figure on a plate w by h; flip to face left */
-export function handFrame(who: Actor, w: number, h: number, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean): HTMLCanvasElement {
+/** One frame of a figure; flip to face left */
+export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean): HTMLCanvasElement {
   const fig = FIGS[who];
   let b = built.get(who);
   if (!b) {
     b = { body: fig.body(), head: fig.head() };
     built.set(who, b);
   }
-  const g = b.body.map((r) => r.slice());
+  const g = b.body.slice(0, GRID_H).map((r) => r.slice());
   const [dx, dy] = fig.pose[f][frame];
   const put = (x: number, y: number, s: string) =>
     [...s].forEach((ch, i) => {
       const yy = y + HEAD_AT.y + dy;
       const xx = x + i + HEAD_AT.x + dx;
-      if (ch !== '.' && yy >= 0 && yy < g.length && xx >= 0 && xx < g[0].length) g[yy][xx] = ch;
+      if (ch !== '.' && yy >= 0 && yy < g.length && xx >= 0 && xx < GRID_W) g[yy][xx] = ch;
     });
   for (const [x, y, s] of [...b.head, ...fig.face[f]]) put(x, y, s);
   if (blink && f !== 'pleased' && f !== 'shout') for (const [x, y, s] of fig.blink) put(x, y, s);
   if (mouth > 0 && f !== 'shout') for (const [x, y, s] of fig.talk[mouth as 1 | 2]) put(x, y, s);
   if (f === 'shocked') for (const [x, y, s] of SWEAT) put(x + fig.sweat[0] - 5, y + fig.sweat[1] + frame * 2, s);
   const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
+  c.width = PLATE_W;
+  c.height = PLATE_H;
   const cg = c.getContext('2d')!;
   // Mirrored when asked to face the other way from the way they're drawn
   const mirror = fig.right === flip;
@@ -529,17 +540,16 @@ export function handFrame(who: Actor, w: number, h: number, f: Face, frame: 0 | 
       const col = fig.pal[ch];
       if (!col) return;
       cg.fillStyle = col;
-      const px = AT.x + x;
-      cg.fillRect(mirror ? w - 1 - px : px, AT.y + y, 1, 1);
+      cg.fillRect((mirror ? GRID_W - 1 - x : x) * SCALE, y * SCALE, SCALE, SCALE);
     }),
   );
   return c;
 }
 
 /** A figure's head on the plate, hat to chin, as drawn or mirrored */
-export function handHead(who: Actor, w: number, flip: boolean): { x: number; y: number; w: number; h: number } {
-  const fig = FIGS[who];
-  const bx = fig.box;
-  const x = AT.x + HEAD_AT.x + bx.x;
-  return { x: fig.right === flip ? w - x - bx.w : x, y: AT.y + HEAD_AT.y + bx.y, w: bx.w, h: bx.h };
+export function handHead(who: Actor, flip: boolean): { x: number; y: number; w: number; h: number } {
+  const bx = FIGS[who].box;
+  const x = HEAD_AT.x + bx.x;
+  const gx = FIGS[who].right === flip ? GRID_W - x - bx.w : x;
+  return { x: gx * SCALE, y: (HEAD_AT.y + bx.y) * SCALE, w: bx.w * SCALE, h: bx.h * SCALE };
 }

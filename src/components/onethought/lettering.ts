@@ -174,16 +174,22 @@ export type ShoutAnchor = { head: [number, number, number, number]; waist: numbe
 export function drawShout(g: CanvasRenderingContext2D, w: number, h: number, word: string, t: number, reduce: boolean, anchor: ShoutAnchor | null = null) {
   if (t < 0 || t > SHOUT_HOLD + OUT_MS) return;
   const glyphW = [...word].reduce((s, ch) => s + ((G[ch] ?? G[ch.toLowerCase()] ?? G['!'])[0].length + 1), 0) + 4;
-  const k = Math.max(1, Math.min(3, Math.floor((w * 0.62) / glyphW)));
-  const letters = lettering(word, k, SHOUT_PAL);
-  const bw = Math.round(letters.width * 1.2 + 20);
-  const bh = Math.round(Math.max(letters.height * 2, bw * 0.36));
+  // As big as the frame allows; smaller, if that's what it takes to sit beside the head
+  const size = (k: number) => {
+    const letters = lettering(word, k, SHOUT_PAL);
+    const bw = Math.round(letters.width * 1.2 + 20);
+    return { k, letters, bw, bh: Math.round(Math.max(letters.height * 2, bw * 0.36)) };
+  };
+  let fit = size(Math.max(1, Math.min(3, Math.floor((w * 0.62) / glyphW))));
+  const room = anchor ? w - anchor.head[2] : 0;
+  while (anchor && fit.k > 1 && room < fit.bw * 0.9) fit = size(fit.k - 1);
+  const { letters, bw, bh } = fit;
   const b = burst(bw, bh, word.length);
   let cx = Math.round(w / 2);
   let cy = Math.round(h * 0.4);
   if (anchor) {
     const [, hy0, hx1, hy1] = anchor.head;
-    if (w - hx1 >= bw * 0.9) {
+    if (room >= bw * 0.9) {
       cx = Math.min(hx1 + 2 + Math.round(bw / 2), w - 2 - Math.round(bw / 2));
       cy = Math.max(Math.round((hy0 + hy1) / 2) - 8, Math.round(bh / 2) + 2);
     } else cy = anchor.waist - Math.round(bh / 2) + 6;
