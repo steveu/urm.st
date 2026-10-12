@@ -1,7 +1,7 @@
 // The walks between holes, as scenes: a short dialogue on the walk to the next tee (or to
 // the clubhouse after the last), between you, your caddie and your partner, with the rope
 // heard but never seen. Each is one concrete situation with people taking sides and you
-// wavering, and it builds to a key line, which is the moment the thought's tap means:
+// wavering, and somewhere in it is a key line, which is the moment the thought's tap means:
 //
 //   The Heckler (tap when you let it show): the rope says one thing about your golf and
 //     won't let it go; your partner sides with them, your caddie with you; the key line
@@ -12,15 +12,18 @@
 //     partner goes at every flag, you're tempted; the key line is settling on the middle.
 //
 // Each scene opens on how the hole just played went (trouble, well, or fine), may carry a
-// moment worth keeping from it (a hold keeps it), and closes on whether the key line was
-// caught. The round builds: the walk to the 13th has a line back to the first walk's key
-// line, and the clubhouse walk closes on how the earlier two went. The walks get longer as the round does: a few lines to the 12th, a few more to
-// the 13th, and the clubhouse walk has the room. The opening also knows what you did over
-// the ball, where the thought has a view of it: a sound call that didn't come off isn't a
-// bad one, and a shaky one that did isn't a good one (CALLED, below). Lines in brackets
-// are thought, not said. {trouble} is the worst of the hole: the water, the trees, the
-// bunker, the great beyond. Never a number; nothing here says what to press; nothing here
-// reaches the sim.
+// moment worth keeping from it (a hold keeps it), and has its key line where the round's
+// seed puts it, among the places it still makes sense (keyAt), with what's said to it,
+// caught or let go, straight after. It isn't always last, and it isn't the only thought
+// in brackets: most walks have one more of yours that sounds like it and isn't. The
+// round builds: the walk to the 13th has a line back to the first walk's key line, and
+// the clubhouse walk closes on how the earlier two went. The walks get longer as the
+// round does: a few lines to the 12th, a few more to the 13th, and the clubhouse walk has
+// the room. The opening also knows what you did over the ball, where the thought has a
+// view of it: a sound call that didn't come off isn't a bad one, and a shaky one that did
+// isn't a good one (CALLED, below). Lines in brackets are thought, not said. {trouble} is
+// the worst of the hole: the water, the trees, the bunker, the great beyond. Never a
+// number; nothing here says what to press; nothing here reaches the sim.
 
 export type Speaker = 'you' | 'caddie' | 'partner' | 'rope';
 /** A face: as they are, pleased with it, caught out, or thinking it over */
@@ -32,6 +35,10 @@ export type Scene = {
   build: Line[] | Record<Branch, Line[]>;
   /** The key line: one, or a choice of them, picked by the round's seed */
   key: Line[];
+  /** Where in the build the key line may fall, before which of its lines, picked by the
+   *  round's seed; after all of them if none. Only places where what's said to it, and
+   *  what's left of the build after that, still follow */
+  keyAt?: number[];
   caught: Line[];
   missed: Line[];
   /** The walk to the 13th: a line back to the first walk's key line, caught or let go */
@@ -61,11 +68,12 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         fine: [rope('Was that the warm-up? When does the golf start?'), partner('pleased', 'They’ve a point.')],
       },
       build: {
-        trouble: [rope('Next one’s over the creek! Brought your trunks?')],
-        well: [rope('Twice, then! Go on! We’ll all be watching!')],
-        fine: [rope('See you at the next! Bring your best one. Or any one.')],
+        trouble: [rope('Next one’s over the creek! Brought your trunks?'), you('thinking', '(…Wind’s got up a bit.)')],
+        well: [rope('Twice, then! Go on! We’ll all be watching!'), you('thinking', '(…Wind’s got up a bit.)')],
+        fine: [rope('See you at the next! Bring your best one. Or any one.'), you('thinking', '(…Wind’s got up a bit.)')],
       },
-      key: [you('shocked', '(…Right. That’s got to me. My face is going.)')],
+      keyAt: [1, 2],
+      key: [you('thinking', '(…My ears have gone warm.)')],
       caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.')],
       missed: [caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
     },
@@ -84,8 +92,10 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         rope('Here! That four-ball on the next tee’s been waiting all night!'),
         rope('Any chance this year?'),
         partner('pleased', 'Ha! Sorry. Sorry. That one was good.'),
+        you('thinking', '(…Light’s going.)'),
       ],
-      key: [you('shocked', '(My own partner. Right. That’s under my skin.)')],
+      keyAt: [3],
+      key: [you('thinking', '(…My own partner.)')],
       caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.')],
       missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.')],
     },
@@ -103,7 +113,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('thinking', 'You don’t have to buy them anything.'),
         partner('pleased', 'You should, though. Shut them up for good.'),
       ],
-      key: [you('shocked', '(Champ. All night, that. And it’s working.)')],
+      key: [you('thinking', '(Champ. All night, that.)')],
       caught: [partner('pleased', 'Come on, champ. First one’s mine.')],
       missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
       verdict: {
@@ -122,8 +132,9 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         well: [partner('shocked', 'You didn’t even hesitate on that tee.'), caddie('pleased', 'That’s the whole trick.')],
         fine: [you('thinking', 'Half of me wanted the other line.'), caddie('normal', 'Half of you hit it, then.')],
       },
-      build: [caddie('thinking', 'Short one now, over the creek. The flag, or the fat of the green. Either’s fine. Just the one.')],
-      key: [you('normal', '(The flag. Straight at it. That’s the one.)'), you('normal', '(The fat of the green. Decided.)')],
+      build: [caddie('thinking', 'Short one now, over the creek. The flag, or the fat of the green. Either’s fine. Just the one.'), you('normal', '(Tee in the left pocket. Right.)')],
+      keyAt: [1, 2],
+      key: [you('normal', '(The flag, then.)'), you('normal', '(The fat of the green, then.)')],
       caught: [caddie('pleased', 'Good. Decided before the tee. That’s the job done.')],
       missed: [caddie('thinking', 'Still weighing it, aren’t you. It’ll be heavier on the tee.')],
     },
@@ -142,8 +153,10 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('normal', 'Long one now. The creek cuts across before the green. Lay up short of it, or take it on.'),
         partner('pleased', 'Take it on. You only live once.'),
         caddie('thinking', 'Laying up leaves you a wedge in. Taking it on leaves you a story.'),
+        you('normal', '(A story. Hm.)'),
       ],
-      key: [you('normal', '(Lay up. Decided. Not thinking about it again.)'), you('normal', '(Taking it on. Decided. No looking back.)')],
+      keyAt: [1, 4],
+      key: [you('normal', '(Short of the creek. That’s it.)'), you('normal', '(Over the creek. That’s it.)')],
       caught: [caddie('pleased', 'Good. Now it’s only a swing.')],
       missed: [caddie('thinking', 'You’ll decide over the ball, then. Lovely. My favourite.')],
     },
@@ -161,7 +174,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         partner('pleased', 'Kitchen’s shutting soon. The chips need a decision too.'),
         you('thinking', '(Pint. Tea. Chips. Pint…)'),
       ],
-      key: [you('normal', '(Pint. Decided. And I’m sticking with it.)')],
+      key: [you('normal', '(Pint. That’s that.)')],
       caught: [partner('shocked', 'No dithering? I’ll get them in, then.')],
       missed: [partner('pleased', 'I’ll order you a tea. You can change it later.'), you('thinking', '(Tea. Probably. Or…)')],
       verdict: {
@@ -180,8 +193,9 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         well: [partner('shocked', 'Middle of the green and you still walked off happy. How?'), you('pleased', 'Boring golf. It works.')],
         fine: [partner('pleased', 'I went straight at that flag. Missed it by a mile.'), caddie('normal', 'Everyone saw. It’s on the bank.')],
       },
-      build: [caddie('thinking', 'Short one next. They’ve cut the hole front right, just over the creek.')],
-      key: [you('normal', '(No. Middle of the green. Boring. Fine.)')],
+      build: [caddie('thinking', 'Short one next. They’ve cut the hole front right, just over the creek.'), you('normal', '(…The flag’s not that tucked.)')],
+      keyAt: [1, 2],
+      key: [you('normal', '(No. Middle of the green.)')],
       caught: [partner('shocked', 'The middle? You’re no fun at all.')],
       missed: [caddie('thinking', '…Right. I’ll get the towel ready.')],
     },
@@ -200,8 +214,10 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('normal', 'The last green’s worse. Creek right across the front, flag tucked front left behind it.'),
         partner('pleased', 'Front left behind water. They’re daring us.'),
         caddie('thinking', 'They are. Right of it, there’s room for a tent.'),
+        you('normal', '(…I’ve hit that shot before. Once.)'),
       ],
-      key: [you('normal', '(No. Right of it. The fat. Boring target.)')],
+      keyAt: [1, 4],
+      key: [you('normal', '(Right of it. The fat.)')],
       caught: [partner('shocked', 'Again? Where’s your sense of adventure?')],
       missed: [caddie('thinking', 'I’ll walk on ahead and fetch the ball out.')],
     },
@@ -218,7 +234,8 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('thinking', 'That’s one sort of golf.'),
         you('thinking', '(There’s always a flag. There’s always a middle.)'),
       ],
-      key: [you('normal', '(Middle of the green. Every time. I’m fine with boring.)')],
+      keyAt: [2, 3, 4],
+      key: [you('normal', '(The middle. Every time.)')],
       caught: [partner('shocked', 'Dull all the way to the bar. I almost admire it.')],
       missed: [partner('pleased', 'See? Tomorrow you’ll be going at them with me.')],
       verdict: {
@@ -313,8 +330,8 @@ const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>
  *  moment to keep */
 export type Beat = Line & { key?: boolean; moment?: boolean };
 
-/** The walk after the hole just played, for the thought carried: the lines up to and
- *  including the key line, and what follows it if it's caught or let go */
+/** The walk after the hole just played, for the thought carried: the lines with the key
+ *  line among them, and what's said to it if it's caught or let go */
 export function walkScene(thought: string, st: Story, r: () => number): { lead: Beat[]; caught: Beat[]; missed: Beat[] } {
   const sc = (SCENES[thought] ?? SCENES['The Heckler'])[st.hole - 1];
   const worst = (['water', 'out', 'trees', 'sand'] as const).find((t) => st.trouble.has(t));
@@ -323,6 +340,7 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const mk = (['ace', 'holeout', 'chip', 'putt', 'escape', 'pure'] as const).find((k) => st.feats.has(k)) ?? (st.went === 'well' ? 'tidy' : null);
   const key = sc.key[Math.floor(r() * sc.key.length)];
   const build = Array.isArray(sc.build) ? sc.build : sc.build[branch];
+  const at = sc.keyAt ? sc.keyAt[Math.floor(r() * sc.keyAt.length)] : build.length;
   const call = callOf(thought, st.did);
   const open = (call && CALLED[thought]?.[call]?.[branch]) || sc.open[branch];
   // The round so far: the first walk's key line, and the earlier walks' between them
@@ -330,8 +348,8 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const arc: Arc = st.caught.every(Boolean) ? 'all' : st.caught.some(Boolean) ? 'some' : 'none';
   const last = sc.verdict && st.caught.length ? [sc.verdict[arc]] : [];
   return {
-    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...build.map(fill), { ...fill(key), key: true }],
-    caught: [...sc.caught, ...last].map(fill),
-    missed: [...sc.missed, ...last].map(fill),
+    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...build.slice(0, at).map(fill), { ...fill(key), key: true }, ...build.slice(at).map(fill), ...last],
+    caught: sc.caught.map(fill),
+    missed: sc.missed.map(fill),
   };
 }

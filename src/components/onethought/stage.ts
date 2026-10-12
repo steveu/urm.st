@@ -109,7 +109,8 @@ export function createStage(els: Els, opts: Opts) {
   }
 
   return {
-    /** A scene: the lines up to and including the key line, and what follows it */
+    /** A scene: its lines, the key line somewhere among them, and what's said to the key
+     *  line, which goes in straight after it once it's caught or let go */
     start(lead: Beat[], caught: Beat[], missed: Beat[], now: number) {
       lines = [...lead];
       after = { caught, missed };
