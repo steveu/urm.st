@@ -913,8 +913,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         ctx.afterHeckle = true;
         fourBall();
         rope = true;
-        caption('“Any chance this year?”', 'the four-ball behind', 2600);
-        say('The four-ball behind: “Any chance this year?”');
+        // Under the Heckler the rope used that line on the walk up, so the four-ball follow it on
+        const jibe = THOUGHTS[thought].name === 'The Heckler' ? 'Is it still this year?' : 'Any chance this year?';
+        caption(`“${jibe}”`, 'the four-ball behind', 2600);
+        say(`The four-ball behind: “${jibe}”`);
         sit = S.situation(ball, aim, ctx);
       } else fourBall();
     } else if (first && hole === 2 && strokes[0] >= S.PAR[1] + 2) fourBall();
