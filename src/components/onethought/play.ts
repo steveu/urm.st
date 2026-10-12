@@ -1649,17 +1649,16 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       }
       case 'swing': {
         // The backswing, driven by the hold: low and slow away, the wrists setting, wound
-        // up as the meter gets to the top, then on past it into the overswing. As long as
-        // the shot: a chip's goes back about halfway, a full one all the way. With less
+        // up as the meter gets to the top, then on past it into the overswing. A chip lets
+        // go early on the meter, so its swing is only as far back as it got. With less
         // motion it steps: over the ball, halfway, the top
         const held = gt - swingAt;
         if (held >= tmp.click) endForSwing();
-        const amp = tmp.back;
         const s = Math.max(0, held) / tmp.top;
-        if (s <= 1) pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 || amp < 0.9 ? POSES.half : POSES.top) : backPose(s * amp);
+        if (s <= 1) pose = reduce ? (s < 0.4 ? POSES.addr : s < 0.95 ? POSES.half : POSES.top) : backPose(s);
         else {
           const u = clamp((held - tmp.top) / (tmp.end - tmp.top), 0, 1) ** 1.5;
-          pose = reduce ? (amp < 0.9 ? POSES.half : POSES.top) : amp >= 1 ? lerpPose(POSES.top, POSES.over, u) : backPose(amp + (1.25 - amp) * u * 0.5);
+          pose = reduce ? POSES.top : lerpPose(POSES.top, POSES.over, u);
         }
         if (held >= tmp.end) swingEnd(true);
         break;
