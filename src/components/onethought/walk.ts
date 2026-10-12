@@ -3,11 +3,12 @@
 // haze, a back-lit treeline, then the field and the path with the trees beside it, every
 // one throwing its shadow long to the left. The golfer crosses it with the bag up towards
 // the next tee's sign (the clubhouse, after the last green) while the inner voice talks.
+// On some rounds a heron comes over the path on the way in, and everyone stops for it.
 //
 // Painted once a size into three layers that slide at their own pace; each frame draws
 // only the golfer, their shadow, the sign, motes in the light and the near crowns going by.
 
-import { bayer, hash, canvas, drawGolfer, drawCloud, teeSign, house, type Sprite } from './pixel';
+import { bayer, hash, canvas, drawGolfer, drawCloud, drawHeron, teeSign, house, type Sprite } from './pixel';
 
 type RGB = readonly [number, number, number];
 type Ctx = CanvasRenderingContext2D;
@@ -66,10 +67,12 @@ const MOTE = '#ffecb4';
 const SHADOW = 'rgba(72,60,96,0.42)';
 
 /** How far across (0 to 1); the hole the walk is to, or 0 for the clubhouse; the golfer's
- *  walk and bearing; and whether the voices sit at the top of the board (a phone) */
-export type WalkFrame = { u: number; n: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean; golfer: boolean };
+ *  walk and bearing; whether the voices sit at the top of the board (a phone); and how
+ *  long the heron's been over, or -1 */
+export type WalkFrame = { u: number; n: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean; golfer: boolean; heron: number };
 
 const SCROLL = 64; // how far the near ground goes by over the walk, in pixels
+const HERON_MS = 2800; // the heron, from one side of the frame to the other
 
 type Layer = { c: HTMLCanvasElement; g: Ctx; img: ImageData; w: number; h: number };
 function layer(w: number, h: number): Layer {
@@ -320,6 +323,19 @@ export function createWalk() {
       g.fillRect(gx - 13, pathY + 1, 12, 1);
       drawGolfer(g, gx, pathY, 1, { kind: 'walk', phase: f.walking && !reduce ? Math.floor(now / (f.bow ? 190 : 150)) : 0, bag: true, bow: f.bow });
       if (f.cloud) drawCloud(g, gx + 1, pathY - 19, now - f.cloud.t0, f.cloud.doubt, reduce);
+    }
+    // The heron: low over the path towards the light, slow, its shadow crossing ahead of
+    // the golfer; stood on the path, not flying, with motion reduced
+    if (f.heron >= 0) {
+      if (reduce) drawHeron(g, Math.round(lw * 0.62), pathY + 1, -1);
+      else if (f.heron < HERON_MS) {
+        const v = f.heron / HERON_MS;
+        const x = Math.round(-8 + v * (lw + 16));
+        const y = Math.round(pathY - 12 - v * 16 + Math.sin(v * 7) * 1.5);
+        g.fillStyle = SHADOW;
+        g.fillRect(x - Math.round((pathY - y) * 0.8) - 2, pathY + 1, 5, 1);
+        drawHeron(g, x, y, Math.floor(f.heron / 260));
+      }
     }
     // Motes, drifting in the light
     if (!reduce) {

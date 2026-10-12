@@ -5,6 +5,9 @@
 // catches it (the shout), a hold on a moment keeps it. Neither ever moves the scene on,
 // and nothing here reaches the sim.
 //
+// A hush is a beat with nobody speaking: no box, no face, the walk left to itself for a
+// few seconds or until a click, and the Flic on it as on any line that isn't the key one.
+//
 // The faces themselves are drawn on the board (play.ts asks who's speaking, how, and
 // whether their mouth is moving), and so is the shout (lettering.ts); this keeps the words,
 // the timing, the flash and the shake, and says when the shout began and what it says.
@@ -15,6 +18,7 @@ import { letteringEl, BRASS_PAL, SHOUT_HOLD } from './lettering';
 
 const CPS = 34; // letters a second: readable, unhurried
 const AUTO_MS = 8000; // a line left alone this long goes on by itself, bar the key line
+const HUSH_MS = 2800; // a hush, the same, sooner
 const FLASH_MS = 180;
 const SHAKE_MS = 280;
 
@@ -80,8 +84,11 @@ export function createStage(els: Els, opts: Opts) {
     t0 = now;
     shown = -1;
     doneAt = -1;
-    txt = shownText(b);
+    // A hush: nothing to type, the box down, and only the status says what's happening
+    txt = b.hush ? '' : shownText(b);
     at = timing(b, txt);
+    els.box.classList.toggle('on', !b.hush);
+    if (b.hush) return opts.status(b.text);
     els.tab.textContent = TAB[b.who];
     els.box.dataset.who = b.who;
     els.box.classList.toggle('off', b.who === 'rope');
@@ -135,7 +142,7 @@ export function createStage(els: Els, opts: Opts) {
           els.line.textContent = txt.slice(0, n);
         }
         if (n >= txt.length) finishTyping(now);
-      } else if (now - doneAt >= AUTO_MS && !(b.key && !answered)) this.advance(now, true);
+      } else if (now - doneAt >= (b.hush ? HUSH_MS : AUTO_MS) && !(b.key && !answered)) this.advance(now, true);
     },
     /** A click or Enter: finish the line if it's typing, else on to the next */
     advance(now: number, auto = false) {
@@ -211,7 +218,11 @@ export function createStage(els: Els, opts: Opts) {
     /** Who's on, with what face, and whether their words are still coming */
     get speaker() {
       const b = cur();
-      return b ? { who: b.who, face: b.face ?? 'normal', talking: doneAt < 0, t0 } : null;
+      return b && !b.hush ? { who: b.who, face: b.face ?? 'normal', talking: doneAt < 0, t0 } : null;
+    },
+    /** When the hush that's on began, or -1 if there isn't one */
+    get hushT0() {
+      return cur()?.hush ? t0 : -1;
     },
     /** The white flash, 0 to 1 */
     flash(now: number) {

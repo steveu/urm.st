@@ -21,7 +21,9 @@
 // round does: a few lines to the 12th, a few more to the 13th, and the clubhouse walk has
 // the room. The opening also knows what you did over the ball, where the thought has a
 // view of it: a sound call that didn't come off isn't a bad one, and a shaky one that did
-// isn't a good one (CALLED, below). Lines in brackets are thought, not said. {trouble} is
+// isn't a good one (CALLED, below). On about one round in three a heron comes over the
+// path on the clubhouse walk and the argument stops for it: nobody says anything, then it
+// carries on (heron). Lines in brackets are thought, not said. {trouble} is
 // the worst of the hole: the water, the trees, the bunker, the great beyond. Never a
 // number; nothing here says what to press; nothing here reaches the sim.
 
@@ -45,6 +47,9 @@ export type Scene = {
   back?: { caught: Line; missed: Line };
   /** The clubhouse walk: the last word, on whether the earlier key lines were caught */
   verdict?: Record<Arc, Line>;
+  /** The clubhouse walk: where in the build the heron comes over, before which line, on
+   *  the rounds it does */
+  heron?: number;
 };
 type Arc = 'all' | 'none' | 'some';
 export type MomentKind = 'ace' | 'holeout' | 'chip' | 'putt' | 'escape' | 'pure' | 'tidy';
@@ -113,6 +118,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('thinking', 'You don’t have to buy them anything.'),
         partner('pleased', 'You should, though. Shut them up for good.'),
       ],
+      heron: 2,
       key: [you('thinking', '(Champ. All night, that.)')],
       caught: [partner('pleased', 'Come on, champ. First one’s mine.')],
       missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
@@ -174,6 +180,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         partner('pleased', 'Kitchen’s shutting soon. The chips need a decision too.'),
         you('thinking', '(Pint. Tea. Chips. Pint…)'),
       ],
+      heron: 3,
       key: [you('normal', '(Pint. That’s that.)')],
       caught: [partner('shocked', 'No dithering? I’ll get them in, then.')],
       missed: [partner('pleased', 'I’ll order you a tea. You can change it later.'), you('thinking', '(Tea. Probably. Or…)')],
@@ -235,6 +242,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         you('thinking', '(There’s always a flag. There’s always a middle.)'),
       ],
       keyAt: [2, 3, 4],
+      heron: 3,
       key: [you('normal', '(The middle. Every time.)')],
       caught: [partner('shocked', 'Dull all the way to the bar. I almost admire it.')],
       missed: [partner('pleased', 'See? Tomorrow you’ll be going at them with me.')],
@@ -265,9 +273,9 @@ const TROUBLE_WORDS: Record<Exclude<Trouble, 'rough'>, string> = { water: 'the w
  *  routine was through, a line decided with a tap and then moved off (or, carrying Pins
  *  Are a Psyop, the boring target said and the flag swung at) */
 export type Did = { swung: { pick: string | null; club: string }[]; doubt: boolean; hurried: boolean; moved: boolean };
-/** The hole just played, as a scene needs it, and the earlier walks' key lines: caught
- *  or let go */
-export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind>; did: Did; caught: boolean[] };
+/** The hole just played, as a scene needs it, the earlier walks' key lines (caught or
+ *  let go), and whether this is a round the heron comes over */
+export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind>; did: Did; caught: boolean[]; heron: boolean };
 
 // How the call over the ball looked to the thought carried: sound, shaky, or a word gone
 // back on (carrying Commit to the Line, a line decided out loud and then left; carrying
@@ -327,8 +335,8 @@ const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>
   },
 };
 /** A line on the stage: who, which face, the words, a jolt, whether it's the key line or a
- *  moment to keep */
-export type Beat = Line & { key?: boolean; moment?: boolean };
+ *  moment to keep, or a hush: nobody speaking, its words only for the status */
+export type Beat = Line & { key?: boolean; moment?: boolean; hush?: boolean };
 
 /** The walk after the hole just played, for the thought carried: the lines with the key
  *  line among them, and what's said to it if it's caught or let go */
@@ -347,8 +355,11 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const back = sc.back && st.caught.length ? [sc.back[st.caught[0] ? 'caught' : 'missed']] : [];
   const arc: Arc = st.caught.every(Boolean) ? 'all' : st.caught.some(Boolean) ? 'some' : 'none';
   const last = sc.verdict && st.caught.length ? [sc.verdict[arc]] : [];
+  const body: Beat[] = [...build.slice(0, at).map(fill), { ...fill(key), key: true }, ...build.slice(at).map(fill)];
+  // The heron, on its rounds: the argument stops for it, then picks up where it was
+  if (st.heron && sc.heron !== undefined) body.splice(sc.heron + (at < sc.heron ? 1 : 0), 0, { who: 'you', text: 'A heron comes over the path.', hush: true });
   return {
-    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...build.slice(0, at).map(fill), { ...fill(key), key: true }, ...build.slice(at).map(fill), ...last],
+    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...body, ...last],
     caught: sc.caught.map(fill),
     missed: sc.missed.map(fill),
   };

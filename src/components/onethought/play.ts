@@ -1527,7 +1527,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     pendingRun = null;
     cuedRun = null;
     cloud = null;
-    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1], caught: Array.from({ length: hole - 1 }, (_, i) => keyed[i] === true) }, voiceRng);
+    // The heron comes over on about one round in three, by the round's seed
+    const heron = S.hash32((round ^ 0x6e72) >>> 0) % 3 === 0;
+    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1], caught: Array.from({ length: hole - 1 }, (_, i) => keyed[i] === true), heron }, voiceRng);
     walkT0 = -1;
     root.dataset.walk = '';
     setMode('between');
@@ -1859,8 +1861,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const u = reduce ? 0.55 : clamp(walkU * 1.1, 0, 1);
     const sp = walkStage.speaker;
     // The walking golfer stays out of the frame while a portrait is up, or you'd be in
-    // two places at once; the rope's lines keep them
-    const f = { u, n: hole < 3 ? hole + 1 : 0, walking: !reduce && cutEnd < 0, bow: walkBow, cloud: null, top: false, golfer: !sp || sp.who === 'rope' };
+    // two places at once; the rope's lines keep them. In a hush they stop and watch
+    const hush = walkStage.hushT0;
+    const f = { u, n: hole < 3 ? hole + 1 : 0, walking: !reduce && cutEnd < 0 && hush < 0, bow: walkBow, cloud: null, top: false, golfer: !sp || sp.who === 'rope', heron: hush >= 0 ? gt - hush : -1 };
     const [shx, shy] = walkStage.shake(gt);
     const flash = walkStage.flash(gt);
     const shout = walkStage.shout(gt);
