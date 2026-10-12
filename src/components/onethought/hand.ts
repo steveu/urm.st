@@ -509,8 +509,8 @@ const HEAD_AT = { x: 16, y: 0 };
 
 const built = new Map<string, { body: string[][]; head: Patch[] }>();
 
-/** One frame of a figure; flip to face left */
-export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean): HTMLCanvasElement {
+/** A figure laid out as keys on its grid: the body, the head on it in its pose, the face */
+function compose(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth): string[][] {
   const fig = FIGS[who];
   let b = built.get(who);
   if (!b) {
@@ -529,6 +529,13 @@ export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mou
   if (blink && f !== 'pleased' && f !== 'shout') for (const [x, y, s] of fig.blink) put(x, y, s);
   if (mouth > 0 && f !== 'shout') for (const [x, y, s] of fig.talk[mouth as 1 | 2]) put(x, y, s);
   if (f === 'shocked') for (const [x, y, s] of SWEAT) put(x + fig.sweat[0] - 5, y + fig.sweat[1] + frame * 2, s);
+  return g;
+}
+
+/** One frame of a figure; flip to face left */
+export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean): HTMLCanvasElement {
+  const fig = FIGS[who];
+  const g = compose(who, f, frame, blink, mouth);
   const c = document.createElement('canvas');
   c.width = PLATE_W;
   c.height = PLATE_H;
@@ -552,4 +559,19 @@ export function handHead(who: Actor, flip: boolean): { x: number; y: number; w: 
   const x = HEAD_AT.x + bx.x;
   const gx = FIGS[who].right === flip ? GRID_W - x - bx.w : x;
   return { x: gx * SCALE, y: (HEAD_AT.y + bx.y) * SCALE, w: bx.w * SCALE, h: bx.h * SCALE };
+}
+
+/** A figure's head and collar, n by n at the board's own pixel, over whatever's on the
+ *  canvas already: the close-ups that cut in during play. Flip to face left */
+export function handHeadOnto(cg: CanvasRenderingContext2D, who: Actor, f: Face, n: number, flip: boolean) {
+  const fig = FIGS[who];
+  const g = compose(who, f, 0, false, 0);
+  const mirror = fig.right === flip;
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++) {
+      const col = fig.pal[g[y]?.[HEAD_AT.x + x] ?? '.'];
+      if (!col) continue;
+      cg.fillStyle = col;
+      cg.fillRect(mirror ? n - 1 - x : x, y, 1, 1);
+    }
 }
