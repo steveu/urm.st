@@ -97,15 +97,36 @@ const BLIP: Record<Voice, [number, OscillatorType]> = {
   caddie: [300, 'triangle'],
   partner: [700, 'square'],
 };
-/** A letter typed: each voice its own pitch and grain */
-export function blip(who: string) {
+/** A letter typed: each voice its own pitch and grain. A thought of your own, not said
+ *  aloud, is softer: rounder, quieter, a touch lower (and the stage blips it less often) */
+export function blip(who: string, inner = false) {
   const [f, type] = BLIP[who as Voice] ?? BLIP.you;
+  if (inner) return tone(f * 0.9 * (0.97 + Math.random() * 0.06), f * 0.9, 0.04, 0.035, 'triangle');
   tone(f * (0.96 + Math.random() * 0.08), f, 0.035, 0.05, type);
 }
 /** The next line */
 export const click = () => tone(1400, 1100, 0.025, 0.05, 'square');
-/** The shout: the key line caught */
-export function shout() {
+// Each thought's shout its own tag, known by its word: caught out, falling; decided, a
+// cadence that lands; and bored, one flat note, which is all it deserves
+const SHOUTS: Record<string, () => void> = {
+  'got me': () => {
+    noise(0.14, 0.1, 3000, 900, 'bandpass');
+    tone(784, 784, 0.08, 0.08, 'square', 0.03);
+    tone(659, 523, 0.22, 0.07, 'square', 0.12);
+  },
+  decided: () => {
+    noise(0.05, 0.1, 4000, 4000, 'highpass');
+    tone(392, 392, 0.07, 0.08, 'square', 0.02);
+    tone(523, 523, 0.07, 0.08, 'square', 0.1);
+    tone(523, 523, 0.32, 0.06, 'triangle', 0.17);
+  },
+  boring: () => tone(220, 220, 0.34, 0.06, 'square'),
+};
+/** The shout: the key line caught, tagged by its word ('Got me!', 'decided'); any other
+ *  word gets the plain rise */
+export function shout(word = '') {
+  const tag = SHOUTS[word.toLowerCase().replace(/[^a-z ]/g, '').trim()];
+  if (tag) return tag();
   noise(0.18, 0.12, 3000, 800, 'bandpass');
   [523, 659, 784, 1047].forEach((f, i) => tone(f, f, 0.09, 0.08, 'square', 0.03 + i * 0.05));
   tone(1047, 1047, 0.3, 0.06, 'triangle', 0.25);

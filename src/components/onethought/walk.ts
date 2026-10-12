@@ -1,5 +1,6 @@
-// The walk between holes, painted over the whole board: side on, at last light, the same
-// evening as the sealed round. A pale sky to amber, the sun low on the right, far hills in
+// The walk between holes, painted over the whole board: side on, the light going down walk
+// by walk until the last, in to the clubhouse, is at last light, the same evening as the
+// sealed round. A pale sky to amber, the sun low on the right, far hills in
 // haze, a back-lit treeline, then the field and the path with the trees beside it, every
 // one throwing its shadow long to the left. The golfer crosses it with the bag up towards
 // the next tee's sign (the clubhouse, after the last green) while the inner voice talks.
@@ -23,7 +24,7 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [
 const step = (v: number, n: number, x: number, y: number) => clamp(Math.floor(v * (n - 1) + bayer(x, y)), 0, n - 1);
 
 // The palette: the sealed round's evening
-const SKY: RGB[] = [
+const SKY_LAST: RGB[] = [
   [245, 238, 234],
   [246, 229, 225],
   [248, 217, 208],
@@ -40,23 +41,23 @@ const GLOW: RGB[] = [
 ];
 const SUN: RGB = [255, 251, 236];
 const SUN_EDGE: RGB = [255, 238, 198];
-const CLOUD = { body: [212, 150, 158] as RGB, top: [196, 136, 150] as RGB, lit: [252, 208, 162] as RGB, warm: [236, 170, 142] as RGB };
-const HILL: RGB[] = [
+const CLOUD_LAST = { body: [212, 150, 158] as RGB, top: [196, 136, 150] as RGB, lit: [252, 208, 162] as RGB, warm: [236, 170, 142] as RGB };
+const HILL_LAST: RGB[] = [
   [224, 180, 182],
   [202, 160, 174],
 ];
-const HILL_LIT: RGB = [242, 202, 176];
-const BACK = { body: [158, 120, 140] as RGB, dark: [140, 106, 130] as RGB, rim: [238, 172, 132] as RGB };
-const TREE = { body: [94, 78, 100] as RGB, dark: [72, 60, 84] as RGB, mid: [118, 96, 110] as RGB, rimDim: [190, 128, 112] as RGB, rim: [240, 168, 96] as RGB, hot: [255, 216, 142] as RGB };
+const HILL_LIT_LAST: RGB = [242, 202, 176];
+const BACK_LAST = { body: [158, 120, 140] as RGB, dark: [140, 106, 130] as RGB, rim: [238, 172, 132] as RGB };
+const TREE_LAST = { body: [94, 78, 100] as RGB, dark: [72, 60, 84] as RGB, mid: [118, 96, 110] as RGB, rimDim: [190, 128, 112] as RGB, rim: [240, 168, 96] as RGB, hot: [255, 216, 142] as RGB };
 const BLOSSOM = { shade: [204, 104, 136] as RGB, pink: [236, 146, 164] as RGB, lit: [255, 200, 192] as RGB };
 // Lit far, lit near, shaded far, shaded near
-const ROUGH: RGB[] = [
+const ROUGH_LAST: RGB[] = [
   [218, 186, 110],
   [146, 134, 78],
   [152, 122, 134],
   [94, 86, 110],
 ];
-const PATH: RGB[] = [
+const PATH_LAST: RGB[] = [
   [232, 206, 140],
   [196, 178, 112],
   [170, 144, 146],
@@ -64,12 +65,50 @@ const PATH: RGB[] = [
 ];
 const GOLD_SPILL: RGB = [236, 196, 120];
 const MOTE = '#ffecb4';
+
+// The same, earlier in the evening: a paler, golder sky, the hills less rosy, the trees and
+// the field still green under the gold. Each walk is drawn this far towards the last light
+const EARLY = {
+  sky: [
+    [240, 238, 226],
+    [243, 235, 216],
+    [246, 230, 202],
+    [248, 223, 186],
+    [249, 214, 168],
+    [247, 202, 150],
+    [242, 188, 136],
+  ] as RGB[],
+  cloud: { body: [226, 196, 172] as RGB, top: [214, 184, 166] as RGB, lit: [252, 228, 176] as RGB, warm: [240, 202, 158] as RGB },
+  hill: [
+    [218, 200, 180],
+    [198, 184, 172],
+  ] as RGB[],
+  hillLit: [242, 216, 176] as RGB,
+  back: { body: [140, 130, 126] as RGB, dark: [122, 114, 114] as RGB, rim: [238, 192, 124] as RGB },
+  tree: { body: [76, 94, 70] as RGB, dark: [60, 74, 60] as RGB, mid: [102, 116, 84] as RGB, rimDim: [178, 150, 102] as RGB, rim: [232, 186, 96] as RGB, hot: [252, 226, 148] as RGB },
+  rough: [
+    [208, 198, 114],
+    [138, 142, 78],
+    [142, 132, 126],
+    [88, 92, 102],
+  ] as RGB[],
+  path: [
+    [232, 214, 150],
+    [194, 184, 118],
+    [166, 152, 142],
+    [118, 114, 120],
+  ] as RGB[],
+};
+const mixAll = (a: readonly RGB[], b: readonly RGB[], t: number) => a.map((c, i) => mix(c, b[i], t));
+const mixPal = <K extends string>(a: Record<K, RGB>, b: Record<K, RGB>, t: number) =>
+  Object.fromEntries(Object.keys(a).map((k) => [k, mix(a[k as K], b[k as K], t)])) as Record<K, RGB>;
 const SHADOW = 'rgba(72,60,96,0.42)';
 
-/** How far across (0 to 1); the hole the walk is to, or 0 for the clubhouse; the golfer's
+/** How far across (0 to 1); the hole the walk is to, or 0 for the clubhouse; how far the
+ *  light's gone, 0 to 1 at last light (LIGHT in pixel.ts); the golfer's
  *  walk and bearing; whether the voices sit at the top of the board (a phone); and how
  *  long the heron's been over, or -1 */
-export type WalkFrame = { u: number; n: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean; golfer: boolean; heron: number };
+export type WalkFrame = { u: number; n: number; hour: number; walking: boolean; bow: boolean; cloud: { t0: number; doubt: boolean } | null; top: boolean; golfer: boolean; heron: number };
 
 const SCROLL = 64; // how far the near ground goes by over the walk, in pixels
 const HERON_MS = 2800; // the heron, from one side of the frame to the other
@@ -156,17 +195,29 @@ export function createWalk() {
   let hz = 0;
   let pathY = 0;
   let sun = { x: 0, y: 0, r: 0 };
+  let hr = 1;
   const signs = [teeSign(11), teeSign(12), teeSign(13)];
   const houseSp: Sprite = house();
 
-  function paint(lw: number, lh: number, top: boolean) {
-    const k = `${lw}x${lh}:${top}`;
+  function paint(lw: number, lh: number, top: boolean, hour: number) {
+    const k = `${lw}x${lh}:${top}:${hour}`;
     if (k === key) return;
     key = k;
+    hr = hour;
+    // The palette for the hour
+    const SKY = mixAll(EARLY.sky, SKY_LAST, hr);
+    const CLOUD = mixPal(EARLY.cloud, CLOUD_LAST, hr);
+    const HILL = mixAll(EARLY.hill, HILL_LAST, hr);
+    const HILL_LIT = mix(EARLY.hillLit, HILL_LIT_LAST, hr);
+    const BACK = mixPal(EARLY.back, BACK_LAST, hr);
+    const TREE = mixPal(EARLY.tree, TREE_LAST, hr);
+    const ROUGH = mixAll(EARLY.rough, ROUGH_LAST, hr);
+    const PATH = mixAll(EARLY.path, PATH_LAST, hr);
     // The voices take the top on a phone and the foot elsewhere; the walk keeps clear
     pathY = top ? lh - 34 : Math.round(lh * 0.6);
     hz = pathY - 26;
-    sun = { x: Math.round(lw * 0.82), y: hz - 8, r: clamp(Math.round(lh * 0.05), 6, 9) };
+    // The sun lower walk by walk, down to just over the hills at last light
+    sun = { x: Math.round(lw * 0.82), y: hz - 8 - Math.round((1 - hr) * hz * 0.3), r: clamp(Math.round(lh * 0.05), 6, 9) };
 
     // The sky, the sun, the clouds and the hills: still
     back = layer(lw, hz + 2);
@@ -212,7 +263,7 @@ export function createWalk() {
         const pine = hash(i, 2, 51) < 0.45;
         let ht = pine ? 9 + Math.round(hash(i, 1, 51) * 8) : 6 + Math.round(hash(i, 1, 51) * 6);
         const wd = pine ? 5 + Math.round(hash(i, 3, 51) * 3) : 7 + Math.round(hash(i, 3, 51) * 6);
-        if (Math.abs(x - sun.x - SCROLL * 0.15) < sun.r * 1.6) ht = Math.round(ht * 0.35);
+        if (sun.y > hz - 14 && Math.abs(x - sun.x - SCROLL * 0.15) < sun.r * 1.6) ht = Math.round(ht * 0.35);
         if (ht > 2) plant(m, far.w, far.h, x, hz + 1, ht, wd, pine, 51 + i);
         x += 3 + Math.round(hash(i, 4, 51) * 5);
       }
@@ -238,7 +289,7 @@ export function createWalk() {
       // Shadows: each tree's, raked long to the left and towards you, across the path
       const sh = new Uint8Array(W * lh);
       for (const t of trees) {
-        const len = Math.round(t.ht * 1.5);
+        const len = Math.round(t.ht * (0.9 + 0.6 * hr));
         for (let dx = 0; dx < len; dx++) {
           const u = dx / len;
           // Thin at the trunk, the crown's shadow wider further out
@@ -304,7 +355,7 @@ export function createWalk() {
   }
 
   function draw(g: Ctx, lw: number, lh: number, f: WalkFrame, now: number, reduce: boolean) {
-    paint(lw, lh, f.top);
+    paint(lw, lh, f.top, f.hour);
     const u = clamp(f.u, 0, 1);
     const sc = Math.round(u * SCROLL);
     g.drawImage(back!.c, 0, 0);
@@ -319,8 +370,9 @@ export function createWalk() {
     if (f.golfer) {
       const gx = Math.round(lw * 0.12 + (lw * 0.62 * u));
       g.fillStyle = SHADOW;
-      g.fillRect(gx - 24, pathY, 24, 1);
-      g.fillRect(gx - 13, pathY + 1, 12, 1);
+      const sl = Math.round(14 + 10 * hr);
+      g.fillRect(gx - sl, pathY, sl, 1);
+      g.fillRect(gx - Math.round(sl / 2) - 1, pathY + 1, Math.round(sl / 2), 1);
       drawGolfer(g, gx, pathY, 1, { kind: 'walk', phase: f.walking && !reduce ? Math.floor(now / (f.bow ? 190 : 150)) : 0, bag: true, bow: f.bow });
       if (f.cloud) drawCloud(g, gx + 1, pathY - 19, now - f.cloud.t0, f.cloud.doubt, reduce);
     }

@@ -284,7 +284,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
           s = { ...s, stage: 'sealed' };
           paint();
           sizeEnding();
-          ending.start({ reduce });
+          ending.start({ reduce, verdict: s.verdict });
           game.setActive(false);
           // The band may be taller than the screen: bring its top, and the sentence, into view
           if (root!.getBoundingClientRect().top < 0) root!.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });

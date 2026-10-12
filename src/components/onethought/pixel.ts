@@ -109,6 +109,27 @@ const G = {
   haze: [200, 190, 160] as RGB,
 };
 
+// The light goes down hole by hole: late gold on the 11th, lower on the 12th, near last
+// light on the 13th, and the walk in to the clubhouse in the sealed round's own. 0 is now,
+// 1 is last light. It only moves between holes, while the walk has the board
+export const LIGHT = { holes: [0, 0.5, 0.85], walks: [0.3, 0.7, 1] } as const;
+const lumOf = (c: RGB) => c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+/** A colour as the light goes, hr from 0 to 1: warmer and rosier, the greens to gold, the
+ *  shade to violet, but kept as bright as it was, so nothing on the ground gets harder to see */
+function graded(c: RGB, hr: number): RGB {
+  if (hr <= 0) return c;
+  const l = lumOf(c);
+  let t: RGB = [c[0] * (1 + 0.14 * hr) + 10 * hr, c[1] * (1 - 0.04 * hr), c[2] * (1 - 0.1 * hr) + 6 * hr];
+  // A little of the colour goes out of it, or the grass goes to straw
+  t = mix(t, [l, l, l], 0.12 * hr);
+  const shade = clamp((150 - l) / 90, 0, 1) * hr;
+  t = mix(t, [t[0], t[1] * 0.86, t[2] * 1.3 + 16], shade * 0.55);
+  const k = (l * (1 - 0.06 * hr)) / Math.max(1, lumOf(t));
+  return [clamp(t[0] * k, 0, 255), clamp(t[1] * k, 0, 255), clamp(t[2] * k, 0, 255)];
+}
+// What's off the hole in play hazes to: the band's cream, going rosy
+const hazeAt = (hr: number) => mix(G.haze, [216, 182, 168], hr);
+
 // ---------------------------------------------------------------------------------------
 // Shapes, for telling grass from sand
 
@@ -1024,6 +1045,31 @@ export function createBoard(cv: HTMLCanvasElement) {
   const bridgeSp = bridge();
   const signs = COURSE.holes.map((h) => teeSign(h.n + 10));
 
+  // The light the board's in (LIGHT), and the trees, the blossom, the bridge and the house
+  // in it. What you play with (the ball, the aim, the flags, the signs, people) stays as it is
+  let hour = 0;
+  const inLight = new WeakMap<Sprite, { hr: number; sp: Sprite }>();
+  function lit(sp: Sprite): Sprite {
+    if (hour <= 0) return sp;
+    const hit = inLight.get(sp);
+    if (hit && hit.hr === hour) return hit.sp;
+    const [c, cg] = canvas(sp.c.width, sp.c.height);
+    cg.drawImage(sp.c, 0, 0);
+    const img = cg.getImageData(0, 0, c.width, c.height);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (!d[i + 3]) continue;
+      const col = graded([d[i], d[i + 1], d[i + 2]], hour);
+      d[i] = col[0];
+      d[i + 1] = col[1];
+      d[i + 2] = col[2];
+    }
+    cg.putImageData(img, 0, 0);
+    const out = { c, ax: sp.ax, ay: sp.ay };
+    inLight.set(sp, { hr: hour, sp: out });
+    return out;
+  }
+
   // Water pixels, for the shimmer
   let waterPx: number[] = [];
 
@@ -1037,6 +1083,8 @@ export function createBoard(cv: HTMLCanvasElement) {
 
   /** Draw the ground: the surfaces, the light on the hole in play, the sides, the shadows */
   function renderGround(mode: GroundMode, focus: number) {
+    const hr = hour;
+    const haze = hazeAt(hr);
     pg.clearRect(0, 0, GW, GH);
     pg.drawImage(ground, 0, 0);
     const img = gg.createImageData(GW, GH);
@@ -1111,10 +1159,11 @@ export function createBoard(cv: HTMLCanvasElement) {
             col = mul(col, 1.05 - 0.11 * t);
           }
           // The far edges catch the light
-          if (y > 0 && !pts[i - GW]) col = mix(col, [236, 232, 190], 0.35);
+          if (y > 0 && !pts[i - GW]) col = mix(col, mix([236, 232, 190], [248, 210, 172], hr), 0.35);
           // Warmer towards the sun, which is low and off to the right
           const s = clamp((p[1] - (W - p[0]) + W) / (W + H), 0, 1);
           col = [col[0] * (1 + 0.05 * s) + 12 * s, col[1] * (1 + 0.03 * s) + 6 * s, col[2]];
+          col = graded(col, hr);
           // The light: a pool on the hole in play, dithered at its edge; the rest quieter
           let lit = 1;
           if (mode === 'quiet') lit = 0.25;
@@ -1132,7 +1181,7 @@ export function createBoard(cv: HTMLCanvasElement) {
             lit = lit > bayer(x, y) ? 1 : 0;
           }
           if (lit >= 1) col = mode === 'play' ? [col[0] * 1.04 + 8, col[1] * 1.03 + 5, col[2] * 0.98] : col;
-          else col = mix(mul(col, mode === 'quiet' ? 0.94 : 0.9), G.haze, mode === 'quiet' ? 0.22 : 0.2);
+          else col = mix(mul(col, mode === 'quiet' ? 0.94 : 0.9), haze, mode === 'quiet' ? 0.22 : 0.2);
         } else {
           // The sides: a lip of grass, then soil in layers, lit on the face towards the sun
           for (let dd = 1; dd <= T; dd++) {
@@ -1149,7 +1198,8 @@ export function createBoard(cv: HTMLCanvasElement) {
               if (dd === 5) col = mul(col, 0.9);
               if (hash(x, y, 3) > 0.9) col = mul(col, 1.12);
             }
-            if (mode === 'quiet') col = mix(col, G.haze, 0.15);
+            col = graded(col, hr);
+            if (mode === 'quiet') col = mix(col, haze, 0.15);
             break;
           }
         }
@@ -1161,8 +1211,10 @@ export function createBoard(cv: HTMLCanvasElement) {
           d[k + 3] = 255;
         }
       }
-    // Long shadows, raked left by the low sun
-    const shade = (sx: number, sy: number, len: number, h: number, k = 0.8) => {
+    // Long shadows, raked left by the low sun: longer as it goes down, and going violet
+    const long = 1 + 0.6 * hr;
+    const shade = (sx: number, sy: number, len0: number, h: number, k = 0.8) => {
+      const len = Math.round(len0 * long);
       for (let dx = 1; dx <= len; dx++)
         for (let dy = 0; dy < h; dy++) {
           const x = Math.round(sx - dx);
@@ -1175,7 +1227,7 @@ export function createBoard(cv: HTMLCanvasElement) {
           const k4 = i * 4;
           d[k4] *= k;
           d[k4 + 1] *= k;
-          d[k4 + 2] *= k * 0.96;
+          d[k4 + 2] *= Math.min(1, k * (0.96 + 0.12 * hr));
         }
     };
     const at = (p: Vec): Vec => [GX + isoX(p[0], p[1]), GY + isoY(p[0], p[1])];
@@ -1245,11 +1297,13 @@ export function createBoard(cv: HTMLCanvasElement) {
   }
 
   let groundKey = '';
-  function setGround(mode: GroundMode, focus: number, now: number, animate = true) {
-    const key = `${mode}:${focus}`;
+  /** The ground for the stage, the hole in play and the light it's in (LIGHT) */
+  function setGround(mode: GroundMode, focus: number, now: number, animate = true, light = 0) {
+    const key = `${mode}:${focus}:${light}`;
     if (key === groundKey) return;
     const first = groundKey === '';
     groundKey = key;
+    hour = light;
     renderGround(mode, focus);
     fade = { t0: first || !animate ? -1e9 : now, ms: 700 };
   }
@@ -1460,7 +1514,7 @@ export function createBoard(cv: HTMLCanvasElement) {
     allTrees.forEach((t, i) => {
       if (!seen(t)) return;
       const [x, y] = toPx(t);
-      const sp = treeSp[i];
+      const sp = lit(treeSp[i]);
       // A gust through the trees now and then, when it's blowing
       const gust = !f.reduce && f.wind.level >= 2 && hash(i, Math.floor(now / 1300)) < (f.wind.level === 3 ? 0.12 : 0.05);
       const rk = rockT[i] != null && now - rockT[i] < 420 ? (Math.floor((now - rockT[i]) / 70) & 1 ? 1 : -1) : gust ? (Math.floor(now / 160) & 1 ? (f.wind.dx >= 0 ? 1 : -1) : 0) : 0;
@@ -1479,12 +1533,13 @@ export function createBoard(cv: HTMLCanvasElement) {
     COURSE.blooms.forEach((b, i) => {
       if (!seen(b)) return;
       const [x, y] = toPx(b);
-      const sp = bloomSp[i % 3];
+      const sp = lit(bloomSp[i % 3]);
       items.push({ y, d: () => g.drawImage(sp.c, x - sp.ax, y - sp.ay) });
     });
     if (seen(COURSE.bridge)) {
       const [x, y] = toPx(COURSE.bridge);
-      items.push({ y: y - 3, d: () => g.drawImage(bridgeSp.c, x - bridgeSp.ax, y - bridgeSp.ay) });
+      const sp = lit(bridgeSp);
+      items.push({ y: y - 3, d: () => g.drawImage(sp.c, x - sp.ax, y - sp.ay) });
     }
     // The ghost of a shot that went wrong, flying it again on the walk
     if (f.ghostBall) {
@@ -1505,7 +1560,8 @@ export function createBoard(cv: HTMLCanvasElement) {
     const housePt: Vec = [COURSE.terrace[0] + 30, COURSE.terrace[1] + 10];
     if (seen(housePt)) {
       const [x, y] = toPx(housePt);
-      items.push({ y, d: () => g.drawImage(houseSp.c, x - houseSp.ax, y - houseSp.ay) });
+      const sp = lit(houseSp);
+      items.push({ y, d: () => g.drawImage(sp.c, x - sp.ax, y - sp.ay) });
     }
     const bodies = ['#8a3b2a', '#2f4a6b', '#5b6b3a'];
     gallery().forEach((p, i) => {
@@ -1552,8 +1608,9 @@ export function createBoard(cv: HTMLCanvasElement) {
         y,
         d: () => {
           g.fillStyle = P.shade;
-          g.fillRect(x - 10, y, 12, 1);
-          g.fillRect(x - 5, y + 1, 5, 1);
+          const sl = Math.round(6 * hour);
+          g.fillRect(x - 10 - sl, y, 12 + sl, 1);
+          g.fillRect(x - 5 - Math.round(sl / 2), y + 1, 5 + Math.round(sl / 2), 1);
           if (gf.bag) drawBag(g, x - gf.face * 12 - 1, y - 2);
           drawGolfer(g, x, y, gf.face, gf.st);
         },
