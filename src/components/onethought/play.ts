@@ -312,7 +312,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let nextTee: 'none' | 'caught' | 'follow' | 'kept' = 'none';
   // What happened on each hole, for the walk after it: worth keeping, trouble, and what
   // was done over the ball (the targets swung at, the clubs, doubt, a hurry, a line
-  // decided with a tap and then moved off)
+  // decided with a tap and then moved off, the boring target said and the flag swung at)
   let feats: Set<MomentKind>[] = [new Set(), new Set(), new Set()];
   let trouble: Set<Trouble>[] = [new Set(), new Set(), new Set()];
   const noDid = (): Did => ({ swung: [], doubt: false, hurried: false, moved: false });
@@ -371,6 +371,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let lineWatch: (() => void) | null = null;
   // And the line it decided, inked in brass on the board from then: when, or -1
   let inkT0 = -1;
+  // Carrying Pins Are a Psyop, the boring target said, and the hole it was said for: told
+  // if the next swing there is at the flag
+  let pinWatch: { hole: number; went: () => void } | null = null;
 
   // The swing
   let breath = false;
@@ -803,6 +806,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     feats = [new Set(), new Set(), new Set()];
     trouble = [new Set(), new Set(), new Set()];
     did = [noDid(), noDid(), noDid()];
+    pinWatch = null;
     nextTee = 'none';
     strokes = [0, 0, 0];
     heckledEver = false;
@@ -1014,6 +1018,16 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     dd.swung.push({ pick: chips[onChip]?.name ?? null, club });
     if (doubt) dd.doubt = true;
     if (hurried) dd.hurried = true;
+    // The flag after saying boring is heard by the card and the walk; the middle keeps
+    // the word. Never by the shot
+    const kind = chips[onChip]?.kind;
+    if (pinWatch?.hole === hole && (kind === 'flag' || kind === 'fat')) {
+      if (kind === 'flag') {
+        dd.moved = true;
+        pinWatch.went();
+      }
+      pinWatch = null;
+    }
     if (hurried) {
       pips.forEach((p, i) => p.classList.toggle('skipped', i >= lit));
       pipsEl.classList.add('rushed');
@@ -2298,10 +2312,14 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       return true;
     },
     /** A tap behind the ball, carrying Commit to the Line: `moved` is called if the line is
-     *  changed after it, before the swing. Nothing else hears of it */
-    watchLine(moved: () => void) {
-      lineWatch = mode === 'aim' && !stepped && THOUGHTS[thought].name === 'Commit to the Line' ? moved : null;
+     *  changed after it, before the swing. Carrying Pins Are a Psyop, a tap behind the ball
+     *  or a catch on the walk to the next tee: `moved` is called if the next swing at a
+     *  target on that hole is at the flag. Nothing else hears of it */
+    watchLine(moved: () => void, caught = false) {
+      const name = THOUGHTS[thought].name;
+      lineWatch = mode === 'aim' && !stepped && name === 'Commit to the Line' ? moved : null;
       if (lineWatch && inkT0 < 0) inkT0 = gt;
+      if (name === 'Pins Are a Psyop' && (mode === 'aim' || (mode === 'between' && caught))) pinWatch = { hole: mode === 'between' ? hole + 1 : hole, went: moved };
     },
     /** Where and when a press fell, for the record */
     stamp(): Press {

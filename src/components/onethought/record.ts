@@ -81,11 +81,12 @@ const SAY: Record<Lie, string> = {
 // stamped, a catch let go by is a faint hollow tick, and a moment kept is edged in gold.
 // No totals
 // What the key line's tap means, by the thought: its word on the card's key, in words for
-// a screen reader, and for one let go by
-const KEY_WORDS: Record<string, { k: string; tap: string; miss: string }> = {
+// a screen reader, and for one let go by; and for a tap gone back on, its word on the key
+// and in words
+const KEY_WORDS: Record<string, { k: string; tap: string; miss: string; moved?: string; went?: string }> = {
   'The Heckler': { k: 'got me', tap: 'a tap as it showed', miss: 'it showed, let pass' },
   'Commit to the Line': { k: 'decided', tap: 'a tap as you decided', miss: 'a pick let pass' },
-  'Pins Are a Psyop': { k: 'boring', tap: 'a tap for the boring target', miss: 'the boring target, let pass' },
+  'Pins Are a Psyop': { k: 'boring', tap: 'a tap for the boring target', miss: 'the boring target, let pass', moved: 'went at it', went: 'then went at the flag' },
 };
 
 function card(s: State) {
@@ -111,7 +112,7 @@ function card(s: State) {
           : 'putt'
         : SAY[e.lie]
       : e.k === 'tap'
-        ? `${e.caught ? kw.tap : e.over ? 'tap over the ball' : 'tap'}${e.moved ? ', then the line moved' : ''}`
+        ? `${e.caught ? kw.tap : e.over ? 'tap over the ball' : 'tap'}${e.moved ? `, ${kw.went ?? 'then the line moved'}` : ''}`
         : e.k === 'missed'
           ? kw.miss
           : e.kept
@@ -125,7 +126,7 @@ function card(s: State) {
   const moved = all.some((e) => e.k === 'tap' && e.moved);
   const said = rows.map((r, i) => `${shownOrdinal(i + 1)}: ${r.length ? r.map(words).join(', ') : 'nothing'}.`).join(' ');
   return `<div class="rows" aria-hidden="true">${rows.map((r, i) => `<span class="hn">${shownOrdinal(i + 1)}</span><span class="d">${r.map(glyph).join('')}</span>`).join('')}</div>
-    <p class="key" aria-hidden="true"><i class="g s-fairway"></i> shot <i class="g pt"></i> putt <u class="tk"></u> tap${caught ? ` <u class="ck"></u> ${kw.k}` : ''}${missed ? ' <u class="ck miss"></u> let pass' : ''}${moved ? ' <u class="ck moved"></u> then moved' : ''}${moments ? ' <s class="dm"></s> moment' : ''}${kept ? ' <s class="dm kept"></s> kept' : ''}</p>
+    <p class="key" aria-hidden="true"><i class="g s-fairway"></i> shot <i class="g pt"></i> putt <u class="tk"></u> tap${caught ? ` <u class="ck"></u> ${kw.k}` : ''}${missed ? ' <u class="ck miss"></u> let pass' : ''}${moved ? ` <u class="ck moved"></u> ${kw.moved ?? 'then moved'}` : ''}${moments ? ' <s class="dm"></s> moment' : ''}${kept ? ' <s class="dm kept"></s> kept' : ''}</p>
     <p class="visually-hidden">${said}</p>`;
 }
 

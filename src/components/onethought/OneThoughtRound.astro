@@ -393,8 +393,9 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       else s.taps.push(p);
       const ev: CardEvent = moment ? { k: 'moment', kept } : { k: 'tap', over: p.over, caught };
       s.card[p.hole - 1]?.push(ev);
-      // A line decided with a tap, then changed before the swing: the record shows it faded
-      if (ev.k === 'tap') game.watchLine(() => (ev.moved = true));
+      // A line decided with a tap, then changed before the swing, or the boring target
+      // said and the flag swung at: the record shows it faded
+      if (ev.k === 'tap') game.watchLine(() => (ev.moved = true), caught);
       ripple(moment);
       status.textContent = moment ? (kept ? 'Kept.' : 'Moment marked.') : caught ? 'Caught.' : 'Tap.';
     }
@@ -1596,7 +1597,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   .record :global(.ck.miss) {
     background-image: var(--pp-tickmiss);
   }
-  /* Decided, then the line moved before the swing: the mark, faded */
+  /* Decided, then the line moved before the swing (or boring, then the flag): the mark, faded */
   .record :global(:is(.ck, .tk).moved) {
     opacity: 0.4;
   }

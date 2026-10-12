@@ -212,20 +212,22 @@ const TROUBLE_WORDS: Record<Exclude<Trouble, 'rough'>, string> = { water: 'the w
 
 /** What was done over the ball on the hole: each full swing's target by name (null if it
  *  was on none) and club, a line changed after stepping in, a swing let go before the
- *  routine was through, a line decided with a tap and then moved off */
+ *  routine was through, a line decided with a tap and then moved off (or, carrying Pins
+ *  Are a Psyop, the boring target said and the flag swung at) */
 export type Did = { swung: { pick: string | null; club: string }[]; doubt: boolean; hurried: boolean; moved: boolean };
 /** The hole just played, as a scene needs it */
 export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind>; did: Did };
 
-// How the call over the ball looked to the thought carried: sound, shaky, or, carrying
-// Commit to the Line, a line decided out loud and then left. None if the thought had no
-// call to judge on that hole (no flag to go at or leave, say)
+// How the call over the ball looked to the thought carried: sound, shaky, or a word gone
+// back on (carrying Commit to the Line, a line decided out loud and then left; carrying
+// Pins Are a Psyop, boring said and the flag gone at). None if the thought had no call to
+// judge on that hole (no flag to go at or leave, say)
 type Call = 'sound' | 'shaky' | 'moved';
 const callOf = (thought: string, d: Did): Call | null => {
   if (thought === 'Commit to the Line') return d.moved ? 'moved' : d.doubt ? 'shaky' : 'sound';
   if (thought === 'Pins Are a Psyop') {
     const picks = d.swung.map((s) => s.pick);
-    return picks.includes('flag') ? 'shaky' : picks.includes('fat of the green') ? 'sound' : null;
+    return d.moved ? 'moved' : picks.includes('flag') ? 'shaky' : picks.includes('fat of the green') ? 'sound' : null;
   }
   return d.swung.length ? (d.hurried ? 'shaky' : 'sound') : null;
 };
@@ -265,6 +267,11 @@ const CALLED: Record<string, Partial<Record<Call, Partial<Record<Branch, Line[]>
     shaky: {
       well: [partner('shocked', 'You went straight at it! And it came off!'), you('pleased', 'It did, didn’t it.'), caddie('thinking', 'It did. Don’t make a habit of it.')],
       fine: [partner('pleased', 'You went at that flag with me. Welcome aboard.'), you('thinking', 'Just the once.'), caddie('normal', 'That’s what they all say.')],
+    },
+    moved: {
+      trouble: [partner('pleased', 'Boring, was it? Into {trouble}?'), you('thinking', 'The flag looked closer from there.'), caddie('normal', 'It always does. That’s how they get you.')],
+      well: [partner('pleased', 'Boring, was it?'), you('pleased', 'It came off.'), caddie('thinking', 'It did. You still said the middle.')],
+      fine: [partner('pleased', 'Boring, was it?'), you('thinking', 'The middle. That was the plan.'), caddie('normal', 'It was a good plan.')],
     },
   },
 };
