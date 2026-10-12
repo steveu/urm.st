@@ -198,31 +198,35 @@ function neck(p: Pic, head: Head) {
 }
 function skull(p: Pic, head: Head) {
   ell(p, head.cx, head.cy, head.rx, head.ry, 'skin');
-  ell(p, head.cx + 3, head.cy + 10, head.rx - 4, head.ry * 0.6, 'skin', { base: 0.5 });
+  ell(p, head.cx + 5, head.cy + 10, head.rx - 4, head.ry * 0.6, 'skin', { base: 0.5 });
   ear(p, head);
   nose(p, head);
   // Under the jaw, in shade
   tint(p, (x, y) => y >= head.cy + head.ry * 0.55 + 10 && y <= head.cy + head.ry * 0.55 + 13 && Math.abs(x - head.cx - 2) < head.rx - 4, -0.2, ['skin']);
 }
 
-// The nose, turned three-quarters with the head: down from between the eyes, its tip
-// towards the far eye, lit on its bridge and shaded on the near flank and underneath.
-// Drawn again over a beard
+// The nose, the head turned well round: it breaks the face's outline at the front, from
+// the brow down to a tip past the cheek, lit on its front, shaded back along its near
+// flank and under the tip. Drawn again over a beard
 function nose(p: Pic, head: Head) {
-  const nx = Math.round((head.nearX + head.farX) / 2) + 1;
-  const ny = head.eyeY + 1;
+  const fx = head.cx + head.rx;
+  const top = head.eyeY + 1;
   const nb = head.cy + 8;
-  poly(p, [[nx - 1, ny], [nx + 1, ny], [nx + 4, nb - 3], [nx + 5, nb - 1], [nx + 3, nb + 1], [nx - 3, nb + 1], [nx - 4, nb - 1]], 'skin', { base: 0.68 });
-  tint(p, (x, y) => y > ny + 1 && y < nb - 1 && x >= nx - 3 && x <= nx - 1 && x - (nx - 3) < (y - ny) / 3, -0.26, ['skin']);
-  tint(p, (x, y) => y >= nb + 1 && y <= nb + 2 && x >= nx - 4 && x <= nx + 4, -0.4, ['skin']);
-  tint(p, (x, y) => y === nb && (x === nx - 2 || x === nx + 2), -0.45, ['skin']);
+  poly(p, [[fx - 3, top], [fx, top], [fx + 4, nb - 1], [fx + 3, nb + 1], [fx - 2, nb + 1], [fx - 4, nb - 2]], 'skin', { base: 0.7 });
+  tint(p, (x, y) => y > top + 1 && y < nb - 1 && x >= fx - 5 && x <= fx - 3, -0.2, ['skin']);
+  tint(p, (x, y) => y === nb + 1 && x >= fx - 2 && x <= fx + 2, -0.4, ['skin']);
+  tint(p, (x, y) => y === nb && x === fx - 1, -0.45, ['skin']);
 }
 
-// The ear, on the far side: drawn again over any hair
+// The ear, halfway back on the turned head: lighter than the cheek, a dark edge where it
+// meets the face at the front, a hollow inside. Drawn again over any hair
 function ear(p: Pic, head: Head) {
-  const ex = head.cx - head.rx + 2;
-  ell(p, ex, head.cy + 3, 4, 6, 'skin', { base: 0.4 });
-  tint(p, (x, y) => Math.hypot((x - ex - 0.5) / 1.8, (y - head.cy - 3) / 3.5) < 1, -0.25, ['skin']);
+  const ex = head.cx - 6;
+  const ey = head.cy + 3;
+  ell(p, ex, ey, 4, 6, 'skin', { base: 0.62 });
+  const r = (x: number, y: number) => Math.hypot((x + 0.5 - ex) / 4.5, (y + 0.5 - ey) / 6.5);
+  tint(p, (x, y) => x >= ex && r(x, y) >= 0.78 && r(x, y) < 1.12, -0.45, ['skin']);
+  tint(p, (x, y) => Math.hypot((x + 0.5 - ex - 0.5) / 1.6, (y + 0.5 - ey) / 3.2) < 1, -0.3, ['skin']);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -298,11 +302,11 @@ function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: s
   };
   const [nb, fb] = B[f];
   brow(p, h.nearX - 5, h.nearX + 4, by + nb[0], by + nb[1], nb[2], browCol, browThick);
-  brow(p, h.farX + 3, h.farX - 3, by + fb[0], by + fb[1], fb[2], browCol, browThick);
+  brow(p, h.farX + 2, h.farX - 1, by + fb[0], by + fb[1], fb[2], browCol, browThick);
   // A crease between the brows, when thinking or shouting
   if (f === 'thinking' || f === 'shout') line(p, h.nearX + 6, by - 1, h.nearX + 6, by + 1, LID);
   eye(p, h.nearX, h.eyeY, 8, f, blink, true);
-  eye(p, h.farX, h.eyeY, 5, f, blink, false);
+  eye(p, h.farX, h.eyeY, 3, f, blink, false);
   // The mouth: shut, half, open; its shape by the face
   const mx = h.mouthX;
   const my = h.mouthY;
@@ -350,9 +354,9 @@ function face(p: Pic, h: Head, f: Face, blink: boolean, mouth: Mouth, browCol: s
 // The three of them
 
 const HEAD: Record<Actor, Head> = {
-  you: { cx: 62, cy: 50, rx: 18, ry: 21, eyeY: 51, nearX: 57, farX: 70, mouthX: 67, mouthY: 64 },
-  caddie: { cx: 62, cy: 51, rx: 18, ry: 21, eyeY: 53, nearX: 57, farX: 70, mouthX: 67, mouthY: 66 },
-  partner: { cx: 62, cy: 51, rx: 20, ry: 21, eyeY: 53, nearX: 56, farX: 70, mouthX: 68, mouthY: 68 },
+  you: { cx: 62, cy: 50, rx: 18, ry: 21, eyeY: 51, nearX: 69, farX: 78, mouthX: 72, mouthY: 64 },
+  caddie: { cx: 62, cy: 51, rx: 18, ry: 21, eyeY: 53, nearX: 69, farX: 78, mouthX: 72, mouthY: 66 },
+  partner: { cx: 62, cy: 51, rx: 20, ry: 21, eyeY: 53, nearX: 70, farX: 80, mouthX: 73, mouthY: 68 },
 };
 // The head, tilted by the pose and its frame
 function headAt(who: Actor, pose: Pose, frame: 0 | 1): Head {
@@ -411,7 +415,7 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
     if (x <= mx + 6) return my + 3;
     return my - 1 - Math.round((x - mx - 6) * 0.9);
   };
-  const bx = h.cx + 2;
+  const bx = h.cx + 4;
   const by = h.cy + 11;
   ell(p, bx, by, 18, 17, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) + 1 && hash(x, y, 23) > 0.62 });
   ell(p, bx, by, 16, 15, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) && (y > beardTop(x) + 1 || hash(x, y, 29) > 0.3) });
@@ -420,7 +424,7 @@ function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth)
   // the mouth opens wide
   ell(p, mx, my + 1, 7, 3.5, 'skin', { base: 0.5 });
   const lift = mouth === 2 ? 1 : 0;
-  poly(p, [[mx - 7, my - 6 - lift], [mx - 2, my - 8 - lift], [mx + 2, my - 8 - lift], [mx + 8, my - 6 - lift], [mx + 11, my - 2 - lift], [mx + 8, my - 2 - lift], [mx + 4, my - 4 - lift], [mx, my - 4 - lift], [mx - 4, my - 4 - lift], [mx - 8, my - 2 - lift], [mx - 11, my - 2 - lift]], 'beard', { tex: grain, base: 0.62 });
+  poly(p, [[mx - 7, my - 6 - lift], [mx - 2, my - 8 - lift], [mx + 1, my - 8 - lift], [mx + 4, my - 6 - lift], [mx + 6, my - 2 - lift], [mx + 4, my - 2 - lift], [mx + 2, my - 4 - lift], [mx, my - 4 - lift], [mx - 4, my - 4 - lift], [mx - 8, my - 2 - lift], [mx - 11, my - 2 - lift]], 'beard', { tex: grain, base: 0.62 });
   // The nose, over the moustache's top edge, or the beard swallows it
   nose(p, { ...h, cy: h.cy - 2 });
   // The wool hat: a dome and a ribbed band turned up
@@ -454,7 +458,7 @@ function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth
   // pixel as the mouth opens wide
   const mx = h.mouthX;
   const my = h.mouthY - (mouth === 2 ? 1 : 0);
-  poly(p, [[mx - 8, my - 7], [mx - 2, my - 9], [mx + 2, my - 9], [mx + 8, my - 7], [mx + 13, my - 2], [mx + 10, my - 1], [mx + 5, my - 4], [mx, my - 4], [mx - 5, my - 4], [mx - 11, my - 1], [mx - 14, my - 2]], 'ginger', { tex: grain, base: 0.55 });
+  poly(p, [[mx - 8, my - 7], [mx - 2, my - 9], [mx + 1, my - 9], [mx + 4, my - 7], [mx + 6, my - 2], [mx + 5, my - 1], [mx + 2, my - 4], [mx, my - 4], [mx - 5, my - 4], [mx - 11, my - 1], [mx - 14, my - 2]], 'ginger', { tex: grain, base: 0.55 });
   face(p, h, f, blink, mouth, MATS.ginger.tones[1], { thick: 3, lip: true });
   return h;
 }
