@@ -34,7 +34,7 @@ export type Scene = {
   caught: Line[];
   missed: Line[];
 };
-export type MomentKind = 'chip' | 'putt' | 'escape' | 'pure' | 'tidy';
+export type MomentKind = 'ace' | 'holeout' | 'chip' | 'putt' | 'escape' | 'pure' | 'tidy';
 export type Went = 'well' | 'fine' | 'rough';
 export type Trouble = 'water' | 'out' | 'trees' | 'sand' | 'rough';
 
@@ -199,6 +199,8 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
 
 /** A moment from the hole worth keeping, said by whoever would say it */
 export const MOMENT: Record<MomentKind, Line> = {
+  ace: partner('shocked', 'One. You took one. I’m telling everyone, you know that.'),
+  holeout: partner('shocked', 'From all the way back there. In. I’d have taken the green.'),
   chip: partner('shocked', 'You chipped it in. I’m still not over it.'),
   putt: partner('pleased', 'That putt never left the hole. Lovely.'),
   escape: partner('shocked', 'How did you get out of that? Honestly.'),
@@ -277,7 +279,7 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const worst = (['water', 'out', 'trees', 'sand'] as const).find((t) => st.trouble.has(t));
   const branch: Branch = worst ? 'trouble' : st.went === 'well' ? 'well' : 'fine';
   const fill = (l: Line): Beat => ({ ...l, text: l.text.replace(/\{trouble\}/g, worst ? TROUBLE_WORDS[worst] : 'trouble') });
-  const mk = (['chip', 'putt', 'escape', 'pure'] as const).find((k) => st.feats.has(k)) ?? (st.went === 'well' ? 'tidy' : null);
+  const mk = (['ace', 'holeout', 'chip', 'putt', 'escape', 'pure'] as const).find((k) => st.feats.has(k)) ?? (st.went === 'well' ? 'tidy' : null);
   const key = sc.key[Math.floor(r() * sc.key.length)];
   const build = Array.isArray(sc.build) ? sc.build : sc.build[branch];
   const call = callOf(thought, st.did);

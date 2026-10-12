@@ -1336,7 +1336,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const fx = feats[hole - 1];
     if (s.grade === 'pure') fx.add('pure');
     if ((fromLie === 'bunker' || fromLie === 'trees' || fromLie === 'rough') && (lie === 'fairway' || lie === 'green' || lie === 'holed')) fx.add('escape');
-    if (holed) fx.add(putt ? (S.dist(s.from, H.cup) > 10 ? 'putt' : 'tidy') : 'chip');
+    // Off the green, the first stroke in is an ace; past 20 units (some 36 yards) it's no chip
+    const aced = holed && !putt && ball.strokes === 1;
+    if (holed) fx.add(putt ? (S.dist(s.from, H.cup) > 10 ? 'putt' : 'tidy') : aced ? 'ace' : S.dist(s.from, H.cup) > 20 ? 'holeout' : 'chip');
     const tr = trouble[hole - 1];
     if (s.events.includes('water')) tr.add('water');
     if (s.events.includes('out')) tr.add('out');
@@ -1363,9 +1365,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       if (holed) {
         snd.cup();
         if (s.events.includes('chipIn') || (putt && S.dist(s.from, H.cup) > 12)) window.setTimeout(snd.applause, 300);
+        if (aced) window.setTimeout(snd.ace, 500);
       }
       if (holed && !reduce) board.glowHole(hole, gt, s.events.includes('chipIn') || (putt && S.dist(s.from, H.cup) > 12) ? 2200 : 1300);
       putts = [];
+      // An ace gets a moment to sink in before the walk
+      holedMs = aced ? 2300 : 1300;
       setMode('holed');
       trace = [];
       return;
@@ -1410,6 +1415,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     settleMs = disaster ? 900 : 550;
   }
   let settleMs = 550;
+  let holedMs = 1300;
 
   function startWalk() {
     const s = shot!;
@@ -1639,7 +1645,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
           walking = true;
         }
         if (walking) golfer = walkAt(clamp((t - 200) / 900, 0, 1));
-        if (t >= 1300) startBetween();
+        if (t >= holedMs) startBetween();
         break;
       }
       case 'between': {

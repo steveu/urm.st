@@ -152,6 +152,10 @@ export function cup() {
   [0, 0.05, 0.09].forEach((at) => tone(1200, 1100, 0.025, 0.05, 'triangle', at));
   tone(260, 160, 0.12, 0.07, 'sine', 0.13);
 }
+/** In from the tee: three notes up, after the drop */
+export function ace() {
+  [784, 988, 1319].forEach((f, i) => tone(f, f, i === 2 ? 0.4 : 0.1, 0.05, 'triangle', i * 0.1));
+}
 /** The rope: a murmur, a groan, a little applause */
 export const murmur = () => noise(0.8, 0.04, 500, 400, 'lowpass', 0, 0.3);
 export function groan() {
