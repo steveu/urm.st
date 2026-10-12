@@ -1914,9 +1914,23 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       display: block;
     }
     .carry .k,
-    .carry .n,
-    .carry .r {
+    .carry .n {
       display: none;
+    }
+    /* The name rides in the hole line; the rule stays, small, so a phone still knows when
+       to tap. Two lines at most, so a long one can't shove the links about */
+    .carry .r {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+    .carry .acts {
+      margin-top: 4px;
     }
     .choose {
       position: relative;
