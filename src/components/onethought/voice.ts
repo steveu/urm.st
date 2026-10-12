@@ -354,6 +354,16 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       hide(now);
       return true;
     },
+    /** A run taken back before it's done: the rest goes unsaid, and its catch isn't
+     *  counted as let go. One already caught stands */
+    drop(id: number, now: number) {
+      const r = runs.get(id);
+      if (!r || r.caught) return;
+      r.offered = false;
+      queue = queue.filter((q) => q.run !== id);
+      if (cur?.cut.run === id) hide(now);
+      else endRun(id);
+    },
     /** Gone, and nothing waiting: for a swing, a new hole, the end */
     clear(now: number) {
       // Runs that never got said end here, unsaid

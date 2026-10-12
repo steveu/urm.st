@@ -54,6 +54,9 @@ const LH = 174;
 const VOICE_BUDGET = 2;
 // How many runs of the inner voice a hole may have
 const RUNS_A_HOLE = 2;
+// A run that waits on a deed (onto the fat, into the ball, off it) comes this long after
+const CUE_MS = 450;
+type Cue = 'fat' | 'stepIn' | 'stepOff';
 // The walk between holes: the board going out, and the walk settling before the first line
 const CUT_OUT = 380;
 const WALK_LEAD = 600;
@@ -294,7 +297,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // The voices: a seeded stream of their own, a budget a hole, and what's coming
   let voiceRng = S.rng(1);
   let spoken = 0;
-  let pendingRun: { at: number; modes: Mode[]; cuts: Cut[] } | null = null;
+  let pendingRun: { at: number; modes: Mode[]; cuts: Cut[]; claim?: boolean } | null = null;
+  // A run held for the act it's about rather than the clock: onto the fat, into the
+  // ball, off it after a heckle. If the act never comes, nor does the run
+  let cuedRun: { cue: Cue; modes: Mode[]; cuts: Cut[] } | null = null;
+  // The commit said on stepping in: a new line before the swing takes it back
+  let claimRun = -1;
   let runs = 0;
   let runId = 0;
   let calmHole = 0;
@@ -513,6 +521,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (near >= 0) t = chips[near].at;
     // Settled on a line, then changed it again: that's doubt, and it costs a notch
     if (why !== 'start' && S.dist(aim, t) >= 1.5) {
+      unclaim();
       if (steppedOnce && !doubt) {
         doubt = true;
         ctx.doubt = true;
@@ -529,6 +538,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const was = onChip;
     onChip = chips.findIndex((c) => S.dist(c.at, aim) < 0.5);
     if (was !== onChip || why === 'start') paintChips(true);
+    if (was !== onChip && chips[onChip]?.kind === 'fat') cue('fat');
     clubText();
     if (why !== 'start') {
       lastAim = gt;
@@ -555,6 +565,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     paintStep();
     hint();
     say(`Stepped in, ${S.CLUBS[club].tag}. Hold to swing; Escape steps off.`);
+    // Into a line picked over, not the first one that came
+    if (aimSets >= 2) cue('stepIn');
   }
   function stepOff() {
     if (mode !== 'aim' || !stepped) return;
@@ -565,6 +577,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     paintStep();
     hint();
     say('Stepped off.');
+    cue('stepOff');
   }
   // The next club in the bag that can be hit from here: down the bag, or up with shift
   function cycleClub(dir: 1 | -1 = 1) {
@@ -604,7 +617,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // carried: two or three lines, at most one of them the catch. Seeded, never a line
   // twice in a round, a run or two a hole, and quiet for the rest of a hole once caught.
   // Returns whether one is coming
-  function planRun(sits: (Sit | null)[], delay: number, modes: Mode[]) {
+  function planRun(sits: (Sit | null)[], delay: number, modes: Mode[], cues: Partial<Record<Sit, Cue>> = {}) {
     const book = XEXAM[THOUGHTS[thought].name];
     const sit = sits.find((x): x is Sit => !!x && !!book?.[x]);
     // The same draws every time, whatever happens next, so the stream stays put
@@ -641,15 +654,42 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       cuts.splice(Math.floor(at * (cuts.length + 1)), 0, { who: 'you', expr: spec.catchExpr, line: catchLine, by: '', catch: true, alt: commit ? commitSays : undefined });
     }
     if (cuts.length < 2) return false;
-    pendingRun = { at: gt + delay, modes, cuts };
+    const cue = cues[sit];
+    if (cue) cuedRun = { cue, modes, cuts };
+    else pendingRun = { at: gt + delay, modes, cuts };
     return true;
   }
 
-  // What the inner voice might say over the ball, decided as the shot is set up
+  // The act a held run was waiting on: it's said a beat after. Busy with another, it
+  // waits for the act again; past the hole's runs, or caught already, it's gone
+  function cue(c: Cue) {
+    if (!cuedRun || cuedRun.cue !== c) return;
+    if (calmHole === hole || runs >= RUNS_A_HOLE) {
+      cuedRun = null;
+      return;
+    }
+    if (pendingRun || cutins.inRun) return;
+    pendingRun = { at: gt + CUE_MS, modes: cuedRun.modes, cuts: cuedRun.cuts, claim: c === 'stepIn' };
+    cuedRun = null;
+  }
+
+  // The commit taken back: unsaid if it's still to come, cut short if it's being said
+  function unclaim() {
+    if (pendingRun?.claim) pendingRun = null;
+    if (claimRun >= 0) cutins.drop(claimRun, gt);
+    claimRun = -1;
+  }
+
+  // What the inner voice might say over the ball, decided as the shot is set up. Whether
+  // it speaks is settled here; when, for some, waits on the deed: the middle of the green
+  // once the aim's on it, the commit on stepping in to a line picked over, and the rope
+  // when you step off after it's had its say. The rest come on the clock
   function planAimVoice(heckled: boolean) {
     const gallery = heckled || (hole === 2 && ball.strokes === 0);
     const approach = chips.some((c) => c.kind === 'fat');
-    planRun([gallery ? 'gallery' : null, approach ? 'approach' : null, chips.length ? 'choice' : null], 900, ['aim']);
+    const cues: Partial<Record<Sit, Cue>> = { approach: 'fat', choice: 'stepIn' };
+    if (heckled) cues.gallery = 'stepOff';
+    planRun([gallery ? 'gallery' : null, approach ? 'approach' : null, chips.length ? 'choice' : null], 900, ['aim'], cues);
   }
 
   // And on the walk: the gallery, or the last shot, or nothing
@@ -794,6 +834,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     spoken = 0;
     runs = 0;
     pendingRun = null;
+    cuedRun = null;
     lastHeckleShot = -1;
     cutins.clear(gt);
     teeLine();
@@ -831,6 +872,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     ctx.doubt = false;
     doubt = false;
     aimSets = 0;
+    cuedRun = null;
+    claimRun = -1;
     lineWatch = null;
     inkT0 = -1;
     stepped = false;
@@ -918,6 +961,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     swingCleared = true;
     cutins.clear(gt);
     if (pendingRun && !pendingRun.modes.includes('walk')) pendingRun = null;
+    cuedRun = null;
+    claimRun = -1;
   }
 
   // Press and hold: the meter climbs
@@ -1443,6 +1488,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     clearCaptions();
     cutins.clear(gt);
     pendingRun = null;
+    cuedRun = null;
     cloud = null;
     walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1] }, voiceRng);
     walkT0 = -1;
@@ -1493,6 +1539,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     clearCaptions();
     cutins.clear(gt);
     pendingRun = null;
+    cuedRun = null;
     cloud = null;
     setHush(false);
     chips = [];
@@ -1624,6 +1671,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         runs++;
         runId++;
         runHole.set(runId, hole);
+        if (pr.claim) claimRun = runId;
         cutins.run(runId, pr.cuts, gt);
         if (!cloud) cloud = { t0: gt, doubt: false };
       }
