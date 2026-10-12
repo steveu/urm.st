@@ -17,6 +17,7 @@
 // the light reversed, which keeps the sun on the right for everyone.
 
 import { bayer, hash } from './pixel';
+import { caddieFrame, caddieHead } from './hand';
 
 export type Actor = 'you' | 'caddie' | 'partner';
 /** A face: as they are, pleased with it, caught out, thinking it over, or the shout */
@@ -391,52 +392,6 @@ function drawYou(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   return h;
 }
 
-function drawCaddie(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
-  const pose = POSES.caddie[f];
-  const h = headAt('caddie', pose, frame);
-  torso(p, 'jacket', flat);
-  // The zip, and a turned-up collar either side of the neck
-  tint(p, (x, y) => x === 62 && y > 92, -0.3, ['jacket']);
-  poly(p, [[46, 80], [56, 74], [58, 90], [48, 94]], 'jacket', { base: 0.65 });
-  poly(p, [[78, 80], [68, 74], [66, 90], [76, 94]], 'jacket', { base: 0.7 });
-  neck(p, h);
-  skull(p, h);
-  // Grey hair at the back
-  ell(p, h.cx - 16, h.cy - 2, 4.5, 8, 'hairGrey', { tex: grain, keep: (x, y) => y > h.cy - 8 && x < h.cx - 11 });
-  // The beard: the chin and the jaw, longer than the skull, up the near cheek to the
-  // rim and up the far one to a sideburn, with skin left between it and the ear and
-  // round the mouth. Its top edge is a line from the sideburn down to the mouth's corner
-  // and back up the cheek; its rim breaks into tufts, with a few stray pixels outside
-  const mx = h.mouthX;
-  const my = h.mouthY;
-  const beardTop = (x: number) => {
-    if (x < h.cx - 10) return h.cy + 2;
-    if (x < mx - 5) return h.cy + 4 + (x - (h.cx - 10));
-    if (x <= mx + 6) return my + 3;
-    return my - 1 - Math.round((x - mx - 6) * 0.9);
-  };
-  const bx = h.cx + 4;
-  const by = h.cy + 11;
-  ell(p, bx, by, 18, 17, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) + 1 && hash(x, y, 23) > 0.62 });
-  ell(p, bx, by, 16, 15, 'beard', { tex: grain, keep: (x, y) => y >= beardTop(x) && (y > beardTop(x) + 1 || hash(x, y, 29) > 0.3) });
-  ear(p, h);
-  // The lips, bare in the beard, then the moustache over the top one, hung from under the
-  // nose, lifting a pixel as the mouth opens wide
-  ell(p, mx, my + 1, 7, 3.5, 'skin', { base: 0.5 });
-  const lift = mouth === 2 ? 1 : 0;
-  const px = h.cx + h.rx - 1;
-  poly(p, [[px + 2, my - 7 - lift], [px - 3, my - 8 - lift], [px - 9, my - 7 - lift], [px - 12, my - 4 - lift], [px - 13, my - 1 - lift], [px - 10, my - 2 - lift], [px - 4, my - 2 - lift], [px, my - 2 - lift], [px + 2, my - 5 - lift]], 'beard', { tex: grain, base: 0.62 });
-  // The nose, over the moustache's top edge, or the beard swallows it
-  nose(p, { ...h, cy: h.cy - 2 });
-  // The wool hat: a dome and a ribbed band turned up
-  ell(p, h.cx - 1, h.cy - 18, 21, 13, 'beanie', { tex: ribs, keep: (_x, y) => y <= h.cy - 13 });
-  poly(p, [[h.cx - 23, h.cy - 15], [h.cx + 21, h.cy - 15], [h.cx + 20, h.cy - 7], [h.cx - 22, h.cy - 7]], 'beanie', { tex: ribs, base: 0.5 });
-  tint(p, (_x, y) => y === h.cy - 15 || y === h.cy - 14, 0.15, ['beanie']);
-  tint(p, (x, y) => y >= h.cy - 7 && y <= h.cy - 5 && x > h.cx - 18, -0.3, ['skin']);
-  face(p, h, f, blink, mouth, MATS.hairGrey.tones[0], { lip: true });
-  return h;
-}
-
 function drawPartner(p: Pic, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth) {
   const pose = POSES.partner[f];
   const h = headAt('partner', pose, frame);
@@ -533,8 +488,14 @@ export function portraitFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean,
   const key = `${who}:${f}:${frame}:${blink}:${mouth}:${flip}`;
   const hit = cache.get(key);
   if (hit) return hit;
+  // The caddie is hand-placed (hand.ts)
+  if (who === 'caddie') {
+    const c = caddieFrame(W, H, f, frame, blink, mouth, flip);
+    cache.set(key, c);
+    return c;
+  }
   const p = pic(flip ? -1 : 1);
-  const h = who === 'you' ? drawYou(p, f, frame, blink, mouth) : who === 'caddie' ? drawCaddie(p, f, frame, blink, mouth) : drawPartner(p, f, frame, blink, mouth);
+  const h = who === 'you' ? drawYou(p, f, frame, blink, mouth) : drawPartner(p, f, frame, blink, mouth);
   // Caught out: a bead of sweat at the temple, falling on the second frame
   if (f === 'shocked') {
     const sx = h.cx - 17;
@@ -550,6 +511,7 @@ export const FACES: Face[] = ['normal', 'pleased', 'shocked', 'thinking', 'shout
 
 /** Where the head is in a portrait, hat included, as drawn or flipped */
 export function headBox(who: Actor, flip = false): { x: number; y: number; w: number; h: number } {
+  if (who === 'caddie') return caddieHead(W, flip);
   const h = HEAD[who];
   const x = h.cx - h.rx - 2;
   const w = h.rx * 2 + 4;
