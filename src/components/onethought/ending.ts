@@ -11,6 +11,7 @@
 // golfer and their shadow. The loop runs only while the band can be seen.
 
 import { bayer, hash, canvas, drawGolfer, ditherCanvas } from './pixel';
+import type { Verdict } from './read';
 
 type RGB = readonly [number, number, number];
 /** Where the words sit, in canvas pixels: left, right and bottom */
@@ -170,7 +171,18 @@ const SMOKE: RGB = [172, 144, 164];
 const STICK: RGB = [244, 236, 220];
 const STICK_DK: RGB = [150, 128, 140];
 
-export type EndingOpts = { reduce: boolean };
+// Kept, you walk in with your partner; dropped, you go on ahead of them, alone and slower,
+// with your head down
+export type EndingOpts = { reduce: boolean; verdict?: Verdict };
+
+// Dropped: how far ahead (in board pixels) and how slowly (pixels a second, against 2.3 kept)
+// the golfer walks off. The pace is the bowed walk's, as on the walks between holes: 150 to 190ms a step
+const DROP_AHEAD = 7;
+const DROP_PACE = 1.8;
+// Kept: where your partner walks, from you, at each size of the walk
+const PARTNER_NEAR = [9, -2];
+const PARTNER_MID = [6, -1];
+const PARTNER_FAR = [4, -1];
 
 type Cloud = { x: number; y: number; px: [number, number, number][]; v: number };
 type Pt = [number, number];
@@ -206,6 +218,7 @@ export function createEnding(cv: HTMLCanvasElement) {
   let t0 = 0;
   let last = 0;
   let reduce = false;
+  let verdict: Verdict | undefined;
   let running = false;
 
   /** Size to the box, in CSS pixels; `words` is where the copy sits, so the painting composes round it */
@@ -950,14 +963,46 @@ export function createEnding(cv: HTMLCanvasElement) {
   // ---------------------------------------------------------------------------------
   // Sprites, made once
 
-  const golfers: HTMLCanvasElement[] = [];
-  function golferSprite(ph: number) {
-    if (golfers[ph]) return golfers[ph];
+  // Your partner is you redrawn without the bag, in their own colours: the pink jumper and
+  // the bucket hat from their portrait, and ginger under it (the hair only: the belt is the
+  // same brown)
+  const PARTNER_SWAP: [string, string][] = [
+    ['#c0452b', '#a64e68'],
+    ['#df6a43', '#d4687c'],
+    ['#8f2f1c', '#783246'],
+    ['#7a6447', '#927a52'],
+    ['#957b58', '#bea474'],
+    ['#4e3f2b', '#6a5636'],
+  ];
+  const PARTNER_HAIR = '#a85a26';
+  const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  function recolour(d: Uint8ClampedArray, w: number, hairRows: number) {
+    const swaps = PARTNER_SWAP.map(([a, b]) => [hex(a), hex(b)]);
+    const hair = [hex('#4a3626'), hex(PARTNER_HAIR)];
+    for (let k = 0; k < d.length; k += 4) {
+      if (d[k + 3] !== 255) continue;
+      const row = Math.floor(k / 4 / w);
+      for (const [a, b] of row < hairRows ? [...swaps, hair] : swaps)
+        if (d[k] === a[0] && d[k + 1] === a[1] && d[k + 2] === a[2]) {
+          d[k] = b[0];
+          d[k + 1] = b[1];
+          d[k + 2] = b[2];
+          break;
+        }
+    }
+  }
+
+  const golfers = new Map<string, HTMLCanvasElement>();
+  function golferSprite(ph: number, partner = false, bow = false) {
+    const id = `${ph}${partner ? 'p' : ''}${bow ? 'b' : ''}`;
+    const had = golfers.get(id);
+    if (had) return had;
     const [c, s] = canvas(28, 30);
-    drawGolfer(s, 14, 25, -1, { kind: 'walk', phase: ph, bag: true });
+    drawGolfer(s, 14, 25, -1, { kind: 'walk', phase: ph, bag: !partner, bow });
     // Back-lit: a warm rim down the side that faces the sun
     const im = s.getImageData(0, 0, 28, 30);
     const d = im.data;
+    if (partner) recolour(d, 28, 13);
     for (let y = 0; y < 30; y++)
       for (let x = 27; x > 0; x--) {
         const k = (y * 28 + x) * 4;
@@ -969,7 +1014,7 @@ export function createEnding(cv: HTMLCanvasElement) {
         }
       }
     s.putImageData(im, 0, 0);
-    golfers[ph] = c;
+    golfers.set(id, c);
     return c;
   }
   // The golfer in the middle distance: thirteen pixels, drawn by hand, two strides
@@ -996,10 +1041,14 @@ export function createEnding(cv: HTMLCanvasElement) {
     ['..t.T..', '..t.T..', '..t.T..', '.oo.oo.'],
     ['..tT...', '.t..T..', '.t...T.', 'oo...oo'],
   ];
+  // Your partner at this size: no bag, nor the light along it, and their colours
+  const MID_PARTNER: Record<string, string> = { ...MID_KEY, C: '#bea474', c: '#927a52', H: PARTNER_HAIR, r: '#a64e68', R: '#d4687c', d: '#783246' };
   const mids: HTMLCanvasElement[] = [];
-  function midGolfer(ph: number) {
-    if (mids[ph]) return mids[ph];
-    const rows = [...MID_BODY, ...MID_LEGS[ph]];
+  function midGolfer(ph: number, partner = false) {
+    const id = ph + (partner ? 2 : 0);
+    if (mids[id]) return mids[id];
+    const key = partner ? MID_PARTNER : MID_KEY;
+    const rows = [...MID_BODY, ...MID_LEGS[ph]].map((r, j) => (partner ? r.replace(/[bBkg]/g, '.').replace(/h/g, j < 4 ? 'H' : 'h') : r));
     const [c, s] = canvas(11, 15);
     const on = (i: number, j: number) => j >= 0 && j < rows.length && i >= 0 && i < 7 && rows[j][i] !== '.';
     // An outline, then the figure
@@ -1009,20 +1058,24 @@ export function createEnding(cv: HTMLCanvasElement) {
     rows.forEach((row, j) =>
       [...row].forEach((ch, i) => {
         if (ch === '.') return;
-        s.fillStyle = MID_KEY[ch];
+        s.fillStyle = key[ch];
         s.fillRect(i + 2, j + 1, 1, 1);
       }),
     );
-    mids[ph] = c;
+    mids[id] = c;
     return c;
   }
 
   // The golfer far off, on the bridge and the lawn: six pixels tall, the cap, the red jumper
-  function smallGolfer(x: number, y: number, ph: number, a = 1) {
+  // (your partner the same, without the bag, in their colours)
+  const BAG = new Set(['#7a4a24', '#a49f92', '#56331a']);
+  const SMALL_PARTNER: Record<string, string> = { '#7a6447': '#927a52', '#4a3626': PARTNER_HAIR, '#c0452b': '#a64e68', '#df6a43': '#d4687c' };
+  function smallGolfer(x: number, y: number, ph: number, a = 1, partner = false) {
     const s = ph & 1;
     const px = (dx: number, dy: number, col: string) => {
       if (a < 1 && bayer(x + dx, y + dy) > a) return;
-      g.fillStyle = col;
+      if (partner && BAG.has(col)) return;
+      g.fillStyle = partner ? (SMALL_PARTNER[col] ?? col) : col;
       g.fillRect(x + dx, y + dy, 1, 1);
     };
     px(1, -6, '#7a4a24');
@@ -1097,6 +1150,23 @@ export function createEnding(cv: HTMLCanvasElement) {
     return { x, y, done: true };
   }
 
+  /** One figure on the walk, at the size its distance gives it */
+  function walker(dist: number, at: { x: number; y: number; done: boolean }, ph: number, partner: boolean, bow: boolean) {
+    if (at.y >= walk.nearY) {
+      longShadow(at.x, at.y, 46, 2);
+      g.drawImage(golferSprite(ph & 3, partner, bow), at.x - 14, at.y - 25);
+    } else if (at.y >= walk.midY) {
+      longShadow(at.x, at.y, 30, 1);
+      g.drawImage(midGolfer(ph & 1, partner), at.x - 5, at.y - 14);
+    } else {
+      const fade = at.done ? 1 - clamp((dist - walk.total) / 6, 0, 1) : 1;
+      if (fade > 0) {
+        if (!at.done) longShadow(at.x, at.y, 14, 1);
+        smallGolfer(at.x, at.y, ph, fade, partner);
+      }
+    }
+  }
+
   function draw(now: number) {
     if (!still) return;
     const t = reduce ? 0 : Math.max(0, now - t0);
@@ -1153,23 +1223,28 @@ export function createEnding(cv: HTMLCanvasElement) {
 
     // The golfer, walking off: down from the green, over the bridge, up to the door
     // Slow on the near ground, slower still far off: it is a long way to the house
+    // Dropped, they set off a step ahead and go slower, head down, on their own
+    const alone = verdict === 'drop';
+    const ahead = alone ? DROP_AHEAD : 0;
+    const pace = alone ? DROP_PACE : 2.3;
     const big = walk.len[0] + walk.len[1];
     const secs = Math.max(0, (t - 1800) / 1000);
-    const dist = reduce ? walk.len[0] * 0.6 : Math.min(secs * 2.3, big) + Math.max(0, secs * 2.3 - big) * 0.6;
+    const dist = ahead + (reduce ? walk.len[0] * 0.6 : Math.min(secs * pace, big) + Math.max(0, secs * pace - big) * 0.6);
     const at = along(dist);
     const stepPh = reduce ? 0 : Math.floor(dist / 1.6);
-    if (at.y >= walk.nearY) {
-      longShadow(at.x, at.y, 46, 2);
-      g.drawImage(golferSprite(stepPh & 3), at.x - 14, at.y - 25);
-    } else if (at.y >= walk.midY) {
-      longShadow(at.x, at.y, 30, 1);
-      g.drawImage(midGolfer(stepPh & 1), at.x - 5, at.y - 14);
-    } else {
-      const fade = at.done ? 1 - clamp((dist - walk.total) / 6, 0, 1) : 1;
-      if (fade > 0) {
-        if (!at.done) longShadow(at.x, at.y, 14, 1);
-        smallGolfer(at.x, at.y, stepPh, fade);
-      }
+    if (alone) walker(dist, at, stepPh, false, true);
+    else {
+      // Kept, your partner walks in beside you, on the far side: a little right of you and a
+      // pixel or two up the screen, closer in as you both get smaller. Whoever is further up
+      // the screen goes behind
+      const [ox, oy] = at.y >= walk.nearY ? PARTNER_NEAR : at.y >= walk.midY ? PARTNER_MID : PARTNER_FAR;
+      const mate = { ...at, x: at.x + ox, y: at.y + oy };
+      const both: [number, typeof at, number, boolean][] = [
+        [dist, at, stepPh, false],
+        [dist, mate, stepPh + 2, true],
+      ];
+      both.sort((a, b) => a[1].y - b[1].y);
+      for (const [d, p, ph, partner] of both) walker(d, p, ph, partner, false);
     }
 
     // Motes in the light over the green
@@ -1237,6 +1312,7 @@ export function createEnding(cv: HTMLCanvasElement) {
     },
     start(o: EndingOpts) {
       reduce = o.reduce;
+      verdict = o.verdict;
       t0 = performance.now();
       pausedAt = -1;
       if (running) return;
