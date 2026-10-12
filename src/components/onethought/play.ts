@@ -231,6 +231,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   function show(n: number, animate: boolean) {
     const changed = board.setView(n ? holeView(n, lw, LH) : OVERVIEW_VIEW, gt, animate && !reduce);
     board.setGround(groundMode(), n, gt, animate && !reduce, lightFor(n));
+    hourOnBand(lightFor(n));
     if (n) return;
     const [x, y] = placeFor();
     board.place(x, y, animate && !reduce && !changed ? 800 : 0, gt);
@@ -240,8 +241,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // 11th's, and after it, on the record, in the 13th's, as the round ended
   function lightFor(n: number) {
     if (n) return LIGHT.holes[n - 1];
-    return stage() === 'record' ? LIGHT.holes[2] : LIGHT.holes[0];
+    return stage() === 'record' || stage() === 'sealed' ? LIGHT.holes[2] : LIGHT.holes[0];
   }
+  // The band's own light goes with the board's: its CSS reads the hour
+  const hourOnBand = (hr: number) => root.style.setProperty('--hour', String(hr));
 
   function groundMode(): GroundMode {
     const s = stage();
@@ -1570,6 +1573,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1], caught: Array.from({ length: hole - 1 }, (_, i) => keyed[i] === true), heron }, voiceRng);
     walkT0 = -1;
     root.dataset.walk = '';
+    hourOnBand(LIGHT.walks[hole - 1]);
     setMode('between');
     phase('between', len, () => (cutEnd >= 0 ? 1 : walkStage.progress));
   }

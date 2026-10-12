@@ -547,6 +547,22 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     color: var(--ink);
     font-family: 'Petrona Variable', Georgia, serif;
   }
+  /* The band's light goes down with the board's: an evening wash over the cream, amber by
+     the sun and rose away from it, as far in as the hour (play.ts sets --hour, 0 to 1) */
+  .band::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 70% 100% at 86% 72%, #f5b476 0%, #f1c495 30%, #ecd3b6 60%, #e9d9c6 100%);
+    opacity: calc(var(--hour, 0) * 0.62);
+    transition: opacity 1.4s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .band::before {
+      transition: none;
+    }
+  }
   @media (max-width: 963px) {
     .band {
       --px: 2px;

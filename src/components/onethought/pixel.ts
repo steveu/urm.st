@@ -130,6 +130,39 @@ function graded(c: RGB, hr: number): RGB {
 // What's off the hole in play hazes to: the band's cream, going rosy
 const hazeAt = (hr: number) => mix(G.haze, [216, 182, 168], hr);
 
+// The lie of the land. The plate is flat, but the ground isn't drawn as if it were: a slow
+// roll runs across it, in and out of the low sun, so the light finds rises and hollows.
+// -1 in a hollow, 1 on a rise. Worked in course units, so it's the same on every view
+function roll(p: Vec) {
+  const u = p[0] * 0.8 + p[1] * 0.6;
+  const v = p[1] * 0.8 - p[0] * 0.6;
+  return Math.sin(u / 19 + Math.sin(v / 29) * 1.4) * 0.65 + Math.sin(v / 14 + u / 41) * 0.35;
+}
+/** How the ground at p lies to the sun, which is low and off to the right (s, 0 to 1
+ *  across the plate towards it): 0 in shade, 1 across the light, 2 facing it. Three
+ *  bands, solid, the boundaries dithered a little way either side */
+function lie(p: Vec, s: number, x: number, y: number) {
+  const L = 0.55 + 0.35 * (s - 0.5) + 0.26 * roll(p);
+  const q = clamp(L, 0, 0.999) * 3;
+  return clamp(Math.floor(q + (bayer(x, y) - 0.5) * 0.6), 0, 2);
+}
+// What the bands go to: the low sun on a rise, and a hollow out of it, violet as the walk's
+// shade is (walk.ts), both more so as the light goes
+const SUN_LIT: RGB = [244, 208, 122];
+const SUN_SHADE: RGB = [108, 92, 136];
+// The sky in the water, as the evening comes on
+const SKY_IN_WATER: RGB = [238, 198, 150];
+/** The ground colour in its band at the hour: lit ground warms to gold, shade cools to
+ *  violet and goes a shade darker, the middle stays much as it was. Mown grass takes
+ *  half as much, so the fairways and greens hold their green while the rough goes to straw */
+function banded(c: RGB, band: number, hr: number, mown: boolean): RGB {
+  const k = mown ? 0.55 : 1;
+  if (band === 2) return mul(mix(c, SUN_LIT, (0.12 + 0.3 * hr) * k), 1.05);
+  if (band === 0) return mul(mix(c, SUN_SHADE, (0.12 + 0.3 * hr) * k), 0.88 - 0.06 * hr);
+  return mix(c, SUN_LIT, (0.03 + 0.1 * hr) * k);
+}
+const MOWN = new Set(['a', 'f', 'g', 't']);
+
 // ---------------------------------------------------------------------------------------
 // Shapes, for telling grass from sand
 
@@ -1057,9 +1090,17 @@ export function createBoard(cv: HTMLCanvasElement) {
     cg.drawImage(sp.c, 0, 0);
     const img = cg.getImageData(0, 0, c.width, c.height);
     const d = img.data;
+    const w = c.width;
+    // What stands up goes darker against the ground as the sun drops, the way the walk's
+    // trees do, and its edge towards the sun (the right, and the top) catches a gold rim
+    const clear = (x: number, y: number) => x < 0 || y < 0 || x >= w || y >= c.height || !d[(y * w + x) * 4 + 3];
     for (let i = 0; i < d.length; i += 4) {
       if (!d[i + 3]) continue;
-      const col = graded([d[i], d[i + 1], d[i + 2]], hour);
+      const x = (i >> 2) % w;
+      const y = Math.floor((i >> 2) / w);
+      let col = graded([d[i], d[i + 1], d[i + 2]], hour);
+      col = mul(mix(col, SUN_SHADE, 0.16 * hour), 1 - 0.12 * hour);
+      if (clear(x + 1, y) || clear(x, y - 1)) col = mix(col, [250, 196, 104], 0.6 * hour);
       d[i] = col[0];
       d[i + 1] = col[1];
       d[i + 2] = col[2];
@@ -1147,9 +1188,11 @@ export function createBoard(cv: HTMLCanvasElement) {
               break;
             default: {
               col = G.rough[stripe];
-              const n = hash(x, y);
-              if (n > 0.9) col = G.roughDk;
-              else if (n < 0.06) col = G.roughLt;
+              // Tufts, two pixels wide, thicker in some patches than others; and the odd
+              // pale straw. One-pixel noise reads as dirt at the board's size, tufts as grass
+              const thick = 0.95 - 0.05 * hash(x >> 3, y >> 2, 5);
+              if (hash(x, y) > thick || hash(x - 1, y) > thick) col = G.roughDk;
+              else if (hash(x, y, 2) < 0.025) col = G.roughLt;
             }
           }
           // The first hole falls away from its tee: lit at the top, a shade lower by the pond
@@ -1163,7 +1206,10 @@ export function createBoard(cv: HTMLCanvasElement) {
           // Warmer towards the sun, which is low and off to the right
           const s = clamp((p[1] - (W - p[0]) + W) / (W + H), 0, 1);
           col = [col[0] * (1 + 0.05 * s) + 12 * s, col[1] * (1 + 0.03 * s) + 6 * s, col[2]];
-          col = graded(col, hr);
+          // The water takes the sky as the evening comes on; the ground takes the light as
+          // it lies to the sun, the rises gold and the hollows violet
+          if (c === 'w') col = graded(mix(col, SKY_IN_WATER, 0.45 * hr), hr * 0.4);
+          else col = banded(graded(col, hr * (MOWN.has(c) ? 0.3 : 0.5)), lie(p, s, x, y), hr, MOWN.has(c));
           // The light: a pool on the hole in play, dithered at its edge; the rest quieter
           let lit = 1;
           if (mode === 'quiet') lit = 0.25;
@@ -1225,9 +1271,9 @@ export function createBoard(cv: HTMLCanvasElement) {
           // The tip of a shadow thins out, dithered
           if (dx > len * 0.7 && bayer(x, y) < (dx - len * 0.7) / (len * 0.3)) continue;
           const k4 = i * 4;
-          d[k4] *= k;
-          d[k4 + 1] *= k;
-          d[k4 + 2] *= Math.min(1, k * (0.96 + 0.12 * hr));
+          d[k4] *= k - 0.06 * hr;
+          d[k4 + 1] *= k - 0.08 * hr;
+          d[k4 + 2] *= Math.min(1, k * (0.96 + 0.2 * hr));
         }
     };
     const at = (p: Vec): Vec => [GX + isoX(p[0], p[1]), GY + isoY(p[0], p[1])];
