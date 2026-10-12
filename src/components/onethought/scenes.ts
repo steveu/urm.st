@@ -159,7 +159,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('normal', 'Long one now. The creek cuts across before the green. Lay up short of it, or take it on.'),
         partner('pleased', 'Take it on. You only live once.'),
         caddie('thinking', 'Laying up leaves you a wedge in. Taking it on leaves you a story.'),
-        you('normal', '(A story. Hm.)'),
+        you('normal', '(The creek. Again.)'),
       ],
       keyAt: [1, 4],
       key: [you('normal', '(Short of the creek. That’s it.)'), you('normal', '(Over the creek. That’s it.)')],

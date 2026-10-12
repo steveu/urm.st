@@ -741,9 +741,11 @@ export function drawPerson(g: Ctx, x: number, y: number, body: string, lift = 0,
   if (wave >= 0) px(2, wave ? -7 : -5, '#ebc39b', 1, 2);
 }
 
-export function drawHeron(g: Ctx, x: number, y: number, frame: number) {
+// Against the light (sil), the heron's greys go to two dark tones and its bill to brown
+const HERON_SIL: Record<string, string> = { '#b4bcbe': '#5a4d58', '#c3c9cb': '#5a4d58', '#dfe3e4': '#5a4d58', '#9aa3a6': '#5a4d58', '#d8a23a': '#7a5a3a' };
+export function drawHeron(g: Ctx, x: number, y: number, frame: number, sil = false) {
   const px = (dx: number, dy: number, col: string, w = 1, h = 1) => {
-    g.fillStyle = col;
+    g.fillStyle = sil ? (HERON_SIL[col] ?? '#3b3441') : col;
     g.fillRect(x + dx, y + dy, w, h);
   };
   if (frame < 0) {

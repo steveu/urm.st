@@ -324,17 +324,17 @@ export function createWalk() {
       drawGolfer(g, gx, pathY, 1, { kind: 'walk', phase: f.walking && !reduce ? Math.floor(now / (f.bow ? 190 : 150)) : 0, bag: true, bow: f.bow });
       if (f.cloud) drawCloud(g, gx + 1, pathY - 19, now - f.cloud.t0, f.cloud.doubt, reduce);
     }
-    // The heron: low over the path towards the light, slow, its shadow crossing ahead of
+    // The heron: dark against the light, low over the path towards it, slow, its shadow crossing ahead of
     // the golfer; stood on the path, not flying, with motion reduced
     if (f.heron >= 0) {
-      if (reduce) drawHeron(g, Math.round(lw * 0.62), pathY + 1, -1);
+      if (reduce) drawHeron(g, Math.round(lw * 0.62), pathY + 1, -1, true);
       else if (f.heron < HERON_MS) {
         const v = f.heron / HERON_MS;
         const x = Math.round(-8 + v * (lw + 16));
         const y = Math.round(pathY - 12 - v * 16 + Math.sin(v * 7) * 1.5);
         g.fillStyle = SHADOW;
         g.fillRect(x - Math.round((pathY - y) * 0.8) - 2, pathY + 1, 5, 1);
-        drawHeron(g, x, y, Math.floor(f.heron / 260));
+        drawHeron(g, x, y, Math.floor(f.heron / 260), true);
       }
     }
     // Motes, drifting in the light
