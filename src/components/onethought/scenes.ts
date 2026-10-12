@@ -100,15 +100,15 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
   ],
 
   'Commit to the Line': [
-    // To the 12th: the short hole over the creek, and which club
+    // To the 12th: the short hole over the creek, and the flag or the fat of the green
     {
       open: {
         trouble: [you('thinking', 'I was between two lines on that tee.'), caddie('normal', 'You were between two all the way down. That’s what did it.')],
         well: [partner('shocked', 'You didn’t even hesitate on that tee.'), caddie('pleased', 'That’s the whole trick.')],
         fine: [you('thinking', 'Half of me wanted the other line.'), caddie('normal', 'Half of you hit it, then.')],
       },
-      build: [caddie('thinking', 'Short one now, over the creek. The club for the number, or one more swung easy.')],
-      key: [you('normal', '(The club for the number. Full swing. That’s the one.)'), you('normal', '(One more, swung easy. Decided.)')],
+      build: [caddie('thinking', 'Short one now, over the creek. The flag, or the fat of the green. Either’s fine. Just the one.')],
+      key: [you('normal', '(The flag. Straight at it. That’s the one.)'), you('normal', '(The fat of the green. Decided.)')],
       caught: [caddie('pleased', 'Good. Decided before the tee. That’s the job done.')],
       missed: [caddie('thinking', 'Still weighing it, aren’t you. It’ll be heavier on the tee.')],
     },
@@ -116,7 +116,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
     {
       open: {
         trouble: [caddie('thinking', 'That one found {trouble}. Were you sure over it?'), you('thinking', 'I was sure until I wasn’t.')],
-        well: [caddie('pleased', 'Picked the club, swung it. Lovely.'), partner('pleased', 'Show-off.')],
+        well: [caddie('pleased', 'Picked it, swung it. Lovely.'), partner('pleased', 'Show-off.')],
         fine: [caddie('normal', 'Middling. You fiddled with it on the tee.'), you('thinking', 'I re-gripped. A bit.')],
       },
       build: [
