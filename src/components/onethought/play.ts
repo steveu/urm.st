@@ -364,6 +364,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // The swing
   let breath = false;
   let swingAt = 0;
+  // The routine as it stood when the swing began: the hold itself is not a beat of it
+  let swingLit = 0;
   let relMs = -1;
   let shot: Shot | null = null;
   // How high the shot in hand is drawn against the sim's heights (pixel.ts)
@@ -922,6 +924,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   function swingStart() {
     if (!stepped) return;
     swingCleared = false;
+    swingLit = pipsLit();
     setMode('swing');
     swingAt = nowG();
     relMs = -1;
@@ -942,8 +945,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       return;
     }
     lineWatch = null;
+    // Taken at the top of the swing: stepping off empties pipsLit()
+    const lit = swingLit;
     stepped = false;
-    const lit = pipsLit();
     const hurried = lit < 3;
     ctx.hurried = hurried;
     ctx.beats = lit;
