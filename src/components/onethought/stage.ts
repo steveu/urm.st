@@ -215,10 +215,11 @@ export function createStage(els: Els, opts: Opts) {
     get current() {
       return cur();
     },
-    /** Who's on, with what face, and whether their words are still coming */
+    /** Who's on, with what face, whether their words are still coming, the line's
+     *  gesture, and when its words finished (-1 while they're coming) */
     get speaker() {
       const b = cur();
-      return b && !b.hush ? { who: b.who, face: b.face ?? 'normal', talking: doneAt < 0, t0 } : null;
+      return b && !b.hush ? { who: b.who, face: b.face ?? 'normal', talking: doneAt < 0, t0, gesture: b.gesture ?? null, done: doneAt } : null;
     },
     /** When the hush that's on began, or -1 if there isn't one */
     get hushT0() {

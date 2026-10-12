@@ -27,11 +27,17 @@
 // carries on (heron). Lines in brackets are thought, not said. {trouble} is
 // the worst of the hole: the water, the trees, the bunker, the great beyond. Never a
 // number; nothing here says what to press; nothing here reaches the sim.
+//
+// A few lines carry a gesture, at most one a walk and only by the key line: your eyes
+// sliding off on a heckle or the thought that sounds like the key line, your caddie
+// looking down before it, your partner's grin going when what he says to it lands wrong.
+
+import type { Gesture } from './cast';
 
 export type Speaker = 'you' | 'caddie' | 'partner';
 /** A face: as they are, pleased with it, caught out, or thinking it over */
 export type Face = 'normal' | 'pleased' | 'shocked' | 'thinking';
-export type Line = { who: Speaker; face?: Face; text: string };
+export type Line = { who: Speaker; face?: Face; text: string; gesture?: Gesture };
 export type Branch = 'trouble' | 'well' | 'fine';
 export type Scene = {
   open: Record<Branch, Line[]>;
@@ -60,9 +66,9 @@ export type MomentKind = 'ace' | 'holeout' | 'chip' | 'putt' | 'escape' | 'pure'
 export type Went = 'well' | 'fine' | 'rough';
 export type Trouble = 'water' | 'out' | 'trees' | 'sand' | 'rough';
 
-const you = (face: Face, text: string): Line => ({ who: 'you', face, text });
-const caddie = (face: Face, text: string): Line => ({ who: 'caddie', face, text });
-const partner = (face: Face, text: string): Line => ({ who: 'partner', face, text });
+const you = (face: Face, text: string, gesture?: Gesture): Line => ({ who: 'you', face, text, ...(gesture && { gesture }) });
+const caddie = (face: Face, text: string, gesture?: Gesture): Line => ({ who: 'caddie', face, text, ...(gesture && { gesture }) });
+const partner = (face: Face, text: string, gesture?: Gesture): Line => ({ who: 'partner', face, text, ...(gesture && { gesture }) });
 
 /** Per thought, the three walks: to the 12th, to the 13th, to the clubhouse */
 export const SCENES: Record<string, [Scene, Scene, Scene]> = {
@@ -77,7 +83,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
       },
       build: [partner('pleased', 'Short one next, over the water. Don’t worry, nobody’s watching.'), you('thinking', '(…Wind’s got up a bit.)')],
       keyAt: [1],
-      lead: you('thinking', '(They will, though. You know they will.)'),
+      lead: you('thinking', '(They will, though. You know they will.)', 'glance'),
       key: [you('thinking', '(…My ears have gone warm.)')],
       caught: [caddie('pleased', 'There. You saw it go up. That’s half the job.')],
       missed: [caddie('thinking', 'You’re carrying that onto the tee. I can see it.')],
@@ -100,7 +106,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         you('thinking', '(…Light’s going.)'),
       ],
       keyAt: [1, 2],
-      lead: you('thinking', '(Twice. And the drop. They all watched the drop.)'),
+      lead: you('thinking', '(Twice. And the drop. They all watched the drop.)', 'glance'),
       key: [you('thinking', '(…My own partner.)')],
       caught: [partner('pleased', 'Look at your face! Go on, let it out. Then let’s play.')],
       missed: [caddie('thinking', 'You’ve gone quiet. Not the good sort of quiet.')],
@@ -122,7 +128,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
       lead: you('thinking', '(The four-ball. They saw the last. They saw all of it.)'),
       key: [you('thinking', '(Champ. All night, that.)')],
       caught: [partner('pleased', 'Come on, champ. First one’s mine.')],
-      missed: [partner('thinking', 'Face like thunder. What’s up?'), you('thinking', '(Nothing. Nothing at all.)')],
+      missed: [partner('pleased', 'Face like thunder. What’s up?', 'falter'), you('thinking', '(Nothing. Nothing at all.)')],
       verdict: {
         all: caddie('pleased', 'Short hole, last tee. It got to you, and you let it. Both times. Good round.'),
         none: caddie('thinking', 'Short hole, last tee. You kept it all in. It’s still in there.'),
@@ -139,7 +145,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         well: [partner('shocked', 'You didn’t even hesitate on that tee.'), caddie('pleased', 'That’s the whole trick.')],
         fine: [you('thinking', 'Half of me wanted the other line.'), caddie('normal', 'Half of you hit it, then.')],
       },
-      build: [caddie('thinking', 'Short one now, over the creek. The flag, or the fat of the green. Either’s fine. Just the one.'), you('normal', '(Tee in the left pocket. Right.)')],
+      build: [caddie('thinking', 'Short one now, over the creek. The flag, or the fat of the green. Either’s fine. Just the one.', 'lower'), you('normal', '(Tee in the left pocket. Right.)')],
       keyAt: [1, 2],
       key: [you('normal', '(The flag, then.)'), you('normal', '(The fat of the green, then.)')],
       caught: [caddie('pleased', 'Good. Decided before the tee. That’s the job done.')],
@@ -179,7 +185,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         caddie('normal', 'Don’t ask. We’ll be here till closing.'),
         you('thinking', '(Pint… or tea. A pint’s a pint. Tea’s sensible.)'),
         partner('pleased', 'Kitchen’s shutting soon. The chips need a decision too.'),
-        you('thinking', '(Pint. Tea. Chips. Pint…)'),
+        you('thinking', '(Pint. Tea. Chips. Pint…)', 'glance'),
       ],
       heron: 3,
       key: [you('normal', '(Pint. That’s that.)')],
@@ -204,7 +210,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
       build: [caddie('thinking', 'Short one next. They’ve cut the hole front right, just over the creek.'), you('normal', '(…The flag’s not that tucked.)')],
       keyAt: [1, 2],
       key: [you('normal', '(No. Middle of the green.)')],
-      caught: [partner('shocked', 'The middle? You’re no fun at all.')],
+      caught: [partner('pleased', 'The middle? You’re no fun at all.', 'falter')],
       missed: [caddie('thinking', '…Right. I’ll get the towel ready.')],
     },
     // To the 13th: the last green, the creek across its front, the flag behind it
@@ -219,7 +225,7 @@ export const SCENES: Record<string, [Scene, Scene, Scene]> = {
         missed: you('thinking', '(I wanted that flag on the short one. Still do.)'),
       },
       build: [
-        caddie('normal', 'The last green’s worse. Creek right across the front, flag tucked front left behind it.'),
+        caddie('normal', 'The last green’s worse. Creek right across the front, flag tucked front left behind it.', 'lower'),
         partner('pleased', 'Front left behind water. They’re daring us.'),
         caddie('thinking', 'They are. Right of it, there’s room for a tent.'),
         you('normal', '(…I’ve hit that shot before. Once.)'),
@@ -361,9 +367,9 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   // The heron, on its rounds: the argument stops for it, then picks up where it was. Never
   // between the heckle and the key line
   if (st.heron && sc.heron !== undefined) body.splice(sc.heron + (at < sc.heron ? pair.length : 0), 0, { who: 'you', text: 'A heron comes over the path.', hush: true });
-  return {
-    lead: [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...body, ...last],
-    caught: sc.caught.map(fill),
-    missed: sc.missed.map(fill),
-  };
+  const lead = [...open.map(fill), ...(mk ? [{ ...MOMENT[mk], moment: true }] : []), ...back, ...body, ...last];
+  // One gesture a walk at most: if the walk's had one, what's said to the key line goes
+  // without
+  const plain = (b: Beat): Beat => (lead.some((l) => l.gesture) ? { ...b, gesture: undefined } : b);
+  return { lead, caught: sc.caught.map(fill).map(plain), missed: sc.missed.map(fill).map(plain) };
 }

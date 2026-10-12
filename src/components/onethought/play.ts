@@ -18,7 +18,7 @@ import { shownWord } from './numbers';
 import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
 import { walkScene, type Went, type MomentKind, type Trouble, type Beat, type Did } from './scenes';
-import { portraitFrame, headBox, W as FIG_W, H as FIG_H, type Face as CastFace } from './cast';
+import { portraitFrame, headBox, W as FIG_W, H as FIG_H, type Face as CastFace, type Gesture } from './cast';
 import { drawShout, SHOUT_HOLD, type ShoutAnchor } from './lettering';
 import { createStage } from './stage';
 import * as snd from './sound';
@@ -1903,7 +1903,16 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // How far up from the plate's foot the box cuts a portrait, in the plate's pixels: across
   // the chest
   const CHEST = 20;
-  function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number }): ShoutAnchor | null {
+  // A line's gesture: from when it starts (from the line's start, or once its words are
+  // done), after how long, and how long its first frame holds before the second, which
+  // stays till the line goes. Your eyes slide off while the heckle's still coming; the
+  // caddie looks down, and your partner's grin goes, once they've said it
+  const GEST: Record<Gesture, { from: 'start' | 'done'; after: number; hold: number }> = {
+    glance: { from: 'start', after: 450, hold: 140 },
+    lower: { from: 'done', after: 220, hold: 260 },
+    falter: { from: 'done', after: 320, hold: 280 },
+  };
+  function drawStage(g: CanvasRenderingContext2D, w: number, hh: number, sp: { who: string; face: 'normal' | 'pleased' | 'shocked' | 'thinking'; talking: boolean; t0: number; gesture: Gesture | null; done: number }): ShoutAnchor | null {
     // The walk dimmed to dusk behind the speaker
     g.fillStyle = 'rgba(40,30,52,0.56)';
     g.fillRect(0, 0, w, hh);
@@ -1919,16 +1928,25 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     const age = you ? walkStage.shoutAge(gt) : -1;
     const landing = age >= SHOUT_HOLD + 700 && age < SHOUT_HOLD + 950;
     const face: CastFace = age >= 0 && age < SHOUT_HOLD + 700 ? 'shout' : landing ? 'shocked' : sp.face;
+    // The gesture, if the line has one and the shout hasn't had it: its first frame, then
+    // its second held; straight to the second when still
+    let gest: [Gesture, 0 | 1] | null = null;
+    if (sp.gesture && age < 0) {
+      const gs = GEST[sp.gesture];
+      const from = gs.from === 'start' ? sp.t0 : sp.done;
+      const u = from < 0 ? -1 : gt - from - (still ? 0 : gs.after);
+      if (u >= 0) gest = [sp.gesture, still || u >= gs.hold ? 1 : 0];
+    }
     // The pose's second frame: a jitter while caught out, a tap now and then while
     // thinking, a bob while pleased, the arm thrust out as the shout lands
     let frame: 0 | 1 = 0;
-    if (!still) {
+    if (!still && !gest) {
       if (face === 'shout' || landing) frame = 1;
       else if (face === 'shocked') frame = t < 800 && Math.floor(t / 110) % 2 ? 1 : 0;
       else if (face === 'thinking') frame = t % 900 < 200 ? 1 : 0;
       else if (face === 'pleased') frame = t % 1200 < 300 ? 1 : 0;
     }
-    const fig = portraitFrame(who, face, frame, blink, mouth, !you);
+    const fig = portraitFrame(who, face, frame, blink, mouth, !you, gest);
     const breathe = still ? 0 : Math.floor(gt / 1100) % 2;
     // Head and shoulders: the box's top edge across the chest, the head clear of the
     // frame's top

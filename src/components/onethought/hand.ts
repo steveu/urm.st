@@ -8,9 +8,13 @@
 // only if asked to face the other way. Flat tones, three or four to a material, a dark
 // line round the skin and the hair, no gradients and no noise.
 
-import type { Actor, Face, Mouth } from './cast';
+import type { Actor, Face, Gesture, Mouth } from './cast';
 
 type Patch = [number, number, string];
+/** A gesture's frame: patches over the face, and the head's move for it */
+type GestFrame = { at: [number, number]; patches: Patch[] };
+/** A head's own rows, y0 to y1, to lay back over whatever a face did to them */
+const restore = (head: Patch[], y0: number, y1: number): Patch[] => head.filter(([, y]) => y >= y0 && y <= y1);
 
 // ---------------------------------------------------------------------------------------
 // The caddie: a wool hat, a grey beard with a full moustache over the lip, a navy jacket
@@ -132,6 +136,21 @@ const CADDIE_POSE: Record<Face, [[number, number], [number, number]]> = {
   thinking: [[-1, 1], [-1, 2]],
   shout: [[0, 0], [0, -1]],
 };
+
+// Before a line that matters he looks down at the grass and his head goes with it, a
+// pixel: the whites go under the lids, then the brows come down after them. His own brows
+// and eyes first, whatever face he had
+const CADDIE_LOWER: [GestFrame, GestFrame] = [
+  { at: [0, 1], patches: [...restore(CADDIE_HEAD, 16, 21), [13, 20, 'KIIK'], [25, 20, 'KIIKK']] },
+  {
+    at: [0, 1],
+    patches: [
+      ...restore(CADDIE_HEAD, 16, 21),
+      [11, 17, '22222222'], [26, 17, '33333333'], [11, 18, '6'], [32, 18, '66'],
+      [13, 20, 'KIIK'], [25, 20, 'KIIKK'],
+    ],
+  },
+];
 
 // ---------------------------------------------------------------------------------------
 // The jacket: sloped shoulders, a stood-up collar leaning in, the zip
@@ -308,6 +327,12 @@ const YOU_FACE: Record<Face, Patch[]> = {
   ],
 };
 const YOU_BLINK: Patch[] = [[30, 17, '333333'], [17, 17, '222222'], [30, 18, '3KKKK3'], [17, 18, '2KKKK2']];
+// When the heckler's at it, your eyes slide off them and away, to the near side, and the
+// head turns a pixel after them
+const YOU_GLANCE: [GestFrame, GestFrame] = [
+  { at: [0, 0], patches: [[18, 18, 'WIIWW'], [31, 18, 'WIIW']] },
+  { at: [-1, 0], patches: [[18, 18, 'IIWWW'], [31, 18, 'IIWW']] },
+];
 
 // ---------------------------------------------------------------------------------------
 // Your partner: a bucket hat, ginger hair and a ginger moustache sweeping off the lip,
@@ -421,6 +446,13 @@ const PARTNER_MOUTH: Record<Face, Patch[]> = {
   shout: [[17, 28, 'MMMMMMMM'], [17, 29, 'MTTTTTTM'], [18, 30, 'MMMMMM'], [19, 31, 'LLLL']],
 };
 
+// The grin going: the eyes' smile flattening and one corner of the mouth with it, then
+// the mouth pressed flat and the eyes open again, the laugh gone out of them
+const PARTNER_FALTER: [GestFrame, GestFrame] = [
+  { at: [0, 0], patches: [[12, 17, '222222'], [25, 17, '333333'], [12, 18, 'KKKKKK'], [25, 18, 'KKKKKK'], [17, 28, '55MMMMM5'], [19, 29, 'LLLL3']] },
+  { at: [0, 0], patches: [...restore(PARTNER_HEAD, 14, 19), [17, 28, '55MMMM55'], [19, 29, '22333']] },
+];
+
 // ---------------------------------------------------------------------------------------
 // Onto the plate
 
@@ -435,6 +467,8 @@ type Fig = {
   talk: Record<1 | 2, Patch[]>;
   /** The head's place for each face at rest and on its second frame, against the body */
   pose: Record<Face, [[number, number], [number, number]]>;
+  /** The gestures they have, each in two frames */
+  gesture: Partial<Record<Gesture, [GestFrame, GestFrame]>>;
   sweat: [number, number];
   /** The head, hat to chin, on the head's own grid */
   box: { x: number; y: number; w: number; h: number };
@@ -453,6 +487,7 @@ const FIGS: Record<Actor, Fig> = {
       2: [[23, 28, 'MMMMMMM'], [23, 29, 'MTTTTTM'], [24, 30, 'MMMMM'], [24, 31, 'LLLLL']],
     },
     pose: { normal: [[0, 0], [0, 0]], pleased: [[0, -1], [0, 0]], shocked: [[-1, -1], [-1, -2]], thinking: [[1, 1], [1, 2]], shout: [[0, 0], [1, -1]] },
+    gesture: { glance: YOU_GLANCE },
     sweat: [40, 13],
     box: { x: 4, y: 2, w: 42, h: 36 },
   },
@@ -465,6 +500,7 @@ const FIGS: Record<Actor, Fig> = {
     blink: CADDIE_BLINK,
     talk: CADDIE_TALK,
     pose: CADDIE_POSE,
+    gesture: { lower: CADDIE_LOWER },
     sweat: [5, 15],
     box: { x: 5, y: 0, w: 38, h: 44 },
   },
@@ -486,6 +522,7 @@ const FIGS: Record<Actor, Fig> = {
       2: [[17, 28, 'MMMMMMMM'], [17, 29, 'MMMMMMMM'], [18, 30, 'MTTTTM'], [19, 31, 'LLLLL']],
     },
     pose: { normal: [[0, 0], [0, 0]], pleased: [[0, -1], [0, 0]], shocked: [[1, -1], [1, -2]], thinking: [[-1, 1], [-1, 2]], shout: [[0, 0], [0, -1]] },
+    gesture: { falter: PARTNER_FALTER },
     sweat: [5, 13],
     box: { x: 2, y: 0, w: 44, h: 38 },
   },
@@ -503,8 +540,9 @@ const HEAD_AT = { x: 16, y: 0 };
 
 const built = new Map<string, { body: string[][]; head: Patch[] }>();
 
-/** A figure laid out as keys on its grid: the body, the head on it in its pose, the face */
-function compose(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth): string[][] {
+/** A figure laid out as keys on its grid: the body, the head on it in its pose, the face,
+ *  and a gesture's frame over the face if one's playing: no blink through it */
+function compose(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, gest: [Gesture, 0 | 1] | null = null): string[][] {
   const fig = FIGS[who];
   let b = built.get(who);
   if (!b) {
@@ -512,24 +550,26 @@ function compose(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth
     built.set(who, b);
   }
   const g = b.body.slice(0, GRID_H).map((r) => r.slice());
-  const [dx, dy] = fig.pose[f][frame];
+  const gf = gest ? fig.gesture[gest[0]]?.[gest[1]] : undefined;
+  const dx = fig.pose[f][frame][0] + (gf?.at[0] ?? 0);
+  const dy = fig.pose[f][frame][1] + (gf?.at[1] ?? 0);
   const put = (x: number, y: number, s: string) =>
     [...s].forEach((ch, i) => {
       const yy = y + HEAD_AT.y + dy;
       const xx = x + i + HEAD_AT.x + dx;
       if (ch !== '.' && yy >= 0 && yy < g.length && xx >= 0 && xx < GRID_W) g[yy][xx] = ch;
     });
-  for (const [x, y, s] of [...b.head, ...fig.face[f]]) put(x, y, s);
-  if (blink && f !== 'pleased' && f !== 'shout') for (const [x, y, s] of fig.blink) put(x, y, s);
+  for (const [x, y, s] of [...b.head, ...fig.face[f], ...(gf?.patches ?? [])]) put(x, y, s);
+  if (blink && !gf && f !== 'pleased' && f !== 'shout') for (const [x, y, s] of fig.blink) put(x, y, s);
   if (mouth > 0 && f !== 'shout') for (const [x, y, s] of fig.talk[mouth as 1 | 2]) put(x, y, s);
   if (f === 'shocked') for (const [x, y, s] of SWEAT) put(x + fig.sweat[0] - 5, y + fig.sweat[1] + frame * 2, s);
   return g;
 }
 
-/** One frame of a figure; flip to face left */
-export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean): HTMLCanvasElement {
+/** One frame of a figure; flip to face left; a gesture's frame over it, if one's playing */
+export function handFrame(who: Actor, f: Face, frame: 0 | 1, blink: boolean, mouth: Mouth, flip: boolean, gest: [Gesture, 0 | 1] | null = null): HTMLCanvasElement {
   const fig = FIGS[who];
-  const g = compose(who, f, frame, blink, mouth);
+  const g = compose(who, f, frame, blink, mouth, gest);
   const c = document.createElement('canvas');
   c.width = PLATE_W;
   c.height = PLATE_H;
