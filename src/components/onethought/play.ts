@@ -173,6 +173,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       status: (t) => opts.status(t),
       onKey: (caught) => {
         // Caught: quiet on the next tee. Let go: it follows you there, and it's on the card
+        keyed[hole - 1] = caught;
         if (caught) {
           calmHole = hole + 1;
           nextTee = 'caught';
@@ -310,6 +311,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let walkBow = false;
   let walkU = 0;
   let nextTee: 'none' | 'caught' | 'follow' | 'kept' = 'none';
+  // Each walk's key line, caught or let go, for the walks after it
+  let keyed: boolean[] = [];
   // What happened on each hole, for the walk after it: worth keeping, trouble, and what
   // was done over the ball (the targets swung at, the clubs, doubt, a hurry, a line
   // decided with a tap and then moved off, the boring target said and the flag swung at)
@@ -806,6 +809,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     feats = [new Set(), new Set(), new Set()];
     trouble = [new Set(), new Set(), new Set()];
     did = [noDid(), noDid(), noDid()];
+    keyed = [];
     pinWatch = null;
     nextTee = 'none';
     strokes = [0, 0, 0];
@@ -1523,7 +1527,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     pendingRun = null;
     cuedRun = null;
     cloud = null;
-    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1] }, voiceRng);
+    walkParts = walkScene(THOUGHTS[thought].name, { hole, went: wentWord(), trouble: trouble[hole - 1], feats: feats[hole - 1], did: did[hole - 1], caught: Array.from({ length: hole - 1 }, (_, i) => keyed[i] === true) }, voiceRng);
     walkT0 = -1;
     root.dataset.walk = '';
     setMode('between');
