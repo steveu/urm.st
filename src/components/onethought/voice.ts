@@ -161,6 +161,72 @@ export const FOLLOW: Record<string, readonly string[]> = {
 /** And something kept goes with you */
 export const KEPT = ['Still got that one.', 'Hang on to that.'];
 
+// ---------------------------------------------------------------------------------------
+// The read, on the walk to the ball: when the inner voice said its catch over the ball,
+// the people around you answer what you did with it, not where the ball went. Your
+// caddie reads the press: caught or let go by. Your partner reads the result, and only
+// speaks up where the two disagree (caught and it didn't come off, let go by and it did),
+// which is where the caddie, or you, have the last word. Where they agree, the caddie
+// says it alone. Two ways of saying each, never one twice in a round.
+
+export type Noticed = 'caught' | 'missed';
+export type Said = { who: Who; expr: Expr; line: string };
+const cad = (expr: Expr, line: string): Said => ({ who: 'caddie', expr, line });
+const par = (expr: Expr, line: string): Said => ({ who: 'partner', expr, line });
+const own = (expr: Expr, line: string): Said => ({ who: 'you', expr, line });
+
+/** Per thought: what was noticed over the ball, then whether the shot came off */
+export const READ: Record<string, Record<Noticed, { off: Said[][]; not: Said[][] }>> = {
+  'The Heckler': {
+    caught: {
+      off: [[cad('settled', 'Let it show, then swung. That’s the order.')], [cad('settled', 'Went red, then went through it. Good.')]],
+      not: [
+        [par('settled', 'Shame. Was that the nerves?'), cad('calm', 'No. You’d seen them off. That was just golf.')],
+        [par('settled', 'Ooh. Bit of a wobble?'), cad('calm', 'Bad shot. Not a bad head.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Cool as you like.'), cad('tense', 'Cool? Your ears were scarlet.')],
+        [par('settled', 'Nerves of steel, you.'), own('tense', 'They weren’t, though.')],
+      ],
+      not: [[cad('tense', 'That was in your shoulders. All the way down.')], [cad('tense', 'Whatever that was, you swung it with you.')]],
+    },
+  },
+  'Commit to the Line': {
+    caught: {
+      off: [[cad('settled', 'Decided, then hit. Nothing in between.')], [cad('settled', 'One line, one swing. That’s the lot.')]],
+      not: [
+        [par('settled', 'Wrong line, that.'), cad('calm', 'Right way to pick it, though. Same again.')],
+        [par('settled', 'Should’ve gone the other way.'), cad('calm', 'Maybe. You went one way, all the way.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'See? Easy.'), cad('tense', 'It came off. I’m not sure you’d picked it.')],
+        [par('settled', 'Textbook.'), cad('tense', 'Half a textbook. You were still choosing.')],
+      ],
+      not: [[cad('tense', 'Still choosing on the way down, weren’t you.')], [cad('tense', 'That swing had two lines in it.')]],
+    },
+  },
+  'Pins Are a Psyop': {
+    caught: {
+      off: [[cad('settled', 'Middle of the green. Nobody claps. Lovely.')], [cad('settled', 'Boring, and on. Best kind.')]],
+      not: [
+        [par('settled', 'All that for the middle, and you missed it.'), cad('calm', 'Missed the middle. Better than missing the flag.')],
+        [par('settled', 'Even the boring one got away.'), cad('calm', 'It did. Still the right one.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Where were you aiming?'), cad('tense', 'Good question.')],
+        [par('settled', 'Gorgeous. Right where you wanted?'), own('tense', 'Somewhere round there.')],
+      ],
+      not: [[cad('tense', 'Between the flag and the middle. Worst of both.')], [cad('tense', 'Never settled on a target, that one.')]],
+    },
+  },
+};
+
 export const BY: Record<Who, string> = {
   you: 'you, to yourself',
   caddie: 'your caddie',
@@ -372,6 +438,10 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     },
     get showing() {
       return !!cur && cur.out < 0;
+    },
+    /** Anything being said, or waiting to be */
+    get busy() {
+      return !!cur || queue.length > 0;
     },
     /** A run of the inner voice is being said, or is waiting to be */
     get inRun() {
