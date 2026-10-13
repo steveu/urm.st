@@ -1876,7 +1876,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         runs++;
         runId++;
         runHole.set(runId, hole);
-        if (pr.claim) claimRun = runId;
         if (!pr.modes.includes('walk')) runSwing.set(runId, { hole, swing: swings + 1 });
         cutins.run(runId, pr.cuts, gt);
         if (!cloud) cloud = { t0: gt, doubt: false };
