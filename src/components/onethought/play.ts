@@ -168,13 +168,14 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     reduce,
     status: (t) => opts.status(t),
     onLive: (on) => opts.onLive(on),
-    onRunEnd: (id, offered, caught) => {
+    onRunEnd: (id, offered, caught, read) => {
       const at = runHole.get(id) ?? hole;
       runHole.delete(id);
-      // Said over the ball and let go by: the people will have seen, after the swing
+      // Said over the ball, there to be read, and let go by: the people will have seen,
+      // after the swing. A catch the swing cut off as it came isn't held against you
       const sw = runSwing.get(id);
       runSwing.delete(id);
-      if (sw && sw.hole === hole && offered && !caught) missedSwing = sw.swing;
+      if (sw && sw.hole === hole && offered && read && !caught) missedSwing = sw.swing;
       // Caught: the head goes quiet for the rest of the hole
       if (caught) calmHole = at;
       else if (offered) opts.onMissed(at);

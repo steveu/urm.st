@@ -244,8 +244,9 @@ const OUT_MS = 150;
 type Opts = {
   reduce: boolean;
   status: (t: string) => void;
-  /** A run is over: whether its catch was said, and whether it was caught */
-  onRunEnd: (run: number, offered: boolean, caught: boolean) => void;
+  /** A run is over: whether its catch was said, whether it was caught, and whether the
+   *  catch was up long enough to be read (typed out in full) */
+  onRunEnd: (run: number, offered: boolean, caught: boolean, read: boolean) => void;
   /** A run of the inner voice is under way, or not */
   onLive: (on: boolean) => void;
 };
@@ -259,7 +260,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
   const stampEl = el.querySelector<HTMLElement>('.stamp')!;
   let cur: { cut: Cut; t0: number; shown: number; out: number; caught: number; expr: Expr } | null = null;
   let queue: Cut[] = [];
-  const runs = new Map<number, { offered: boolean; caught: boolean }>();
+  const runs = new Map<number, { offered: boolean; caught: boolean; read: boolean }>();
   let live = false;
 
   function setLive(on: boolean) {
@@ -311,7 +312,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     const r = runs.get(run);
     runs.delete(run);
     setLive(false);
-    if (r) opts.onRunEnd(run, r.offered, r.caught);
+    if (r) opts.onRunEnd(run, r.offered, r.caught, r.read);
   }
 
   // A line answered: typed out in full, stamped, the face settled, held a beat
@@ -343,7 +344,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     },
     /** A run of testimony: said line by line, after whatever's being said */
     run(id: number, cuts: Cut[], now: number) {
-      runs.set(id, { offered: false, caught: false });
+      runs.set(id, { offered: false, caught: false, read: false });
       cuts.forEach((c) => (c.run = id));
       queue.push(...cuts);
       if (!cur) show(queue.shift()!, now);
@@ -372,6 +373,11 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       if (cur.caught >= 0) {
         if (now - cur.caught >= CAUGHT_MS) hide(now);
         return;
+      }
+      // The catch, typed out in full: there to be read
+      if (n >= c.line.length && c.run != null && (c.catch || c.lead)) {
+        const r = runs.get(c.run);
+        if (r) r.read = true;
       }
       const full = reduce ? cur.t0 : cur.t0 + IN_MS + (c.line.length * 1000) / (c.cps ?? CHARS_PER_S);
       if (now - full >= holdFor(c)) hide(now);
