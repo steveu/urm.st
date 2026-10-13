@@ -196,9 +196,10 @@ export function createStage(els: Els, opts: Opts) {
       snd.kept();
       return true;
     },
-    /** The shout, while it's on: its word, and how long since it began */
+    /** The shout, while it's on: its word, and how long since it began. It goes with its
+     *  line, cut like the speaker, or it'd land again on the next face, sized to that one */
     shout(now: number) {
-      return now - shoutT0 <= SHOUT_HOLD + 200 ? { word: shoutWord, t: now - shoutT0 } : null;
+      return i === shoutLine && now - shoutT0 <= SHOUT_HOLD + 200 ? { word: shoutWord, t: now - shoutT0 } : null;
     },
     /** How long since the shout, while the line it was shouted on is still up; -1 once
      *  the scene has moved on, so the shouter's face can hold and then land */
