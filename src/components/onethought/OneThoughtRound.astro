@@ -160,7 +160,8 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
 
 <script>
   import { START, THOUGHTS } from './thoughts';
-  import { fresh, read, recordHtml, sealedHtml, type CardEvent, type State } from './record';
+  import { fresh, read, recordHtml, sealedHtml, type CardEvent, type Press, type State } from './record';
+  import type { Verdict } from './read';
   import { createGame, type Finish } from './play';
   import { drawFlic } from './pixel';
   import { createEnding } from './ending';
@@ -319,6 +320,22 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       sizeEnding();
     }).observe(sealedEl);
     new IntersectionObserver((es) => ending.pause(!es.some((x) => x.isIntersecting))).observe(root);
+
+    // In development only: ?end=kept or ?end=dropped opens on the sealed round, over a
+    // made-up round, so the ending can be looked at without playing three holes
+    if (import.meta.env.DEV) {
+      const want = new URLSearchParams(location.search).get('end');
+      if (want) {
+        const verdict: Verdict = want.startsWith('drop') ? 'drop' : 'keep';
+        const tap = (t: number, hole: number): Press => ({ t, hole, at: [0, 0], over: false });
+        s = { ...fresh(START, 'sealed'), taps: [tap(140, 1), tap(610, 2), tap(1180, 3)], end: 1500, holesPlayed: 3, complete: true, bounds: [480, 1010], verdict };
+        paint();
+        game.setActive(false);
+        sizeEnding();
+        ending.start({ reduce, verdict });
+        requestAnimationFrame(() => root!.scrollIntoView({ block: 'start' }));
+      }
+    }
 
     // The Flic: pressed while held, a gold ring on a press, wider and longer for a moment,
     // and a faint warm halo while the inner voice is talking
