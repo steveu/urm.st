@@ -10,6 +10,12 @@
 // is just a tap, or a moment marked, as ever. Nothing here ever reaches the sim: the
 // reward is the story, not the score.
 //
+// At a decision (two targets on the board: the corner or out right, lay up or take it on,
+// the flag or the fat of the green) the thought has its say on each target as the aim lands
+// on it (an aside), and a tap with the aim on a target calls the shot, where the thought
+// says the call counts (CALLS). The call is stamped, answered, and shapes what's left on the
+// board; it never reaches the sim.
+//
 // No line says when to press, names a thought, or names the button.
 
 import { portrait, type Who, type Expr } from './portrait';
@@ -40,9 +46,13 @@ export type Cut = {
   scene?: boolean;
   /** Worked out as it's said: a line and a face that answer what came before */
   react?: () => { who: Who; line: string; expr: Expr } | null;
+  /** The thought's word on a target, as the aim lands on it: the next one replaces it */
+  aside?: boolean;
+  /** Told when the line goes up */
+  onShow?: () => void;
 };
 
-export type Sit = 'heckled' | 'gallery' | 'bad' | 'good' | 'choice' | 'doubt' | 'approach';
+export type Sit = 'heckled' | 'gallery' | 'bad' | 'good' | 'doubt';
 export type RunSpec = { p: number; catchP: number; catch: readonly string[]; catchExpr: Expr; foils: readonly string[]; expr: Expr };
 
 /** The head's small talk: none of it is about anything */
@@ -57,7 +67,7 @@ export const ORDINARY = [
   'Grip’s fine. Probably.',
 ] as const;
 
-const COMMIT = ['That one. Done.', 'That’s the line.', 'Right. That one.', 'Picked it. Go.'];
+export const COMMIT = ['That one. Done.', 'That’s the line.', 'Right. That one.', 'Picked it. Go.'];
 
 // Per thought, by name, the moments that matter for it. p is the chance a run comes at
 // all; catchP the chance it holds the catch
@@ -89,14 +99,6 @@ export const XEXAM: Record<string, Partial<Record<Sit, RunSpec>>> = {
     },
   },
   'Commit to the Line': {
-    choice: {
-      p: 0.75,
-      catchP: 0.85,
-      catch: COMMIT,
-      catchExpr: 'calm',
-      foils: ['Or the other line?', 'Is that enough club?', 'Was the other one better?', 'Flag’s right there.', 'Left a touch. Or not.'],
-      expr: 'tense',
-    },
     doubt: {
       p: 0.8,
       catchP: 0.65,
@@ -106,17 +108,8 @@ export const XEXAM: Record<string, Partial<Record<Sit, RunSpec>>> = {
       expr: 'tense',
     },
   },
-  // Tempted at the flag on the approach; the catch is the moment the middle of the green
-  // is taken
+  // Second thoughts at the flag once stepped in; the decision itself is a call (CALLS)
   'Pins Are a Psyop': {
-    approach: {
-      p: 0.85,
-      catchP: 0.85,
-      catch: ['Middle of the green. Boring. Fine.', 'Fat of the green. Let them have the flag.', 'Boring target. Done.', 'Away from the flag. That’s it.'],
-      catchExpr: 'calm',
-      foils: ['Flag’s right there.', 'Could get it close, though…', 'Go on. Have a go at it.', 'Nobody remembers the middle of the green.', 'They’ve tucked it. Course they have.'],
-      expr: 'tense',
-    },
     doubt: {
       p: 0.6,
       catchP: 0.6,
@@ -147,6 +140,69 @@ export const XEXAM: Record<string, Partial<Record<Sit, RunSpec>>> = {
 };
 
 // ---------------------------------------------------------------------------------------
+// Calling the shot. Per thought: what it says about each target as the aim lands on it, by
+// the target's name; which targets a tap can call; what you say as it's called (stamped);
+// whether the other target is taken off the board; and the caddie's answer.
+//
+//   Commit to the Line: either target, the moment you pick it. The other goes.
+//   Pins Are a Psyop: only the fat of the green. The flag goes. A tap on the flag is a tap.
+//   The Heckler: it has a go at you whichever you look at, to prove something or for
+//     playing it safe. A tap on a target it's had a go at catches it choosing for you;
+//     both targets stay, and the choice is still yours.
+//
+// Aim back at a target taken off and it's back, and the call with it: the record already
+// hears of that (a line moved off, the flag after boring).
+
+export type CallBook = {
+  says: Record<string, readonly string[]>;
+  callable: (name: string, heard: boolean) => boolean;
+  mine: readonly string[];
+  withdraw: boolean;
+  caddie: readonly string[];
+};
+
+export const CALLS: Record<string, CallBook> = {
+  'Commit to the Line': {
+    says: {
+      'the corner': ['The corner. Shorter in, if it carries.'],
+      'out right': ['Out right. Safe. Longer in.'],
+      'lay up': ['Short of the creek. A wedge in.'],
+      'take it on': ['Over the creek. On in two. Maybe.'],
+      flag: ['At the flag? Tucked, mind.', 'The flag. Close, if it comes off.', 'Flag. Short is wet, mind.'],
+      'fat of the green': ['The fat. Long putt, dry feet.', 'Fat of the green. Two putts.', 'The fat. Plenty of room.'],
+    },
+    callable: () => true,
+    mine: COMMIT,
+    withdraw: true,
+    caddie: ['Good. Only a swing left.', 'Picked. Now leave it picked.', 'That’s the one. Off you go.'],
+  },
+  'Pins Are a Psyop': {
+    says: {
+      flag: ['Flag’s right there. Have a go.', 'Tucked. They want you at it. Go on.', 'Could stiff this one, though…'],
+      'fat of the green': ['Fat of the green. Nobody claps.', 'Middle. Twenty feet. Dull.', 'Plenty of green that side.'],
+    },
+    callable: (name) => name === 'fat of the green',
+    mine: ['Middle of the green. Boring. Fine.', 'Fat of the green. Let them have the flag.', 'Boring target. Done.', 'Away from the flag. That’s it.'],
+    withdraw: true,
+    caddie: ['Middle. Lovely and dull.', 'Fat of the green. I’ll allow it.', 'Boring. Good.'],
+  },
+  'The Heckler': {
+    says: {
+      'the corner': ['Cut it. Or are you scared of a few trees?'],
+      'out right': ['Out right. Course you are.'],
+      'lay up': ['Laying up. Again. Brave.'],
+      'take it on': ['Take it on. Show them, for once.'],
+      flag: ['Go at it. They’re all watching.', 'Flag. Prove the last one wasn’t luck.', 'Go on. Or are you bottling it?'],
+      'fat of the green': ['Middle of the green. Scared of a flag.', 'The fat. Playing for your handicap.', 'Middle again. Nobody’ll notice, will they.'],
+    },
+    callable: (_, heard) => heard,
+    mine: ['That got in.', 'It’s picking for me again.', 'That’s it talking. Not me.', 'Ah. There it is.', 'Ears gone warm. Noted.'],
+    withdraw: false,
+    caddie: ['Heard it. Now pick one for you.', 'That’s the voice, not the shot. Your call.', 'Let it talk. You choose.', 'Not theirs to pick. Yours.'],
+  },
+};
+
+// ---------------------------------------------------------------------------------------
 // The walk to the next tee is a scene (scenes.ts). What's left here goes either side of
 // it: what follows you onto the tee, and what goes with you
 
@@ -160,6 +216,72 @@ export const FOLLOW: Record<string, readonly string[]> = {
 
 /** And something kept goes with you */
 export const KEPT = ['Still got that one.', 'Hang on to that.'];
+
+// ---------------------------------------------------------------------------------------
+// The read, on the walk to the ball: when the inner voice said its catch over the ball,
+// the people around you answer what you did with it, not where the ball went. Your
+// caddie reads the press: caught or let go by. Your partner reads the result, and only
+// speaks up where the two disagree (caught and it didn't come off, let go by and it did),
+// which is where the caddie, or you, have the last word. Where they agree, the caddie
+// says it alone. Two ways of saying each, never one twice in a round.
+
+export type Noticed = 'caught' | 'missed';
+export type Said = { who: Who; expr: Expr; line: string };
+const cad = (expr: Expr, line: string): Said => ({ who: 'caddie', expr, line });
+const par = (expr: Expr, line: string): Said => ({ who: 'partner', expr, line });
+const own = (expr: Expr, line: string): Said => ({ who: 'you', expr, line });
+
+/** Per thought: what was noticed over the ball, then whether the shot came off */
+export const READ: Record<string, Record<Noticed, { off: Said[][]; not: Said[][] }>> = {
+  'The Heckler': {
+    caught: {
+      off: [[cad('settled', 'Let it show, then swung. That’s the order.')], [cad('settled', 'Went red, then went through it. Good.')]],
+      not: [
+        [par('settled', 'Shame. Was that the nerves?'), cad('calm', 'No. You’d seen them off. That was just golf.')],
+        [par('settled', 'Ooh. Bit of a wobble?'), cad('calm', 'Bad shot. Not a bad head.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Cool as you like.'), cad('tense', 'Cool? Your ears were scarlet.')],
+        [par('settled', 'Nerves of steel, you.'), own('tense', 'They weren’t, though.')],
+      ],
+      not: [[cad('tense', 'That was in your shoulders. All the way down.')], [cad('tense', 'Whatever that was, you swung it with you.')]],
+    },
+  },
+  'Commit to the Line': {
+    caught: {
+      off: [[cad('settled', 'Decided, then hit. Nothing in between.')], [cad('settled', 'One line, one swing. That’s the lot.')]],
+      not: [
+        [par('settled', 'Wrong line, that.'), cad('calm', 'Right way to pick it, though. Same again.')],
+        [par('settled', 'Should’ve gone the other way.'), cad('calm', 'Maybe. You went one way, all the way.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'See? Easy.'), cad('tense', 'It came off. I’m not sure you’d picked it.')],
+        [par('settled', 'Textbook.'), cad('tense', 'Half a textbook. You were still choosing.')],
+      ],
+      not: [[cad('tense', 'Still choosing on the way down, weren’t you.')], [cad('tense', 'That swing had two lines in it.')]],
+    },
+  },
+  'Pins Are a Psyop': {
+    caught: {
+      off: [[cad('settled', 'Middle of the green. Nobody claps. Lovely.')], [cad('settled', 'Boring, and on. Best kind.')]],
+      not: [
+        [par('settled', 'All that for the middle, and you missed it.'), cad('calm', 'Missed the middle. Better than missing the flag.')],
+        [par('settled', 'Even the boring one got away.'), cad('calm', 'It did. Still the right one.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Where were you aiming?'), cad('tense', 'Good question.')],
+        [par('settled', 'Gorgeous. Right where you wanted?'), own('tense', 'Somewhere round there.')],
+      ],
+      not: [[cad('tense', 'Between the flag and the middle. Worst of both.')], [cad('tense', 'Never settled on a target, that one.')]],
+    },
+  },
+};
 
 export const BY: Record<Who, string> = {
   you: 'you, to yourself',
@@ -178,8 +300,9 @@ const OUT_MS = 150;
 type Opts = {
   reduce: boolean;
   status: (t: string) => void;
-  /** A run is over: whether its catch was said, and whether it was caught */
-  onRunEnd: (run: number, offered: boolean, caught: boolean) => void;
+  /** A run is over: whether its catch was said, whether it was caught, and whether the
+   *  catch was up long enough to be read (typed out in full) */
+  onRunEnd: (run: number, offered: boolean, caught: boolean, read: boolean) => void;
   /** A run of the inner voice is under way, or not */
   onLive: (on: boolean) => void;
 };
@@ -193,7 +316,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
   const stampEl = el.querySelector<HTMLElement>('.stamp')!;
   let cur: { cut: Cut; t0: number; shown: number; out: number; caught: number; expr: Expr } | null = null;
   let queue: Cut[] = [];
-  const runs = new Map<number, { offered: boolean; caught: boolean }>();
+  const runs = new Map<number, { offered: boolean; caught: boolean; read: boolean }>();
   let live = false;
 
   function setLive(on: boolean) {
@@ -219,6 +342,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       c.expr = r.expr;
     }
     cur = { cut: c, t0: now, shown: -1, out: -1, caught: -1, expr: c.expr };
+    c.onShow?.();
     el.dataset.who = c.who;
     drawFace(c, c.expr);
     whoEl.textContent = c.by || BY[c.who];
@@ -245,7 +369,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     const r = runs.get(run);
     runs.delete(run);
     setLive(false);
-    if (r) opts.onRunEnd(run, r.offered, r.caught);
+    if (r) opts.onRunEnd(run, r.offered, r.caught, r.read);
   }
 
   // A line answered: typed out in full, stamped, the face settled, held a beat
@@ -275,9 +399,33 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       if (!cur) show(c, now);
       else if (queue.length < 2) queue.push(c);
     },
+    /** The thought's word on a target: it takes the place of the last one, if that's
+     *  still up or waiting, and otherwise goes after whatever's being said */
+    aside(c: Cut, now: number) {
+      c.aside = true;
+      queue = queue.filter((q) => !q.aside);
+      if (!cur) show(c, now);
+      else {
+        if (cur.cut.aside && cur.caught < 0) hide(now);
+        queue.unshift(c);
+      }
+    },
+    /** A shot called: said now, stamped, over whatever was up or coming. A run cut short
+     *  by it ends unsaid */
+    called(c: Cut, now: number, label: string) {
+      for (const [id, r] of [...runs]) {
+        if (!r.caught) r.offered = false;
+        endRun(id);
+      }
+      queue = [];
+      el.classList.remove('on', 'out', 'caught', 'kept', 'run');
+      cur = null;
+      show(c, now);
+      stamp(now, 'caught', label);
+    },
     /** A run of testimony: said line by line, after whatever's being said */
     run(id: number, cuts: Cut[], now: number) {
-      runs.set(id, { offered: false, caught: false });
+      runs.set(id, { offered: false, caught: false, read: false });
       cuts.forEach((c) => (c.run = id));
       queue.push(...cuts);
       if (!cur) show(queue.shift()!, now);
@@ -306,6 +454,11 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       if (cur.caught >= 0) {
         if (now - cur.caught >= CAUGHT_MS) hide(now);
         return;
+      }
+      // The catch, typed out in full: there to be read
+      if (n >= c.line.length && c.run != null && (c.catch || c.lead)) {
+        const r = runs.get(c.run);
+        if (r) r.read = true;
       }
       const full = reduce ? cur.t0 : cur.t0 + IN_MS + (c.line.length * 1000) / (c.cps ?? CHARS_PER_S);
       if (now - full >= holdFor(c)) hide(now);
@@ -372,6 +525,10 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     },
     get showing() {
       return !!cur && cur.out < 0;
+    },
+    /** Anything being said, or waiting to be */
+    get busy() {
+      return !!cur || queue.length > 0;
     },
     /** A run of the inner voice is being said, or is waiting to be */
     get inRun() {

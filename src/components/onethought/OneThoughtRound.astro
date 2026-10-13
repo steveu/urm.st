@@ -987,6 +987,15 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     background: var(--ink);
     color: #fff6dc;
   }
+  /* Called with a tap: brass, as the line inks. The other target, where the thought takes
+     it off the board, goes */
+  .chips :global(.chip.called) {
+    background: var(--brass);
+    color: #fff6dc;
+  }
+  .chips :global(.chip.gone) {
+    visibility: hidden;
+  }
 
   .carry {
     position: absolute;
