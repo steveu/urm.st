@@ -2,7 +2,8 @@
 // the ball in the air, the golfer, the meter and the little theatre around a round. Every
 // shot comes from sim.ts and nothing here feeds back into it. The Flic never reaches this
 // file except to ask where and when a press fell (stamp), and whether it caught a line of
-// the inner voice (catchLine), which only changes what's said, never a shot.
+// the inner voice or called the shot at a decision (catchLine), which only changes what's
+// said and what's on offer, never a shot.
 //
 // The board is fixed isometric pixel art (pixel.ts). It never follows the ball. In a round
 // each hole is framed on its own, filling the board. The walk between them takes the whole
@@ -15,7 +16,7 @@ import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
 import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, arcAt, crownOver, PLATE, ROPE, OVERVIEW_VIEW, LIGHT, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
-import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, type Cut, type Sit } from './voice';
+import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, CALLS, COMMIT, type Cut, type Sit } from './voice';
 import { createWalk } from './walk';
 import { walkScene, type Went, type MomentKind, type Trouble, type Beat, type Did } from './scenes';
 import { portraitFrame, headBox, W as FIG_W, H as FIG_H, type Face as CastFace, type Gesture } from './cast';
@@ -34,7 +35,8 @@ export type GameOpts = {
   status: (text: string) => void;
   onShot: (hole: number, lie: Lie, putt: boolean) => void;
   onFinish: (f: Finish) => void;
-  /** A run of the inner voice said its catch, and it went by uncaught */
+  /** A run of the inner voice said its catch, and it went by uncaught; or a decision the
+   *  thought spoke on was swung at without a call (carrying Pins Are a Psyop, at the fat) */
   onMissed: (hole: number) => void;
   /** A run of the inner voice is under way: the pocket button glows, softly */
   onLive: (on: boolean) => void;
@@ -63,9 +65,11 @@ const LH = 174;
 const VOICE_BUDGET = 2;
 // How many runs of the inner voice a hole may have
 const RUNS_A_HOLE = 2;
-// A run that waits on a deed (onto the fat, into the ball, off it) comes this long after
+// A run that waits on a deed (off the ball after a heckle) comes this long after
 const CUE_MS = 450;
-type Cue = 'fat' | 'stepIn' | 'stepOff';
+type Cue = 'stepOff';
+// At a decision, the thought's word on the target the aim starts on, after the caddie's
+const ASIDE_MS = 1700;
 // The walk between holes: the board going out, and the walk settling before the first line
 const CUT_OUT = 380;
 const WALK_LEAD = 600;
@@ -165,7 +169,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   const cutins = createCutins(q('[data-cutin]'), {
     reduce,
     status: (t) => opts.status(t),
-    onLive: (on) => opts.onLive(on),
+    onLive: (on) => {
+      cutLive = on;
+      opts.onLive(cutLive || callLive);
+    },
     onRunEnd: (id, offered, caught) => {
       const at = runHole.get(id) ?? hole;
       runHole.delete(id);
@@ -317,12 +324,20 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // The voices: a seeded stream of their own, a budget a hole, and what's coming
   let voiceRng = S.rng(1);
   let spoken = 0;
-  let pendingRun: { at: number; modes: Mode[]; cuts: Cut[]; claim?: boolean } | null = null;
-  // A run held for the act it's about rather than the clock: onto the fat, into the
-  // ball, off it after a heckle. If the act never comes, nor does the run
+  let pendingRun: { at: number; modes: Mode[]; cuts: Cut[] } | null = null;
+  // A run held for the act it's about rather than the clock: off the ball after a heckle.
+  // If the act never comes, nor does the run
   let cuedRun: { cue: Cue; modes: Mode[]; cuts: Cut[] } | null = null;
-  // The commit said on stepping in: a new line before the swing takes it back
-  let claimRun = -1;
+  // The decision in hand, if there are targets: whether the thought has a say on it, the
+  // targets it's had its say on (asked: said or waiting to be; heard: up on screen), which
+  // was called (-1 for none), and when the first word is due (-1 once said or overtaken). It
+  // has its say on the two lines, and on the first flag or fat of each hole: a second go at
+  // the green after a miss is the same decision again
+  let call: { voiced: boolean; asked: Set<number>; heard: Set<number>; called: number; asideAt: number } = { voiced: false, asked: new Set(), heard: new Set(), called: -1, asideAt: -1 };
+  let greenAsked = [false, false, false];
+  // The pocket button glows while the inner voice runs, or a decision it's spoken on is open
+  let cutLive = false;
+  let callLive = false;
   let runs = 0;
   let runId = 0;
   let calmHole = 0;
@@ -566,7 +581,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     if (near >= 0) t = chips[near].at;
     // Settled on a line, then changed it again: that's doubt, and it costs a notch
     if (why !== 'start' && S.dist(aim, t) >= 1.5) {
-      unclaim();
       if (steppedOnce && !doubt) {
         doubt = true;
         ctx.doubt = true;
@@ -584,8 +598,10 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     sit = S.situation(ball, aim, ctx);
     const was = onChip;
     onChip = chips.findIndex((c) => S.dist(c.at, aim) < 0.5);
+    // Off the target called, and what was taken off the board is back
+    if (call.called >= 0 && onChip !== call.called) call.called = -1;
     if (was !== onChip || why === 'start') paintChips(true);
-    if (was !== onChip && chips[onChip]?.kind === 'fat') cue('fat');
+    if (was !== onChip && why !== 'start' && onChip >= 0) aside(onChip);
     clubText();
     if (why !== 'start') {
       lastAim = gt;
@@ -612,8 +628,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     paintStep();
     hint();
     say(`Stepped in, ${S.CLUBS[club].tag}. Hold to swing; Escape steps off.`);
-    // Into a line picked over, not the first one that came
-    if (aimSets >= 2) cue('stepIn');
   }
   function stepOff() {
     if (mode !== 'aim' || !stepped) return;
@@ -728,27 +742,68 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       return;
     }
     if (pendingRun || cutins.inRun) return;
-    pendingRun = { at: gt + CUE_MS, modes: cuedRun.modes, cuts: cuedRun.cuts, claim: c === 'stepIn' };
+    pendingRun = { at: gt + CUE_MS, modes: cuedRun.modes, cuts: cuedRun.cuts };
     cuedRun = null;
   }
 
-  // The commit taken back: unsaid if it's still to come, cut short if it's being said
-  function unclaim() {
-    if (pendingRun?.claim) pendingRun = null;
-    if (claimRun >= 0) cutins.drop(claimRun, gt);
-    claimRun = -1;
+  // What the inner voice might say over the ball, decided as the shot is set up. A
+  // decision speaks for itself, a word on each target (aside), so no run is planned for
+  // one. Otherwise the rope, when you step off after it's had its say
+  function planAimVoice(heckled: boolean) {
+    if (chips.length) return;
+    const cues: Partial<Record<Sit, Cue>> = heckled ? { gallery: 'stepOff' } : {};
+    planRun([heckled ? 'gallery' : null], 900, ['aim'], cues);
   }
 
-  // What the inner voice might say over the ball, decided as the shot is set up. Whether
-  // it speaks is settled here; when, for some, waits on the deed: the middle of the green
-  // once the aim's on it, the commit on stepping in to a line picked over, and the rope
-  // when you step off after it's had its say. The rest come on the clock
-  function planAimVoice(heckled: boolean) {
-    const gallery = heckled || (hole === 2 && ball.strokes === 0);
-    const approach = chips.some((c) => c.kind === 'fat');
-    const cues: Partial<Record<Sit, Cue>> = { approach: 'fat', choice: 'stepIn' };
-    if (heckled) cues.gallery = 'stepOff';
-    planRun([gallery ? 'gallery' : null, approach ? 'approach' : null, chips.length ? 'choice' : null], 900, ['aim'], cues);
+  // ---------------------------------------------------------------------------------
+  // Calling the shot (voice.ts says what each thought counts as a call)
+
+  const book = () => CALLS[THOUGHTS[thought].name];
+  // The target taken off the board by the call
+  const gone = (i: number) => call.called >= 0 && i !== call.called && !!book()?.withdraw;
+
+  // The thought's word on the target the aim has landed on, once a decision
+  function aside(i: number) {
+    call.asideAt = -1;
+    const b = book();
+    if (!b || !call.voiced || call.called >= 0 || call.asked.has(i) || stepped) return;
+    const l = fresh(b.says[chips[i]?.name] ?? [], voiceRng());
+    if (!l) return;
+    said.add(l);
+    call.asked.add(i);
+    // Heard once it's up, not while it waits behind the caddie's offer
+    const d = call;
+    cutins.aside({ who: 'you', expr: 'tense', line: l, by: '', onShow: () => void d.heard.add(i) }, gt);
+  }
+
+  // Whether a tap now, behind the ball with the aim on a target, calls it
+  const callable = () => {
+    const b = book();
+    return !!b && mode === 'aim' && !stepped && onChip >= 0 && call.called < 0 && b.callable(chips[onChip].name, call.heard.has(onChip));
+  };
+  // And whether some target here could be, wherever the aim is
+  const callableAny = () => {
+    const b = book();
+    return !!b && mode === 'aim' && !stepped && chips.some((c, i) => b.callable(c.name, call.heard.has(i)));
+  };
+
+  // A tap calls the shot: said in so many words and stamped, the caddie's answer after it,
+  // the line inked, and for some thoughts the other target taken off the board
+  function callShot(word: string) {
+    if (!callable()) return false;
+    const b = book()!;
+    const c = chips[onChip];
+    call.called = onChip;
+    const commit = THOUGHTS[thought].name === 'Commit to the Line';
+    const own = (commit && COMMIT_SAYS[c.name] && !said.has(COMMIT_SAYS[c.name]) ? COMMIT_SAYS[c.name] : null) ?? fresh(commit ? COMMIT : b.mine, voiceRng());
+    const back = fresh(b.caddie, voiceRng());
+    if (own) said.add(own);
+    if (back) said.add(back);
+    cutins.called({ who: 'you', expr: 'settled', line: own ?? '…', by: '' }, gt, word);
+    if (back) cutins.say({ who: 'caddie', expr: 'calm', line: back, by: 'your caddie' }, gt);
+    if (b.withdraw) inkT0 = gt;
+    paintChips(true);
+    return true;
   }
 
   // And on the walk: the gallery, or the last shot, or nothing
@@ -779,7 +834,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       chipsEl.innerHTML = chips.map((c, i) => `<button type="button" class="chip" data-chip="${i}" tabindex="-1">${c.name}</button>`).join('');
       srAim.innerHTML = chips.map((c, i) => `<button type="button" data-sr-chip="${i}">aim at ${c.kind === 'flag' ? 'the flag' : c.kind === 'fat' ? 'the fat of the green' : (LINE_WORDS[c.name] ?? c.name)}</button>`).join('');
     }
-    chipsEl.querySelectorAll<HTMLElement>('[data-chip]').forEach((el, i) => el.classList.toggle('on', i === onChip));
+    chipsEl.querySelectorAll<HTMLElement>('[data-chip]').forEach((el, i) => {
+      el.classList.toggle('on', i === onChip);
+      el.classList.toggle('called', i === call.called);
+      el.classList.toggle('gone', gone(i));
+    });
   }
   // The chip labels follow the board, which only moves on a phone between holes
   function placeChips() {
@@ -858,6 +917,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     trouble = [new Set(), new Set(), new Set()];
     did = [noDid(), noDid(), noDid()];
     keyed = [];
+    greenAsked = [false, false, false];
     pinWatch = null;
     nextTee = 'none';
     strokes = [0, 0, 0];
@@ -935,12 +995,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     doubt = false;
     aimSets = 0;
     cuedRun = null;
-    claimRun = -1;
     lineWatch = null;
     inkT0 = -1;
     stepped = false;
     steppedOnce = false;
     clubManual = false;
+    call = { voiced: false, asked: new Set(), heard: new Set(), called: -1, asideAt: -1 };
     wind = S.windFor(round, hole, swings + 1);
     const s0 = S.situation(ball, d0, ctx);
     chips = [];
@@ -952,6 +1012,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       ];
     }
     onChip = -1;
+    call.voiced = chips.length > 0 && (chips[0].kind === 'line' || !greenAsked[hole - 1]);
+    if (chips[0]?.kind === 'flag') greenAsked[hole - 1] = true;
     paintChips();
     lastAim = gt;
     pips.forEach((p) => p.classList.remove('lit', 'skipped'));
@@ -983,6 +1045,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     }
     hush();
     planAimVoice(rope);
+    // The thought's word on the target the aim starts on, once the caddie's had theirs
+    if (chips.length && onChip >= 0) call.asideAt = gt + ASIDE_MS;
     const capNow = s0.lines ? ` ${H.lines!.caddie}` : '';
     say(`Your shot.${capNow} ${S.windWords(wind, ball.at, aim)} Aiming at ${aimWords()}, ${S.CLUBS[club].tag}.`);
     hint();
@@ -1024,7 +1088,6 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     cutins.clear(gt);
     if (pendingRun && !pendingRun.modes.includes('walk')) pendingRun = null;
     cuedRun = null;
-    claimRun = -1;
   }
 
   // Press and hold: the meter climbs
@@ -1072,6 +1135,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // The flag after saying boring is heard by the card and the walk; the middle keeps
     // the word. Never by the shot
     const kind = chips[onChip]?.kind;
+    if (call.voiced && call.heard.size && call.called < 0 && (THOUGHTS[thought].name !== 'Pins Are a Psyop' || kind === 'fat')) opts.onMissed(hole);
     if (pinWatch?.hole === hole && (kind === 'flag' || kind === 'fat')) {
       if (kind === 'flag') {
         dd.moved = true;
@@ -1653,6 +1717,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
           say(sit.nervy ? 'A breath. Steadier.' : 'A breath.');
           if (!reduce) board.burst('puff', golfer, gt);
         }
+        if (call.asideAt >= 0 && gt >= call.asideAt && !cutins.showing) aside(onChip);
         // The waggle, while the routine runs
         if (!reduce && !poseTw && lit === 1) pose = Math.floor((gt - stepT - PIP_MS) / 130) & 1 ? POSES.wag : POSES.addr;
         else if (!poseTw && lit >= 2) pose = POSES.addr;
@@ -1751,12 +1816,17 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         runs++;
         runId++;
         runHole.set(runId, hole);
-        if (pr.claim) claimRun = runId;
         cutins.run(runId, pr.cuts, gt);
         if (!cloud) cloud = { t0: gt, doubt: false };
       }
     }
     cutins.step(gt);
+    // A decision the thought has spoken on, not yet called: the pocket glows as for a run
+    const open = stage() === 'round' && call.called < 0 && call.heard.size > 0 && callableAny();
+    if (open !== callLive) {
+      callLive = open;
+      opts.onLive(cutLive || callLive);
+    }
     if (cloud && !cutins.showing && gt - cloud.t0 > 1800) cloud = null;
 
     // Captions: the caddie in their panel, everyone else from where they stand
@@ -1857,7 +1927,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       golfer: showGolfer && stage() !== 'choose' ? { p: golfer, face, st, bag: addr } : stage() === 'choose' ? { p: golfer, face, st: { kind: 'walk', phase: 0, bag: true }, bag: false } : null,
       ball: showBall ? { p: bp, z: bz, o: bo, sunk: sunk || (mode !== 'flight' && ball.lie === 'bunker'), tuft: mode !== 'flight' && ball.lie === 'rough', trail: trace } : stage() === 'choose' ? { p: S.holeDef(1).tee, z: 0, o: 1, sunk: false, tuft: false, trail: [] } : null,
       aim: aiming ? { from: ball.at, to: aim, dim: mode === 'swing', reduce, pattern: patternNow(), ink: inkT0 >= 0 ? (reduce ? 1 : clamp((gt - inkT0) / 260, 0, 1)) : 0 } : null,
-      chips: aiming ? chips.map((c, i) => ({ at: c.at, on: i === onChip })) : [],
+      chips: aiming ? chips.map((c, i) => ({ at: c.at, on: i === onChip })).filter((_, i) => !gone(i)) : [],
       ghost: ghost && ghostA > 0 ? { pts: ghost, alpha: ghostA } : null,
       four,
       party: partyAt(),
@@ -2281,6 +2351,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         return b ? { who: b.who, text: b.text, key: !!b.key, moment: !!b.moment, done: q('[data-dialogue]').classList.contains('done') } : null;
       },
       inRun: () => cutins.inRun,
+      called: () => call.called,
+      heard: () => [...call.heard],
       setAimAt: (p: Vec) => setAim(p, 'click'),
       costs: () => costs.splice(0),
     };
@@ -2308,8 +2380,9 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     armLine() {
       armed = stage() !== 'round' ? null : mode === 'between' ? walkStage.current : cutins.current;
     },
-    /** The pocket button, tapped: whether it caught the line that was up as it went down.
-     *  The story only: nothing here reaches a shot */
+    /** The pocket button, tapped: whether it caught the line that was up as it went down,
+     *  or, behind the ball at a decision, called the target the aim is on. The story and
+     *  what's on offer only: nothing here reaches a shot */
     catchLine(): boolean {
       if (stage() !== 'round' || mode === 'idle' || mode === 'done') return false;
       const a = armed;
@@ -2318,7 +2391,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       if (mode === 'between') {
         if (!walkStage.catchNow(a as Beat | null, SHOUT[name] ?? 'Got me!', gt)) return false;
         walkBow = false;
-      } else if (!cutins.catchNow(gt, a as Cut | null, STAMP[name] ?? 'caught')) return false;
+      } else if (!cutins.catchNow(gt, a as Cut | null, STAMP[name] ?? 'caught') && !callShot(STAMP[name] ?? 'caught')) return false;
       cloud = null;
       say(SHOUT[name] ?? 'Caught.');
       return true;
