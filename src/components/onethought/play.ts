@@ -1591,9 +1591,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     setMode('walk');
     ghostT0 = gt;
     phase('walk', len, () => (gt - mT) / walkDur);
-    // The caddie relitigates, unless you're already doing it yourself
-    if (BAD.has(lieOf(s)) && staging() < 0.5 && !pendingRun && !cutins.inRun && !readOn) {
-      const r = RELITIGATE[Math.floor(staging() * RELITIGATE.length)];
+    // The caddie relitigates, unless you're already doing it yourself or the people are
+    // reading the press. The course's draws are made whatever the voices are doing: the
+    // voices hang on the Flic, and the same stream decides the heckles, which reach the shot
+    const r = BAD.has(lieOf(s)) && staging() < 0.5 ? RELITIGATE[Math.floor(staging() * RELITIGATE.length)] : null;
+    if (r && !pendingRun && !cutins.inRun && !readOn) {
       said.add(r.slice(1, -1));
       caption(r, 'your caddie', Math.max(2400, walkDur));
     }
