@@ -3,7 +3,9 @@
 // shot comes from sim.ts and nothing here feeds back into it. The Flic never reaches this
 // file except to ask where and when a press fell (stamp), and whether it caught a line of
 // the inner voice or called the shot at a decision (catchLine), which only changes what's
-// said and what's on offer, never a shot.
+// said and what's on offer, never a shot. Your caddie and partner hear of it too: on the
+// walk to the ball they answer what you did with the voice over it, caught, called or let
+// go by, not where the ball went (sayRead).
 //
 // The board is fixed isometric pixel art (pixel.ts). It never follows the ball. In a round
 // each hole is framed on its own, filling the board. The walk between them takes the whole
@@ -16,7 +18,7 @@ import { THOUGHTS } from './thoughts';
 import type { Lie, Press } from './record';
 import { createBoard, drawMini, holeView, POSES, BALL_DX, lerpPose, puttPose, liftFor, arcAt, crownOver, PLATE, ROPE, OVERVIEW_VIEW, LIGHT, view, type Pose, type Golfer, type GroundMode, type RecordFrame } from './pixel';
 import { shownWord } from './numbers';
-import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, CALLS, COMMIT, type Cut, type Sit } from './voice';
+import { createCutins, XEXAM, ORDINARY, FOLLOW, KEPT, CALLS, COMMIT, READ, type Cut, type Sit, type Noticed } from './voice';
 import { createWalk } from './walk';
 import { walkScene, type Went, type MomentKind, type Trouble, type Beat, type Did } from './scenes';
 import { portraitFrame, headBox, W as FIG_W, H as FIG_H, type Face as CastFace, type Gesture } from './cast';
@@ -173,9 +175,14 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       cutLive = on;
       opts.onLive(cutLive || callLive);
     },
-    onRunEnd: (id, offered, caught) => {
+    onRunEnd: (id, offered, caught, read) => {
       const at = runHole.get(id) ?? hole;
       runHole.delete(id);
+      // Said over the ball, there to be read, and let go by: the people will have seen,
+      // after the swing. A catch the swing cut off as it came isn't held against you
+      const sw = runSwing.get(id);
+      runSwing.delete(id);
+      if (sw && sw.hole === hole && offered && read && !caught) missedSwing = sw.swing;
       // Caught: the head goes quiet for the rest of the hole
       if (caught) calmHole = at;
       else if (offered) opts.onMissed(at);
@@ -354,6 +361,17 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   let trouble: Set<Trouble>[] = [new Set(), new Set(), new Set()];
   const noDid = (): Did => ({ swung: [], doubt: false, hurried: false, moved: false });
   let did: Did[] = [noDid(), noDid(), noDid()];
+  // What you did with the inner voice over the ball, for the people's read on the walk to
+  // the ball (voice.ts, READ): the swing a catch came before, the swing a catch said and
+  // let go by came before, and the swing a catch was gone back on before (the line changed
+  // after it, or the flag swung at after the middle). Runs said over the ball, by the swing
+  // they come before. Per hole, as the swings are
+  let caughtSwing = -1;
+  let missedSwing = -1;
+  let movedSwing = -1;
+  const runSwing = new Map<number, { hole: number; swing: number }>();
+  // A read being said on the walk to the ball: the golfer waits at the ball for it
+  let readOn = false;
   // The line up when the Flic went down: a tap is held against it when it's let go
   let armed: Cut | Beat | null = null;
   const walk = createWalk();
@@ -589,6 +607,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       aimSets++;
       // Heard by the walk too, which may say so. Never by the shot
       if (lineWatch) did[hole - 1].moved = true;
+      // A catch over the ball, then a new line: nothing for the people to read
+      if (caughtSwing === swings + 1) movedSwing = swings + 1;
       lineWatch?.();
       lineWatch = null;
       inkT0 = -1;
@@ -808,7 +828,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
 
   // And on the walk: the gallery, or the last shot, or nothing
   function planWalkVoice(s: Shot, heckled: boolean) {
-    const bad = BAD.has(lieOf(s)) || s.grade === 'fat' || s.grade === 'flail' || s.events.includes('treeHit');
+    const bad = wentBad(s);
     const good = s.grade === 'pure' || s.grade === 'good';
     planRun([heckled ? 'heckled' : null, bad ? 'bad' : null, good && !bad ? 'good' : null], 300, ['walk', 'aim']);
   }
@@ -958,7 +978,12 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     pendingRun = null;
     cuedRun = null;
     lastHeckleShot = -1;
+    caughtSwing = -1;
+    missedSwing = -1;
+    movedSwing = -1;
+    readOn = false;
     cutins.clear(gt);
+    runSwing.clear();
     teeLine();
     phase('intro', 0, () => (reduce ? 1 : (gt - mT) / 900));
     setMode('intro');
@@ -1135,10 +1160,14 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     // The flag after saying boring is heard by the card and the walk; the middle keeps
     // the word. Never by the shot
     const kind = chips[onChip]?.kind;
-    if (call.voiced && call.heard.size && call.called < 0 && (THOUGHTS[thought].name !== 'Pins Are a Psyop' || kind === 'fat')) opts.onMissed(hole);
+    if (call.voiced && call.heard.size && call.called < 0 && (THOUGHTS[thought].name !== 'Pins Are a Psyop' || kind === 'fat')) {
+      opts.onMissed(hole);
+      missedSwing = swings + 1;
+    }
     if (pinWatch?.hole === hole && (kind === 'flag' || kind === 'fat')) {
       if (kind === 'flag') {
         dd.moved = true;
+        movedSwing = swings + 1;
         pinWatch.went();
       }
       pinWatch = null;
@@ -1393,6 +1422,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   // After the shot
 
   const BAD: ReadonlySet<string> = new Set(['rough', 'bunker', 'water', 'trees', 'out']);
+  // A shot that didn't come off: into trouble, or struck heavy or wild
+  const wentBad = (s: Shot) => BAD.has(lieOf(s)) || s.grade === 'fat' || s.grade === 'flail' || s.events.includes('treeHit');
 
   function lieOf(s: Shot): Lie {
     if (s.events.includes('holed')) return 'holed';
@@ -1549,9 +1580,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     walkPath = [golfer, to];
     const len = S.dist(golfer, to);
     walkDur = 1500 + Math.min(1000, len * 8);
+    // The people first, on what you did over the ball; then whatever's in your head
+    readOn = sayRead(s);
     planWalkVoice(s, lastHeckleShot === swings);
     // A walk with something on it is a little longer, so it can be said
-    if (pendingRun || ghost) walkDur = Math.max(walkDur, 2600);
+    if (pendingRun || ghost || readOn) walkDur = Math.max(walkDur, 2600);
     waitT0 = -1;
     walking = true;
     trace = [];
@@ -1559,7 +1592,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     ghostT0 = gt;
     phase('walk', len, () => (gt - mT) / walkDur);
     // The caddie relitigates, unless you're already doing it yourself
-    if (BAD.has(lieOf(s)) && staging() < 0.5 && !pendingRun && !cutins.inRun) {
+    if (BAD.has(lieOf(s)) && staging() < 0.5 && !pendingRun && !cutins.inRun && !readOn) {
       const r = RELITIGATE[Math.floor(staging() * RELITIGATE.length)];
       said.add(r.slice(1, -1));
       caption(r, 'your caddie', Math.max(2400, walkDur));
@@ -1567,7 +1600,32 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
     hint();
   }
 
+  // The read on the walk to the ball, if the inner voice said its catch over it: caught or
+  // let go by, crossed with whether it came off (voice.ts, READ). Your caddie reads the
+  // press; your partner the result, where it disagrees. Said, not sim: the shot's been and
+  // gone. Never on a line gone back on, which is the walk's to say. Whether one was said
+  function sayRead(s: Shot): boolean {
+    const book = READ[THOUGHTS[thought].name];
+    const n: Noticed | null = caughtSwing === swings ? (movedSwing === swings ? null : 'caught') : missedSwing === swings ? 'missed' : null;
+    if (!book || !n) return false;
+    const pool = book[n][wentBad(s) ? 'not' : 'off'];
+    // Off the round's seed, not the voices' stream, so that stays put
+    const pick = S.hash32((round ^ (hole * 0x2f1d) ^ (swings * 0x95b3)) >>> 0) / 4294967296;
+    for (let i = 0; i < pool.length; i++) {
+      const ex = pool[(Math.floor(pick * pool.length) + i) % pool.length];
+      if (ex.some((l) => said.has(l.line))) continue;
+      for (const l of ex) {
+        said.add(l.line);
+        cutins.say({ who: l.who, expr: l.expr, line: l.who === 'you' ? l.line : `“${l.line}”`, by: '' }, gt);
+      }
+      did[hole - 1].read = true;
+      return true;
+    }
+    return false;
+  }
+
   function arriveWalk() {
+    readOn = false;
     golfer = walkPath[walkPath.length - 1];
     walking = false;
     ghost = null;
@@ -1752,7 +1810,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
           // Stood at the ball, lost in it, until the head's done talking
           walking = false;
           if (waitT0 < 0) waitT0 = gt;
-          if ((!pendingRun && !cutins.inRun) || gt - waitT0 > 12000) arriveWalk();
+          if ((!pendingRun && !cutins.inRun && !(readOn && cutins.busy)) || gt - waitT0 > 12000) arriveWalk();
         }
         break;
       }
@@ -1816,6 +1874,8 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
         runs++;
         runId++;
         runHole.set(runId, hole);
+        if (pr.claim) claimRun = runId;
+        if (!pr.modes.includes('walk')) runSwing.set(runId, { hole, swing: swings + 1 });
         cutins.run(runId, pr.cuts, gt);
         if (!cloud) cloud = { t0: gt, doubt: false };
       }
@@ -2391,7 +2451,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       if (mode === 'between') {
         if (!walkStage.catchNow(a as Beat | null, SHOUT[name] ?? 'Got me!', gt)) return false;
         walkBow = false;
-      } else if (!cutins.catchNow(gt, a as Cut | null, STAMP[name] ?? 'caught') && !callShot(STAMP[name] ?? 'caught')) return false;
+      } else {
+        if (!cutins.catchNow(gt, a as Cut | null, STAMP[name] ?? 'caught') && !callShot(STAMP[name] ?? 'caught')) return false;
+        // Caught or called over the ball: the people will have seen, after the swing
+        if (mode === 'aim' || mode === 'swing') caughtSwing = swings + 1;
+      }
       cloud = null;
       say(SHOUT[name] ?? 'Caught.');
       return true;

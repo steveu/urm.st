@@ -217,6 +217,72 @@ export const FOLLOW: Record<string, readonly string[]> = {
 /** And something kept goes with you */
 export const KEPT = ['Still got that one.', 'Hang on to that.'];
 
+// ---------------------------------------------------------------------------------------
+// The read, on the walk to the ball: when the inner voice said its catch over the ball,
+// the people around you answer what you did with it, not where the ball went. Your
+// caddie reads the press: caught or let go by. Your partner reads the result, and only
+// speaks up where the two disagree (caught and it didn't come off, let go by and it did),
+// which is where the caddie, or you, have the last word. Where they agree, the caddie
+// says it alone. Two ways of saying each, never one twice in a round.
+
+export type Noticed = 'caught' | 'missed';
+export type Said = { who: Who; expr: Expr; line: string };
+const cad = (expr: Expr, line: string): Said => ({ who: 'caddie', expr, line });
+const par = (expr: Expr, line: string): Said => ({ who: 'partner', expr, line });
+const own = (expr: Expr, line: string): Said => ({ who: 'you', expr, line });
+
+/** Per thought: what was noticed over the ball, then whether the shot came off */
+export const READ: Record<string, Record<Noticed, { off: Said[][]; not: Said[][] }>> = {
+  'The Heckler': {
+    caught: {
+      off: [[cad('settled', 'Let it show, then swung. That’s the order.')], [cad('settled', 'Went red, then went through it. Good.')]],
+      not: [
+        [par('settled', 'Shame. Was that the nerves?'), cad('calm', 'No. You’d seen them off. That was just golf.')],
+        [par('settled', 'Ooh. Bit of a wobble?'), cad('calm', 'Bad shot. Not a bad head.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Cool as you like.'), cad('tense', 'Cool? Your ears were scarlet.')],
+        [par('settled', 'Nerves of steel, you.'), own('tense', 'They weren’t, though.')],
+      ],
+      not: [[cad('tense', 'That was in your shoulders. All the way down.')], [cad('tense', 'Whatever that was, you swung it with you.')]],
+    },
+  },
+  'Commit to the Line': {
+    caught: {
+      off: [[cad('settled', 'Decided, then hit. Nothing in between.')], [cad('settled', 'One line, one swing. That’s the lot.')]],
+      not: [
+        [par('settled', 'Wrong line, that.'), cad('calm', 'Right way to pick it, though. Same again.')],
+        [par('settled', 'Should’ve gone the other way.'), cad('calm', 'Maybe. You went one way, all the way.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'See? Easy.'), cad('tense', 'It came off. I’m not sure you’d picked it.')],
+        [par('settled', 'Textbook.'), cad('tense', 'Half a textbook. You were still choosing.')],
+      ],
+      not: [[cad('tense', 'Still choosing on the way down, weren’t you.')], [cad('tense', 'That swing had two lines in it.')]],
+    },
+  },
+  'Pins Are a Psyop': {
+    caught: {
+      off: [[cad('settled', 'Middle of the green. Nobody claps. Lovely.')], [cad('settled', 'Boring, and on. Best kind.')]],
+      not: [
+        [par('settled', 'All that for the middle, and you missed it.'), cad('calm', 'Missed the middle. Better than missing the flag.')],
+        [par('settled', 'Even the boring one got away.'), cad('calm', 'It did. Still the right one.')],
+      ],
+    },
+    missed: {
+      off: [
+        [par('settled', 'Lovely. Where were you aiming?'), cad('tense', 'Good question.')],
+        [par('settled', 'Gorgeous. Right where you wanted?'), own('tense', 'Somewhere round there.')],
+      ],
+      not: [[cad('tense', 'Between the flag and the middle. Worst of both.')], [cad('tense', 'Never settled on a target, that one.')]],
+    },
+  },
+};
+
 export const BY: Record<Who, string> = {
   you: 'you, to yourself',
   caddie: 'your caddie',
@@ -234,8 +300,9 @@ const OUT_MS = 150;
 type Opts = {
   reduce: boolean;
   status: (t: string) => void;
-  /** A run is over: whether its catch was said, and whether it was caught */
-  onRunEnd: (run: number, offered: boolean, caught: boolean) => void;
+  /** A run is over: whether its catch was said, whether it was caught, and whether the
+   *  catch was up long enough to be read (typed out in full) */
+  onRunEnd: (run: number, offered: boolean, caught: boolean, read: boolean) => void;
   /** A run of the inner voice is under way, or not */
   onLive: (on: boolean) => void;
 };
@@ -249,7 +316,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
   const stampEl = el.querySelector<HTMLElement>('.stamp')!;
   let cur: { cut: Cut; t0: number; shown: number; out: number; caught: number; expr: Expr } | null = null;
   let queue: Cut[] = [];
-  const runs = new Map<number, { offered: boolean; caught: boolean }>();
+  const runs = new Map<number, { offered: boolean; caught: boolean; read: boolean }>();
   let live = false;
 
   function setLive(on: boolean) {
@@ -302,7 +369,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     const r = runs.get(run);
     runs.delete(run);
     setLive(false);
-    if (r) opts.onRunEnd(run, r.offered, r.caught);
+    if (r) opts.onRunEnd(run, r.offered, r.caught, r.read);
   }
 
   // A line answered: typed out in full, stamped, the face settled, held a beat
@@ -358,7 +425,7 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     },
     /** A run of testimony: said line by line, after whatever's being said */
     run(id: number, cuts: Cut[], now: number) {
-      runs.set(id, { offered: false, caught: false });
+      runs.set(id, { offered: false, caught: false, read: false });
       cuts.forEach((c) => (c.run = id));
       queue.push(...cuts);
       if (!cur) show(queue.shift()!, now);
@@ -387,6 +454,11 @@ export function createCutins(el: HTMLElement, opts: Opts) {
       if (cur.caught >= 0) {
         if (now - cur.caught >= CAUGHT_MS) hide(now);
         return;
+      }
+      // The catch, typed out in full: there to be read
+      if (n >= c.line.length && c.run != null && (c.catch || c.lead)) {
+        const r = runs.get(c.run);
+        if (r) r.read = true;
       }
       const full = reduce ? cur.t0 : cur.t0 + IN_MS + (c.line.length * 1000) / (c.cps ?? CHARS_PER_S);
       if (now - full >= holdFor(c)) hide(now);
@@ -453,6 +525,10 @@ export function createCutins(el: HTMLElement, opts: Opts) {
     },
     get showing() {
       return !!cur && cur.out < 0;
+    },
+    /** Anything being said, or waiting to be */
+    get busy() {
+      return !!cur || queue.length > 0;
     },
     /** A run of the inner voice is being said, or is waiting to be */
     get inRun() {

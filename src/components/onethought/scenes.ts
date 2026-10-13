@@ -278,8 +278,9 @@ const TROUBLE_WORDS: Record<Exclude<Trouble, 'rough'>, string> = { water: 'the w
 /** What was done over the ball on the hole: each full swing's target by name (null if it
  *  was on none) and club, a line changed after stepping in, a swing let go before the
  *  routine was through, a line decided with a tap and then moved off (or, carrying Pins
- *  Are a Psyop, the boring target said and the flag swung at) */
-export type Did = { swung: { pick: string | null; club: string }[]; doubt: boolean; hurried: boolean; moved: boolean };
+ *  Are a Psyop, the boring target said and the flag swung at), and whether the people
+ *  already read a shot of it on the walk to the ball (voice.ts, READ) */
+export type Did = { swung: { pick: string | null; club: string }[]; doubt: boolean; hurried: boolean; moved: boolean; read?: boolean };
 /** The hole just played, as a scene needs it, the earlier walks' key lines (caught or
  *  let go), and whether this is a round the heron comes over */
 export type Story = { hole: number; went: Went; trouble: ReadonlySet<Trouble>; feats: ReadonlySet<MomentKind>; did: Did; caught: boolean[]; heron: boolean };
@@ -356,8 +357,11 @@ export function walkScene(thought: string, st: Story, r: () => number): { lead: 
   const key = sc.key[Math.floor(r() * sc.key.length)];
   const build = Array.isArray(sc.build) ? sc.build : sc.build[branch];
   const at = sc.keyAt ? sc.keyAt[Math.floor(r() * sc.keyAt.length)] : build.length;
-  const call = callOf(thought, st.did);
-  const open = (call && CALLED[thought]?.[call]?.[branch]) || sc.open[branch];
+  // A call already read on the course, on the walk to the ball, isn't read again here:
+  // the scene opens as written. Bar a word gone back on, which only the walk says
+  const c0 = callOf(thought, st.did);
+  const call = st.did.read && c0 !== 'moved' ? null : c0;
+  const open =(call && CALLED[thought]?.[call]?.[branch]) || sc.open[branch];
   // The round so far: the first walk's key line, and the earlier walks' between them
   const back = sc.back && st.caught.length ? [sc.back[st.caught[0] ? 'caught' : 'missed']] : [];
   const arc: Arc = st.caught.every(Boolean) ? 'all' : st.caught.some(Boolean) ? 'some' : 'none';
