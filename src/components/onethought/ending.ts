@@ -187,6 +187,9 @@ const PARTNER_FAR = [4, -1];
 type Cloud = { x: number; y: number; px: [number, number, number][]; v: number };
 type Pt = [number, number];
 
+/** The painting's pixel, in CSS pixels, for a box w wide: the card over it is drawn at the same size */
+export const endingScale = (w: number) => clamp(Math.round(w / 360), 2, 6);
+
 export function createEnding(cv: HTMLCanvasElement) {
   const g = cv.getContext('2d')!;
   let lw = 0;
@@ -221,9 +224,9 @@ export function createEnding(cv: HTMLCanvasElement) {
   let verdict: Verdict | undefined;
   let running = false;
 
-  /** Size to the box, in CSS pixels; `words` is where the copy sits, so the painting composes round it */
+  /** Size to the box, in CSS pixels; `words` is where the card sits, so the painting composes round it */
   function resize(w: number, h: number, words: Box) {
-    scale = clamp(Math.round(w / 360), 2, 6);
+    scale = endingScale(w);
     lw = Math.max(120, Math.ceil(w / scale));
     lh = Math.max(160, Math.ceil(h / scale));
     cv.width = lw;
@@ -246,10 +249,11 @@ export function createEnding(cv: HTMLCanvasElement) {
     let horizon = Math.round(lh * (tall ? 0.62 : 0.6));
     horizon = Math.max(horizon, copy.b + 16);
     let sx = Math.round(lw * (tall ? 0.7 : 0.75));
-    // The disc stays clear of the words: beside them, or under them
+    // The disc stays clear of the card: beside it, or under it. A card across the whole
+    // frame (a phone) has no beside, so the disc goes under it rather than off the edge
     const discTop = Math.min(horizon, lh - 70) - Math.round(r * 0.45) - r;
     if (sx - r - 4 < copy.r && discTop < copy.b + 4) {
-      sx = Math.min(Math.round(lw - r * 0.9), Math.max(sx, copy.r + r + 6));
+      if (copy.r < lw * 0.8) sx = Math.min(Math.round(lw - r * 0.9), Math.max(sx, copy.r + r + 6));
       if (sx - r - 4 < copy.r) horizon = Math.max(horizon, copy.b + Math.round(r * 1.5) + 6);
     }
     vh = Math.min(horizon, lh - 70);
