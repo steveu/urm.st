@@ -120,14 +120,22 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
         </div>
 
         <div class="choose" data-choose>
-          <h3>Choose a thought to carry</h3>
+          <h3 class="banner">Choose a thought to carry</h3>
           <div class="cards">
             {
               OFFERED.map((i) => (
                 <button type="button" class="px card" data-pick={i} aria-pressed={i === START ? 'true' : 'false'}>
                   <span class="n">{THOUGHTS[i].name}</span>
                   <span class="l">{THOUGHTS[i].line}</span>
-                  <span class="w" set:html={`${tap(THOUGHTS[i].rule)} ${THOUGHTS[i].watch ?? ''}`} />
+                  <span class="w">
+                    <svg class="glyph" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true">
+                      <path d="M2 0h5v1h1v1h1v5h-1v1h-1v1H2v-1H1v-1H0V2h1V1h1z" fill="#26211a" />
+                      <path d="M2 1h5v1h1v4h-1v1H2v-1H1V2h1z" fill="#4a4034" />
+                      <path d="M3 2h3v1h1v2H6v1H3V5H2V3h1z" fill="#e3b84f" />
+                      <path d="M3 2h2v1H3z" fill="#fff3c9" />
+                    </svg>
+                    <span set:html={tap(THOUGHTS[i].rule)} />
+                  </span>
                 </button>
               ))
             }
@@ -188,12 +196,19 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     let s: State = fresh(START);
     // Focus rings for the keyboard only
     root.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab' || e.key.startsWith('Arrow') || e.key === ' ' || e.key === 'Enter') root.dataset.kb = '';
+      // Only Tab shows the focus ring: Space, Enter and the arrows are how you play
+      if (e.key === 'Tab') root.dataset.kb = '';
     });
     root.addEventListener('pointerdown', () => delete root.dataset.kb);
 
+    // The course falls into place before the thoughts are offered, unless motion's down or
+    // the screenshot bot is reading a fixed seed
+    const build = !reduce && !new URLSearchParams(location.search).has('ot-seed');
+    if (build) root.dataset.building = '';
     const game = createGame(root, {
       reduce,
+      build,
+      onBuilt: () => delete root!.dataset.building,
       seed: 0,
       status: (t) => (status.textContent = t),
       onShot: (hole, lie, putt) => s.card[hole - 1]?.push({ k: 'shot', lie, putt }),
@@ -246,7 +261,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
       paint();
       game.begin(s.thought);
       scene.focus({ preventScroll: true });
-      if (matchMedia('(max-width: 640px)').matches) q('[data-game]').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      if (matchMedia('(max-width: 860px)').matches) q('[data-game]').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
     }
 
     // The round over, by the 3rd green or by ending it early
@@ -1368,7 +1383,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   .mute:hover {
     color: var(--ink);
   }
-  @media (max-width: 640px) {
+  @media (max-width: 860px) {
     /* The kit steps out of the way altogether on a phone, so no empty band is left */
     .band.band[data-walk] :is(.hole, .meter) {
       display: none;
@@ -1450,30 +1465,55 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   }
 
   /* ---- Choosing: a menu over a quiet board --------------------------------------------- */
+  /* Off the course: the title up in the sky, the cards and the way in along the board's
+     foot, so the course stays in view while you choose */
   .choose {
     position: absolute;
     inset: 0;
     z-index: 3;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 18px;
-    padding: 0 48px;
+    gap: 14px;
+    padding: 18px 48px 14px;
   }
-  .choose h3 {
-    align-self: center;
-    font: 24px/1 var(--pix);
-    color: var(--ink);
-    text-shadow:
-      0 2px 0 #f7efdb,
-      2px 0 0 #f7efdb,
-      -2px 0 0 #f7efdb,
-      0 -2px 0 #f7efdb;
+  .choose .cards {
+    margin-top: auto;
   }
-  /* Three cards in a row, the same height */
+  /* The menu's title, on an ink plate with a brass diamond at each end */
+  .choose .banner {
+    position: relative;
+    align-self: flex-start;
+    padding: 6px 30px 8px;
+    border: calc(3 * var(--px)) solid transparent;
+    border-image: var(--pp-ink) 3 fill / calc(3 * var(--px)) stretch;
+    image-rendering: pixelated;
+    filter: drop-shadow(calc(-2 * var(--px)) calc(2 * var(--px)) 0 var(--drop));
+    font: 26px/1 var(--pix);
+    color: var(--paper);
+    -webkit-font-smoothing: none;
+  }
+  .choose .banner::before,
+  .choose .banner::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(5 * var(--px));
+    height: calc(5 * var(--px));
+    margin-top: calc(-2.5 * var(--px));
+    background: var(--pp-diamond) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+  }
+  .choose .banner::before {
+    left: 10px;
+  }
+  .choose .banner::after {
+    right: 10px;
+  }
+  /* Three cards in a row, from the top: the one carried opens to say what to tap for */
   .cards {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
     gap: 14px 26px;
     width: 100%;
     max-width: 1080px;
@@ -1485,7 +1525,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    padding: 6px 12px 8px;
+    padding: 8px 14px 10px;
     text-align: left;
   }
   .card:hover {
@@ -1493,6 +1533,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
   }
   .band .card[aria-pressed='true'] {
     border-image-source: var(--pp-gold);
+    transform: translateY(calc(-2 * var(--px)));
   }
   /* The menu pointer, on the one carried */
   .card[aria-pressed='true']::before {
@@ -1519,16 +1560,63 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     font-style: italic;
     color: var(--soft);
   }
+  /* What to tap for, shown on the one carried only: the button, drawn, and one line */
   .card .w {
-    margin-top: 4px;
-    font-size: 14px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: var(--px) dashed rgb(38 33 26 / 0.22);
+    font-size: 15px;
+  }
+  .card[aria-pressed='true'] .w {
+    display: flex;
+    animation: open 0.3s steps(3, end) both;
+  }
+  .card .glyph {
+    flex-shrink: 0;
+    width: calc(9 * var(--px));
+    height: calc(9 * var(--px));
   }
   .card .w :global(b) {
     font-weight: 600;
     color: var(--brass);
   }
-  .go {
+  @keyframes open {
+    from {
+      opacity: 0;
+      transform: translateY(calc(-2 * var(--px)));
+    }
+  }
+  /* The way in: brass, bigger than the rest, a pointer blinking at it */
+  .band .go {
+    position: relative;
     align-self: center;
+    margin-top: 4px;
+    padding: 8px 26px 10px 40px;
+    border-image-source: var(--pp-brass);
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .band .go::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: calc(4 * var(--px));
+    height: calc(7 * var(--px));
+    margin-top: calc(-3.5 * var(--px));
+    background: var(--pp-arrow) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+    animation: blink 0.8s steps(1, end) infinite;
+  }
+  .band .go:hover:not(:disabled) {
+    border-image-source: var(--pp-ink);
+    color: var(--paper);
+  }
+  .band .go:hover:not(:disabled)::before {
+    filter: invert(1);
   }
 
   /* ---- The record, in the game frame --------------------------------------------------- */
@@ -1681,6 +1769,36 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
 
   .band[data-stage='record'] .record {
     animation: rise 0.5s 0.4s steps(4, end) both;
+  }
+  /* While the course falls into place the thoughts wait, then step up onto it */
+  .band[data-building] .choose {
+    visibility: hidden;
+    opacity: 0;
+  }
+  /* The title drops in, then the cards one after another, then the way in, each landing
+     with a pixel's bounce, in steps like the course */
+  .band[data-stage='choose']:not([data-building]) :is(.banner, .card, .go) {
+    animation: land 0.42s steps(6, end) both;
+  }
+  .band[data-stage='choose']:not([data-building]) .card:nth-child(1) { animation-delay: 0.18s; }
+  .band[data-stage='choose']:not([data-building]) .card:nth-child(2) { animation-delay: 0.3s; }
+  .band[data-stage='choose']:not([data-building]) .card:nth-child(3) { animation-delay: 0.42s; }
+  .band[data-stage='choose']:not([data-building]) .go { animation-delay: 0.62s; }
+  @keyframes land {
+    0% {
+      opacity: 0;
+      translate: 0 calc(-14 * var(--px));
+    }
+    60% {
+      opacity: 1;
+      translate: 0 0;
+    }
+    80% {
+      translate: 0 calc(-1 * var(--px));
+    }
+    100% {
+      translate: 0 0;
+    }
   }
   @keyframes rise {
     from {
@@ -1843,16 +1961,10 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     .lede {
       justify-self: start;
     }
-    .choose {
-      padding: 0 0 0 calc(10 * var(--px));
-    }
-    .card .n {
-      font-size: 18px;
-    }
   }
 
-  /* ---- Phone width: the board bleeds off both edges, the kit sits under it ------------- */
-  @media (max-width: 640px) {
+  /* ---- Phone and narrow tablet: the board bleeds off both edges, the kit sits under it ---------- */
+  @media (max-width: 860px) {
     .band {
       padding: 44px 0 36px;
     }
@@ -1968,8 +2080,20 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     .band[data-stage='choose'] .choose {
       display: flex;
     }
-    .choose h3 {
-      font-size: 18px;
+    /* The menu's type steps down with the board's pixel */
+    .choose .banner {
+      font-size: 16px;
+      padding: 4px 22px 6px;
+    }
+    .card .n {
+      font-size: 16px;
+    }
+    .card .l {
+      font-size: 14px;
+    }
+    .band .go {
+      font-size: 17px;
+      padding: 6px 20px 8px 32px;
     }
     .cards {
       grid-template-columns: minmax(0, 1fr);
@@ -2024,6 +2148,19 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     }
   }
 
+  /* A narrow tablet takes the phone's layout, with the kit and menu in a column of a phone's
+     width under the board rather than stretched to its edges */
+  @media (min-width: 641px) and (max-width: 860px) {
+    .kit,
+    .carry,
+    .hole,
+    .choose {
+      width: 100%;
+      max-width: 600px;
+      margin-inline: auto;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .caddie,
     .hint,
@@ -2036,6 +2173,9 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
     .bubble:global(.on),
     .hole:global(.in),
     .card[aria-pressed='true']::before,
+    .card[aria-pressed='true'] .w,
+    .band .go::before,
+    .band[data-stage='choose'] :is(.banner, .card, .go),
     .band[data-stage='record'] .record,
     .band[data-stage='sealed'] .sealcopy,
     .band[data-stage='sealed'] .sealcopy > :global(*),

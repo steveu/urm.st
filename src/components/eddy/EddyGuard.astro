@@ -115,7 +115,7 @@ const limits = limitsFor(START.band);
 </section>
 
 <script>
-  import { SAMPLES, START, decide, limitsFor, verdictHtml, parentHtml, kidHtml, announce, type Choice } from './guard';
+  import { BANDS, SAMPLES, START, decide, limitsFor, verdictHtml, parentHtml, kidHtml, announce, type Choice } from './guard';
 
   const root = document.querySelector<HTMLElement>('[data-guard]');
   if (root) {
@@ -186,6 +186,35 @@ const limits = limitsFor(START.band);
       timer = window.setTimeout(outcome, 300);
     }
 
+    // The steps hold the height of their tallest state, so the band doesn't jump when a
+    // link brings in the parent's notification. Measured by drawing every link at every
+    // age, before paint, then putting the current one back.
+    const flow = root.querySelector<HTMLElement>('.flow')!;
+    function reserve() {
+      flow.style.minHeight = '';
+      let tallest = 0;
+      for (let si = 0; si < SAMPLES.length; si++) {
+        for (let bi = 0; bi < BANDS.length; bi++) {
+          decision.innerHTML = verdictHtml(SAMPLES[si], bi);
+          parent.innerHTML = parentHtml(SAMPLES[si], bi);
+          kid.innerHTML = kidHtml(SAMPLES[si], bi);
+          tallest = Math.max(tallest, flow.offsetHeight);
+        }
+      }
+      decision.innerHTML = verdictHtml(SAMPLES[sample], band);
+      parent.innerHTML = parentHtml(SAMPLES[sample], band, choice);
+      kid.innerHTML = kidHtml(SAMPLES[sample], band, choice);
+      flow.style.minHeight = `${tallest}px`;
+    }
+    reserve();
+    let width = flow.offsetWidth;
+    new ResizeObserver(() => {
+      if (flow.offsetWidth === width) return;
+      width = flow.offsetWidth;
+      reserve();
+    }).observe(flow);
+    document.fonts.ready.then(reserve);
+
     root.addEventListener('click', (e) => {
       const b = (e.target as Element).closest<HTMLButtonElement>('button');
       if (!b) return;
@@ -236,7 +265,7 @@ const limits = limitsFor(START.band);
     --risk: #d4786d;
     position: relative;
     overflow: hidden;
-    margin-top: clamp(72px, 9vw, 120px);
+    margin-top: clamp(56px, 6.5vw, 88px);
     padding: clamp(40px, 5vw, 64px) 0 56px;
     background: var(--eddy-deep);
     color: var(--ink);
@@ -907,17 +936,20 @@ const limits = limitsFor(START.band);
 
   @media (max-width: 960px) {
     .head { grid-template-columns: minmax(0, 1fr); }
-    .art { max-width: 420px; justify-self: start; }
+    /* Stacked, the art is a strip under the lede rather than a screen of its own */
+    .head { gap: 8px; }
+    .art { max-width: 180px; justify-self: start; }
   }
 
   @media (max-width: 900px) {
-    .flow { grid-template-columns: minmax(0, 1fr); gap: 28px; max-width: 560px; }
+    .flow { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 28px; max-width: 560px; }
     .stage { padding-inline: 0; }
     .stage + .stage { border-left: 0; padding-top: 28px; border-top: 1px solid var(--hair); }
   }
 
   @media (max-width: 640px) {
     h2 { font-size: clamp(26px, 7vw, 42px); }
+    .art { max-width: 140px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

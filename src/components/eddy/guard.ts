@@ -32,7 +32,7 @@ export const SAMPLES: Sample[] = [
   { title: 'Scariest things caught on camera at 3am', channel: 'After Midnight Files', seen: 'New channel', dur: '11:37', colour: '#3f4a5a', scores: [1, 1, 3, 0, 0, 0, 0, 1], saw: 'Clips edited to frighten, with jump scares and creepy music throughout.' },
 ];
 
-export const START = { sample: 3, band: 1 };
+export const START = { sample: 0, band: 1 };
 
 export const limitsFor = (band: number) => LIMITS[band];
 

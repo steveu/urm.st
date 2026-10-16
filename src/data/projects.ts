@@ -13,6 +13,10 @@ export type Project = {
   ink: string;
   /** iOS app icon, 96px square, under public/ */
   icon?: string;
+  /** Its section on /work */
+  work?: string;
+  /** Public source, when there is some */
+  repo?: string;
   activity?: (typeof activity.projects)[keyof typeof activity.projects];
 };
 
@@ -28,22 +32,25 @@ export const projects: Project[] = [
     swatch: 'var(--eddy)',
     ink: 'var(--eddy)',
     icon: '/icons/eddy.png',
+    work: '/work#eddy',
+    repo: 'https://github.com/eddy-hq/eddy',
     activity: activity.projects.eddy,
   },
   {
     key: 'one-thought',
     name: 'One Thought',
-    description: 'A golf app that counts one thought with a button in your pocket.',
+    description: 'A golf app for carrying one thought round the course.',
     state: 'beta',
     status: 'TestFlight',
     swatch: 'var(--one-thought)',
     ink: '#7a5f2b',
     icon: '/icons/one-thought.png',
+    work: '/work#one-thought',
     activity: activity.projects['one-thought'],
   },
   {
-    key: 'hublsoft',
-    name: 'Hublsoft',
+    key: 'hublai',
+    name: 'HublAI',
     description: 'AI-directed data analysis for a decision-intelligence platform.',
     state: 'soon',
     status: 'In progress',

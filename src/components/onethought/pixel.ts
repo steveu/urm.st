@@ -1306,6 +1306,7 @@ export function createBoard(cv: HTMLCanvasElement) {
       shade(sx - 2, sy - 1, 7, 2, 0.84);
     }
     gg.putImageData(img, 0, 0);
+    if (build) plateCv = null;
   }
 
   /** Look at the table another way: the ground is drawn again for it, and comes in
@@ -1480,10 +1481,139 @@ export function createBoard(cv: HTMLCanvasElement) {
   // ---------------------------------------------------------------------------------
   // A frame
 
-  type Item = { y: number; d: () => void };
+  type Item = { y: number; d: () => void; who?: boolean };
+
+  // ---------------------------------------------------------------------------------
+  // The entrance: the course is set out the way you'd build it. The plate comes down in
+  // plain rough, then each kind of ground is laid on in turn, dithered in through the
+  // Bayer pattern a quarter at a time: the water, the paths, the fairways and tees, the
+  // greens, the sand. Then what stands up drops on, back to front, and last the golfer
+  // blinks in where they stand, the way a player comes back in an old game
+
+  const BUILD = {
+    plate: 560, // the plate's drop
+    plateHeight: 60, // from how far up, in board pixels: a third of the board
+    shadowSteps: 4, // its shadow on the table darkens in this many steps as it comes
+    layers: [['w'], ['p', 'e'], ['a', 't'], ['f', 'g'], ['b']] as const,
+    layerAt: 700, // the first layer starts once the dust has gone
+    layerGap: 190, // and the next this long after
+    layerSteps: 4, // a layer dithers in over this many steps
+    items: 640, // back to front, for what stands up
+    itemFall: 300,
+    itemHeight: 22,
+    spawn: 480, // the golfer's blink
+    step: 40, // the clock moves in steps this long, for the old frame rate
+  } as const;
+  let held = false; // waiting to be built: nothing drawn yet
+  let build: { t0: number } | null = null;
+  // The plate in plain rough, and each layer at each step of its dither
+  let plateCv: HTMLCanvasElement | null = null;
+  let shadowCvs: HTMLCanvasElement[] = [];
+  let layerCvs: HTMLCanvasElement[][] = [];
+  let groundEnd = 0;
+  let landed = false;
+  let spawned = false;
+
+  // Falling from h pixels up over ms, faster as it goes, and a one-pixel bounce on landing
+  function dropBy(t: number, ms: number, h: number) {
+    if (t >= ms + 2 * BUILD.step) return 0;
+    if (t >= ms) return -1;
+    const u = t / ms;
+    return -Math.round(h * (1 - u * u));
+  }
+
+  // The ground as it stands, taken apart by what it is. The plate keeps the rough, the
+  // sides and the shadows; where a layer will go it's filled with the rough's average
+  // for now, so nothing shows through before its turn
+  function cutTiles() {
+    const src = gg.getImageData(0, 0, GW, GH).data;
+    const layerOf = new Int8Array(GW * GH).fill(-1);
+    let sr = 0, sg = 0, sb = 0, n = 0;
+    for (let y = 0; y < GH; y++)
+      for (let x = 0; x < GW; x++) {
+        const i = y * GW + x;
+        if (!src[i * 4 + 3]) continue;
+        const p = unIso(x - GX + 0.5, y - GY + 0.5);
+        if (!onPlate(p)) continue;
+        const code = surface(p);
+        const k = BUILD.layers.findIndex((l) => (l as readonly string[]).includes(code));
+        layerOf[i] = k;
+        if (k < 0) {
+          sr += src[i * 4];
+          sg += src[i * 4 + 1];
+          sb += src[i * 4 + 2];
+          n++;
+        }
+      }
+    const fill = n ? [sr / n, sg / n, sb / n] : [150, 164, 98];
+    const [pc, pcg] = canvas(GW, GH);
+    const plate = pcg.createImageData(GW, GH);
+    plate.data.set(src);
+    for (let i = 0; i < GW * GH; i++)
+      if (layerOf[i] >= 0) {
+        plate.data[i * 4] = fill[0];
+        plate.data[i * 4 + 1] = fill[1];
+        plate.data[i * 4 + 2] = fill[2];
+      }
+    pcg.putImageData(plate, 0, 0);
+    plateCv = pc;
+    // The plate's shadow where it'll land, dithered darker a step at a time
+    shadowCvs = Array.from({ length: BUILD.shadowSteps }, (_, st) => {
+      const [c, cg] = canvas(GW, GH);
+      const img = cg.createImageData(GW, GH);
+      const level = ((st + 1) / BUILD.shadowSteps) * 0.75;
+      for (let y = 0; y < GH; y++)
+        for (let x = 0; x < GW; x++) {
+          const i = y * GW + x;
+          if (!src[i * 4 + 3] || bayer(x, y) >= level) continue;
+          img.data.set([58, 44, 24, 150], i * 4);
+        }
+      cg.putImageData(img, 0, 0);
+      return c;
+    });
+    const S = BUILD.layerSteps;
+    layerCvs = BUILD.layers.map((_, k) =>
+      Array.from({ length: S }, (_, st) => {
+        const [c, cg] = canvas(GW, GH);
+        const img = cg.createImageData(GW, GH);
+        const level = (st + 1) / S;
+        for (let y = 0; y < GH; y++)
+          for (let x = 0; x < GW; x++) {
+            const i = y * GW + x;
+            if (layerOf[i] !== k || bayer(x, y) >= level) continue;
+            img.data.set(src.subarray(i * 4, i * 4 + 4), i * 4);
+          }
+        cg.putImageData(img, 0, 0);
+        return c;
+      }),
+    );
+    groundEnd = BUILD.layerAt + (BUILD.layers.length - 1) * BUILD.layerGap + S * BUILD.step;
+  }
+
+  /** Draw nothing until assemble() */
+  function hold() {
+    held = true;
+  }
+  /** Let the course fall into place, from now */
+  function assemble(now: number) {
+    held = false;
+    build = { t0: now };
+    plateCv = null;
+    landed = false;
+    spawned = false;
+  }
+  /** Still waiting for, or in the middle of, the entrance */
+  const building = () => held || !!build;
 
   function draw(f: Frame) {
     const now = f.now;
+    if (held) {
+      g.clearRect(0, 0, lw, lh);
+      return;
+    }
+    if (build && !plateCv) cutTiles();
+    // Time into the entrance, in its steps; past the end, there's no entrance
+    const tb = build ? Math.floor((now - build.t0) / BUILD.step) * BUILD.step : Infinity;
     stepPan(now);
     g.clearRect(0, 0, lw, lh);
     if (f.cut) {
@@ -1507,16 +1637,41 @@ export function createBoard(cv: HTMLCanvasElement) {
     // The ground, and the old light fading out
     const gx = ox - GX;
     const gy = oy - GY;
-    g.drawImage(ground, gx, gy);
+    if (tb < groundEnd && plateCv) {
+      // Its shadow first, closing in as it comes down, then the plate itself
+      if (tb < BUILD.plate) {
+        const st = Math.floor((tb / BUILD.plate) * BUILD.shadowSteps);
+        g.drawImage(shadowCvs[Math.min(st, BUILD.shadowSteps - 1)], gx, gy);
+      }
+      g.drawImage(plateCv, gx, gy + dropBy(tb, BUILD.plate, BUILD.plateHeight));
+      layerCvs.forEach((steps, k) => {
+        const st = Math.floor((tb - BUILD.layerAt - k * BUILD.layerGap) / BUILD.step);
+        if (st >= 0) g.drawImage(steps[Math.min(st, steps.length - 1)], gx, gy);
+      });
+    } else g.drawImage(ground, gx, gy);
+    // The plate down: the table takes the weight, and the dust comes out from under its
+    // front edges
+    if (build && !landed && tb >= BUILD.plate) {
+      landed = true;
+      shake(2, now);
+      for (let k = 0; k <= 6; k++) {
+        burst('puff', [2, (H * k) / 6], now);
+        burst('puff', [(W * k) / 6, H - 2], now);
+        if (k % 2) {
+          burst('turf', [2, (H * k) / 6], now);
+          burst('turf', [(W * k) / 6, H - 2], now);
+        }
+      }
+    }
     const fu = (now - fade.t0) / fade.ms;
-    if (fu < 1 && !f.reduce) {
+    if (fu < 1 && !f.reduce && tb >= groundEnd) {
       g.globalAlpha = 1 - fu;
       g.drawImage(prev, gx, gy);
       g.globalAlpha = 1;
     }
 
     // The water, glinting
-    if (!f.reduce) {
+    if (!f.reduce && tb >= groundEnd) {
       g.fillStyle = '#c4e2dc';
       const tk = Math.floor(now / 220);
       for (let i = 0; i < waterPx.length; i += 2) {
@@ -1651,6 +1806,7 @@ export function createBoard(cv: HTMLCanvasElement) {
       const gf = f.golfer;
       const [x, y] = toPx(gf.p);
       items.push({
+        who: true,
         y,
         d: () => {
           g.fillStyle = P.shade;
@@ -1672,6 +1828,7 @@ export function createBoard(cv: HTMLCanvasElement) {
       if (ball.z >= 0 && (!lift || seen(ball.p))) {
         const a = clamp(0.55 - lift * 0.008, 0.4, 0.55);
         items.push({
+          who: true,
           y: y - 0.5,
           d: () => {
             g.globalAlpha = ball.o;
@@ -1687,6 +1844,7 @@ export function createBoard(cv: HTMLCanvasElement) {
         });
       }
       items.push({
+        who: true,
         y: y + 0.5,
         d: () => {
           g.globalAlpha = ball.o;
@@ -1737,7 +1895,36 @@ export function createBoard(cv: HTMLCanvasElement) {
       });
     }
     items.sort((a, b) => a.y - b.y);
-    for (const it of items) it.d();
+    if (build) {
+      // What stands up drops on once the ground's laid, back to front; the golfer and the
+      // ball don't fall, they blink in after, with a puff at their feet
+      const fall = items.filter((it) => !it.who);
+      const y0 = fall.length ? fall[0].y : 0;
+      const y1 = fall.length ? fall[fall.length - 1].y : 1;
+      const start = groundEnd - 120;
+      const spawnAt = start + BUILD.items + 120 + BUILD.itemFall;
+      for (const [j, it] of items.entries()) {
+        if (it.who) {
+          const t = tb - spawnAt;
+          if (t < 0) continue;
+          if (t < BUILD.spawn && Math.floor(t / (2 * BUILD.step)) % 2) continue;
+          it.d();
+          continue;
+        }
+        const at = start + ((it.y - y0) / (y1 - y0 || 1)) * BUILD.items + hash(j, 3, 17) * 120;
+        const t = tb - at;
+        if (t < 0) continue;
+        g.save();
+        g.translate(0, dropBy(t, BUILD.itemFall, BUILD.itemHeight));
+        it.d();
+        g.restore();
+      }
+      if (!spawned && tb >= spawnAt && f.golfer) {
+        spawned = true;
+        burst('puff', f.golfer.p, now);
+      }
+      if (tb > spawnAt + BUILD.spawn + BUILD.step) build = null;
+    } else for (const it of items) it.d();
     // What the golfer's thinking, over their head
     if (f.cloud && f.golfer) {
       const [x, y] = toPx(f.golfer.p);
@@ -2071,6 +2258,9 @@ export function createBoard(cv: HTMLCanvasElement) {
     setView,
     setGround,
     draw,
+    hold,
+    assemble,
+    building,
     burst,
     rock,
     shake,

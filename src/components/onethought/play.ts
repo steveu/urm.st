@@ -42,6 +42,10 @@ export type GameOpts = {
   onMissed: (hole: number) => void;
   /** A run of the inner voice is under way: the pocket button glows, softly */
   onLive: (on: boolean) => void;
+  /** Let the course fall into place the first time it's in view */
+  build?: boolean;
+  /** The course has landed */
+  onBuilt?: () => void;
 };
 
 const PAR_WORD: Record<number, string> = { 3: 'three', 4: 'four', 5: 'five' };
@@ -213,6 +217,21 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   );
 
   const board = createBoard(cv);
+  // The entrance: the board stays empty until it's well in view, then the course falls
+  // into place, and the band hears when it's down
+  let entering = !!opts.build;
+  if (entering) {
+    board.hold();
+    const bio = new IntersectionObserver(
+      (es) => {
+        if (!es.some((e) => e.isIntersecting)) return;
+        bio.disconnect();
+        board.assemble(gt);
+      },
+      { threshold: 0.4 },
+    );
+    bio.observe(cv);
+  }
 
   // ---------------------------------------------------------------------------------
   // Time: game time stops for a hit-stop; real time never does
@@ -268,7 +287,7 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
   /** Size the canvas to the scene, and put the plate where it belongs */
   function layout(animate: boolean) {
     const w = scene.clientWidth || 600;
-    small = matchMedia('(max-width: 640px)').matches;
+    small = matchMedia('(max-width: 860px)').matches;
     scale = small ? 2 : w >= 900 ? 3 : 2;
     lw = Math.ceil(w / scale);
     // The panels draw their pixels at the board's scale
@@ -2003,6 +2022,11 @@ export function createGame(root: HTMLElement, opts: GameOpts) {
       veil: veilLevel(),
       cut: cutFrame(),
     });
+
+    if (entering && !board.building()) {
+      entering = false;
+      opts.onBuilt?.();
+    }
 
     chipsEl.classList.toggle('on', aiming);
     if (aiming) placeChips();
