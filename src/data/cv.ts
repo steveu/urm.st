@@ -22,7 +22,7 @@ export const work: Job[] = [
         title: 'Senior Frontend Engineer',
         start: '2021-03',
         highlights: [
-          'AI-directed data exploration and storytelling in an enterprise data product: first as workflows for business users, now as a multi-agent harness.',
+          'HublAI: AI-directed data exploration and storytelling in an enterprise data product, first as workflows for business users, now as a multi-agent harness.',
           'Work across the experience, the prompts, tools and context, and the evals that prove they work.',
           'Before that, design and frontend for an Innovate UK-funded programme on advanced AI capabilities.',
         ],
@@ -102,11 +102,20 @@ export const work: Job[] = [
     company: 'Designition',
     roles: [
       {
-        title: 'Senior Designer',
-        start: '2005-06',
+        title: 'Interaction Designer',
+        start: '2009-09',
         end: '2012-09',
         highlights: [
-          'Led visual design, client relationships and full-stack development (PHP) for a web agency.',
+          'Came back after the MSc to shape how projects worked, not only how they looked, filling in with visual design and full-stack development (PHP) where needed.',
+          'Led client relationships, and took the unusual projects from start to finish.',
+        ],
+      },
+      {
+        title: 'Senior Designer',
+        start: '2005-06',
+        end: '2008-09',
+        highlights: [
+          'Visual design and frontend code for websites and applications, large and small.',
           'Won two major industry awards for websites designed and developed in-house.',
         ],
       },
@@ -119,7 +128,7 @@ export const work: Job[] = [
         title: 'Founder',
         start: '2003-10',
         end: '2005-12',
-        highlights: ['Founded and ran a web design and development business.'],
+        highlights: ['Founded a web design and development business, and taught myself the trade and how to run it.'],
       },
     ],
   },
@@ -156,7 +165,7 @@ export const projects: Project[] = [
   {
     name: 'One Thought',
     icon: '/icons/one-thought.png',
-    summary: 'A golf app that counts one thought with a button in your pocket.',
+    summary: 'A golf app for carrying one thought round the course.',
   },
 ];
 
