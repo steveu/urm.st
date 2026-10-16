@@ -5,10 +5,14 @@
 import { getCollection } from 'astro:content';
 import { formatDate } from '../../data/projectNames';
 import EddyApp from './EddyApp.astro';
+import Home from './figures/Home.astro';
+import Split from './figures/Split.astro';
+import Slate from './figures/Slate.astro';
 
 const FEATURED = [4, 15, 9];
 const all = await getCollection('decisions', (d) => d.data.project === 'eddy');
 const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
+
 ---
 
 <div class="casebook">
@@ -56,67 +60,11 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
                 <p class="when">{formatDate(d.data.date)}</p>
                 <h3>{d.data.title}</h3>
                 <p class="summary">{d.data.summary}</p>
-                {d.data.number === 15 && (
-                  <p class="visually-hidden">
-                    Of the videos the guard approved and a parent blocked, about half scored zero on every dimension,
-                    and only a few were real safety misses.
-                  </p>
-                )}
               </div>
-              <div class="figure" aria-hidden="true">
-                {d.data.number === 4 && (
-                  <svg viewBox="0 0 300 200" class="house">
-                    <path class="wall" d="M60 80 L150 22 L240 80 V176 H60 Z" />
-                    <rect class="box" x="84" y="96" width="132" height="34" rx="7" />
-                    <text x="150" y="117" class="lbl">At home · Gemma</text>
-                    <rect class="box soft" x="84" y="138" width="132" height="28" rx="7" />
-                    <text x="150" y="156" class="lbl small">kids’ phones</text>
-                    <path class="in" d="M4 112 H76" />
-                    <path class="arrow" d="M70 107 L77 112 L70 117" />
-                    <text x="6" y="102" class="note">video in</text>
-                    <path class="out" d="M224 150 H296" />
-                    <path class="cross" d="M252 142 L268 158 M268 142 L252 158" />
-                    <text x="298" y="196" class="note end">nothing about them out</text>
-                  </svg>
-                )}
-                {d.data.number === 15 && (
-                  <div class="split">
-                    <p class="big">51%</p>
-                    <p class="cap">
-                      Clear-yes precision when the guard was scored against every Block. Of the videos it approved and
-                      a parent blocked:
-                    </p>
-                    <div class="bar">
-                      <span style="flex: 50" class="b-other" />
-                      <span style="flex: 46" class="b-taste" />
-                      <span style="flex: 4" class="b-safety" />
-                    </div>
-                    <ul class="key">
-                      <li><span class="b-other" />about half scored something on the rubric</li>
-                      <li><span class="b-taste" />about half scored zero everywhere, mostly taste</li>
-                      <li><span class="b-safety" />a few of those were real safety misses</li>
-                    </ul>
-                  </div>
-                )}
-                {d.data.number === 9 && (
-                  <div class="slate">
-                    <div class="sources">
-                      <span>people you follow</span>
-                      <span>back-catalogue</span>
-                      <span>your interests</span>
-                    </div>
-                    <svg viewBox="0 0 60 120" class="funnel" preserveAspectRatio="none">
-                      <path d="M0 15 C30 15 30 60 60 60 M0 60 H60 M0 105 C30 105 30 60 60 60" />
-                    </svg>
-                    <div class="slots">
-                      <span />
-                      <span />
-                      <span />
-                      <span class="empty" />
-                      <p class="end">That’s today.</p>
-                    </div>
-                  </div>
-                )}
+              <div class="figure">
+                {d.data.number === 4 && <Home />}
+                {d.data.number === 15 && <Split />}
+                {d.data.number === 9 && <Slate />}
               </div>
             </article>
           </li>
@@ -362,184 +310,6 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
     color: var(--ring);
   }
 
-  /* 0004 · the house */
-  .house {
-    width: 100%;
-    max-width: 250px;
-    overflow: visible;
-    font-family: var(--font-sans);
-  }
-
-  .house .wall {
-    fill: none;
-    stroke: var(--soft);
-    stroke-width: 2;
-    stroke-linejoin: round;
-  }
-
-  .house .box {
-    fill: var(--ring);
-  }
-
-  .house .box.soft {
-    fill: rgb(243 239 230 / 0.12);
-  }
-
-  .house .lbl {
-    fill: var(--ink);
-    font-size: 12px;
-    font-weight: 700;
-    text-anchor: middle;
-  }
-
-  .house .lbl.small {
-    fill: var(--soft);
-  }
-
-  .house .in,
-  .house .arrow,
-  .house .out,
-  .house .cross {
-    fill: none;
-    stroke: var(--soft);
-    stroke-width: 2;
-    stroke-linecap: round;
-  }
-
-  .house .out {
-    stroke-dasharray: 4 5;
-    opacity: 0.6;
-  }
-
-  .house .cross {
-    stroke: var(--risk);
-  }
-
-  .house .note {
-    fill: var(--faint);
-    font-size: 11px;
-  }
-
-  .house .note.end {
-    text-anchor: end;
-  }
-
-  /* 0015 · the split */
-  .split {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .big {
-    font: 400 34px/1 var(--font-serif);
-    color: var(--ink);
-  }
-
-  .cap {
-    font-size: 13px;
-    color: var(--soft);
-  }
-
-  .bar {
-    display: flex;
-    height: 14px;
-    margin-top: 6px;
-    border-radius: 4px;
-    overflow: hidden;
-    gap: 2px;
-  }
-
-  .key {
-    margin: 4px 0 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 4px;
-    font-size: 12.5px;
-    color: var(--soft);
-  }
-
-  .key li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .key span {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .b-other { background: rgb(243 239 230 / 0.28); }
-  .b-taste { background: var(--ring); }
-  .b-safety { background: var(--risk); }
-
-  /* 0009 · the slate */
-  .slate {
-    display: grid;
-    grid-template-columns: auto 60px 110px;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .sources {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    font-size: 12.5px;
-    color: var(--soft);
-    text-align: right;
-  }
-
-  .funnel {
-    width: 100%;
-    height: 120px;
-  }
-
-  .funnel path {
-    fill: none;
-    stroke: var(--ring);
-    stroke-width: 1.5;
-    opacity: 0.6;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .slots {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 10px;
-    border-radius: 14px;
-    background: rgb(243 239 230 / 0.06);
-    box-shadow: inset 0 0 0 1px var(--hair);
-  }
-
-  .slots span {
-    height: 22px;
-    border-radius: 5px;
-    background: var(--ring);
-  }
-
-  .slots span:nth-child(2) { opacity: 0.75; }
-  .slots span:nth-child(3) { opacity: 0.5; }
-
-  .slots .empty {
-    background: none;
-    border: 1px dashed rgb(243 239 230 / 0.3);
-  }
-
-  .slots .end {
-    padding-top: 6px;
-    border-top: 1px dashed var(--hair);
-    text-align: center;
-    font: 11px var(--font-serif);
-    color: var(--soft);
-  }
-
   /* Narrower: the art and the phone come down together, holding the proportion */
   @media (max-width: 1180px) {
     .art { width: 480px; }
@@ -562,7 +332,9 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
     .eyebrow { flex-wrap: wrap; }
     .status { margin-left: 0; flex-basis: 100%; }
     .figure { min-height: 0; }
-    .slate { grid-template-columns: auto 40px 96px; }
-    .sources { font-size: 12px; }
   }
 </style>
+
+<script>
+  import '../figures/play';
+</script>

@@ -3,7 +3,7 @@ project: eddy
 number: 9
 title: Subscriptions and discovery compose one daily slate
 date: 2026-05-22
-summary: Everything competes in one scored, capped pool with reserved slots for discovery, and a thin day produces a short feed rather than filler.
+summary: People you follow and discovery compete in one scored, capped pool. Discovery keeps reserved slots even on busy days, and a thin day stays short rather than padded.
 amended: [2026-10-09]
 ---
 

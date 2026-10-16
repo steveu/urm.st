@@ -34,6 +34,16 @@
   --page-max: 1240px;
   --gutter: clamp(16px, 4vw, 32px);
   --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* The decision drawings' motion (see src/components/figures/RULES.md). Two springs, sampled:
+     settle is critically damped and never passes its mark; spring passes it by about 4% and
+     comes back, for things that land. Each curve runs to rest over the duration it is given */
+  --fig-settle: linear(0, 0.0237, 0.0814, 0.1578, 0.2426, 0.3288, 0.4122, 0.4901, 0.5612, 0.6249, 0.6811, 0.7303, 0.7729, 0.8094, 0.8407, 0.8672, 0.8896, 0.9084, 0.9242, 0.9374, 0.9484, 0.9575, 0.9651, 0.9714, 0.9765, 0.9808, 0.9843, 0.9872, 0.9896, 0.9915, 0.9931, 0.9944, 0.9954, 0.9963, 0.997, 0.9976, 1);
+  --fig-spring: linear(0, 0.0196, 0.0708, 0.1434, 0.2292, 0.3216, 0.4153, 0.5066, 0.5927, 0.6717, 0.7425, 0.8045, 0.8578, 0.9026, 0.9394, 0.9689, 0.992, 1.0094, 1.0219, 1.0303, 1.0355, 1.0379, 1.0384, 1.0372, 1.035, 1.032, 1.0287, 1.0251, 1.0215, 1.018, 1.0148, 1.0118, 1.0092, 1.0069, 1.005, 1.0033, 1);
+  --fig-fast: 420ms;
+  --fig-base: 640ms;
+  --fig-slow: 900ms;
+  --fig-step: 70ms;
 }
 
 *,

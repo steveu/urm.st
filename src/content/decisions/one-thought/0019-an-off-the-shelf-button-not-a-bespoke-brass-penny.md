@@ -3,7 +3,7 @@ project: one-thought
 number: 19
 title: An off-the-shelf button, not a bespoke brass penny
 date: 2026-06-15
-summary: I parked the custom brass counter with electronics sealed inside and made a certified off-the-shelf Flic button the real product, because nearly all the cost and risk came from forcing a radio and battery into solid metal.
+summary: I parked the brass penny for a certified off-the-shelf Flic, because about 80% of the cost and complexity came from sealing a radio and battery inside metal.
 retroactive: true
 ---
 

@@ -3,7 +3,7 @@ project: one-thought
 number: 16
 title: The app never calls you
 date: 2026-06-12
-summary: No notifications, streaks, badges or feed — the app is built to be needed less over time, so it waits to be opened after the round and never asks for attention.
+summary: No notifications, streaks, badges or feed. A thought is meant to graduate, so the app is built to be needed less; it waits to be opened after the round.
 retroactive: true
 ---
 

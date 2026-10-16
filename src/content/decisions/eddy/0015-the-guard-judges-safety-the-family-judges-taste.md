@@ -3,7 +3,7 @@ project: eddy
 number: 15
 title: The guard judges safety; the family judges taste
 date: 2026-10-02
-summary: A 51% precision score turned out to be measuring two things at once. The guard is now judged only on safety, and “not for us” becomes the family’s own answer.
+summary: A 51% precision score was measuring two things at once, unsafe and not for us. Block now splits in two, and the guard is judged only on Unsafe.
 amended: [2026-10-09]
 ---
 

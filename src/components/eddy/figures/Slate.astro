@@ -1,0 +1,193 @@
+---
+// Decision 0009 · Subscriptions and discovery compose one daily slate: its drawing on /work. Rules for these: src/components/figures/RULES.md
+// The day's slots, floors first: 4 back-catalogue and 2 delighters, then follows up to the cap.
+// Grouped by bucket to show the allocation; the real slate is ordered by freshness
+const floors = [...Array(4).fill('back'), ...Array(2).fill('delight')];
+const SLATE = {
+  busy: [...floors, ...Array(9).fill('follow')],
+  thin: [...floors, ...Array(2).fill('follow'), ...Array(7).fill('empty')],
+};
+const ALT = 'Each day’s slate holds at most 15: four back-catalogue and two from your interests are kept every day, and people you follow fill the rest. A busy day reaches the cap; a thin day stays short rather than padded.';
+---
+
+<p class="visually-hidden">{ALT}</p>
+<div class="fig" data-figure="eddy-slate" aria-hidden="true">
+  <div class="slate">
+    <div class="day" style="--row: 0">
+      <span class="lbl">busy day</span>
+      <div class="slots">
+        {SLATE.busy.map((k, i) => <span class={k} style={`--i: ${i}`} />)}
+      </div>
+    </div>
+    <div class="day" style="--row: 1">
+      <span class="lbl">thin day</span>
+      <div class="slots">
+        {SLATE.thin.map((k, i) => <span class={k} style={`--i: ${i}`} />)}
+      </div>
+    </div>
+    <div class="day">
+      <span />
+      <div class="scale">
+        <span class="rule" />
+        <span class="floor">kept every day</span>
+        <span class="cap">cap 15, not a target</span>
+      </div>
+    </div>
+    <ul class="key">
+      <li><span class="back" />back-catalogue</li>
+      <li><span class="delight" />your interests</li>
+      <li><span class="follow" />people you follow</li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .fig {
+    width: 100%;
+  }
+
+  /* The three drawings share one hand: the band's teal for the system, gold for the line
+     the decision draws, small sans labels, and each plays in once when it comes into view */
+  .fig :is(.lbl, .note, .cap, .key) {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--faint);
+  }
+
+  /* 0009 · the slate: fifteen slots, the floors kept, follows filling the rest */
+  .slate {
+    display: grid;
+    align-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    height: 176px;
+  }
+
+  .day {
+    display: grid;
+    grid-template-columns: 62px auto;
+    align-items: center;
+  }
+
+  .day .lbl {
+    color: var(--soft);
+  }
+
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(15, 14px);
+    gap: 4px;
+  }
+
+  .slots span {
+    height: 26px;
+    border-radius: 4px;
+  }
+
+  /* Tone for the floors, the band's teal for follows; gold is kept for the line */
+  .back { background: rgb(243 239 230 / 0.3); }
+  .delight { background: rgb(243 239 230 / 0.72); }
+  .follow { background: var(--ring); }
+  .slots .empty { box-shadow: inset 0 0 0 1px rgb(243 239 230 / 0.2); }
+
+  /* Under the slots: the floors bracketed in gold, and the cap at the end */
+  .scale {
+    position: relative;
+    width: calc(15 * 14px + 14 * 4px);
+    height: 24px;
+  }
+
+  .scale .rule {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(6 * 14px + 5 * 4px);
+    height: 2px;
+    border-radius: 1px;
+    background: var(--eddy-gold);
+    transform-origin: left;
+  }
+
+  .scale .floor,
+  .scale .cap {
+    position: absolute;
+    top: 8px;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .scale .floor {
+    left: 0;
+    color: var(--soft);
+  }
+
+  .scale .cap {
+    right: 0;
+  }
+
+  .slate .key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .key li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .key span {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+  }
+
+  /* Entrance, once in view (play.ts lifts [data-wait]). Held back at once: only the way in moves.
+     The slots settle into place left to right, the thin day a beat behind; the gold rule draws
+     under the floors and lands; the words follow what they name */
+  @media (prefers-reduced-motion: no-preference) {
+    .fig[data-wait] :is(*, *::before, *::after) { transition: none !important; }
+
+    .fig[data-wait] .slots span:not(.empty) { opacity: 0; transform: translateY(-6px); }
+    .fig .slots span:not(.empty) {
+      --at: calc(60ms + var(--row) * 80ms + var(--i) * 30ms);
+      transition:
+        opacity calc(var(--fig-base) * 0.6) var(--ease-out) var(--at),
+        transform var(--fig-base) var(--fig-settle) var(--at);
+    }
+
+    .fig[data-wait] .slots .empty { opacity: 0; }
+    .fig .slots .empty {
+      transition: opacity var(--fig-fast) var(--ease-out) calc(140ms + var(--i) * 30ms);
+    }
+
+    .fig[data-wait] .day .lbl { opacity: 0; }
+    .fig .day .lbl {
+      transition: opacity var(--fig-fast) var(--ease-out) calc(100ms + var(--row) * 80ms);
+    }
+
+    .fig[data-wait] .rule { transform: scaleX(0); }
+    .fig .rule { transition: transform var(--fig-base) var(--fig-spring) 520ms; }
+
+    .fig[data-wait] :is(.floor, .cap) { opacity: 0; transform: translateY(-4px); }
+    .fig .floor {
+      transition:
+        opacity var(--fig-fast) var(--ease-out) 640ms,
+        transform var(--fig-fast) var(--fig-settle) 640ms;
+    }
+    .fig .cap {
+      transition:
+        opacity var(--fig-fast) var(--ease-out) 700ms,
+        transform var(--fig-fast) var(--fig-settle) 700ms;
+    }
+
+    .fig[data-wait] .key { opacity: 0; }
+    .fig .key { transition: opacity var(--fig-fast) var(--ease-out) 820ms; }
+  }
+</style>

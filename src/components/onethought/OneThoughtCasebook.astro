@@ -13,6 +13,9 @@ import Phone from './app/Phone.astro';
 import MenuScreen from './app/MenuScreen.astro';
 import Watch from './app/Watch.astro';
 import Flic from './app/Flic.astro';
+import Button from './figures/Button.astro';
+import Quiet from './figures/Quiet.astro';
+import Readers from './figures/Readers.astro';
 
 const FEATURED = [19, 16, 23];
 const all = await getCollection('decisions', (d) => d.data.project === 'one-thought');
@@ -45,11 +48,6 @@ const MENU = [
 const STICK = 150;
 const pennant = pennantFrames();
 
-// The research re-check (ADR-0023): 178 claims, and only five of them direct, from golfers
-// or a closely matching aiming sport. Where the five fall in the grid is only for the eye
-const CLAIMS = 178;
-const DIRECT = new Set([16, 49, 83, 122, 160]);
-const COLS = 14;
 ---
 
 <div class="casebook">
@@ -133,66 +131,11 @@ const COLS = 14;
                   <p class="when">{formatDate(d.data.date)}</p>
                   <h3>{d.data.title}</h3>
                   <p class="summary">{d.data.summary}</p>
-                  {d.data.number === 23 && (
-                    <p class="visually-hidden">Of 178 claims, five came from golfers or a closely matching aiming sport.</p>
-                  )}
                 </div>
-                <div class="figure" aria-hidden="true">
-                  {d.data.number === 19 && (
-                    <svg viewBox="0 0 300 200" class="draw">
-                      <g class="faded">
-                        <rect class="line" x="14" y="66" width="118" height="44" rx="8" />
-                        <path class="thin" d="M24 80 H122 M44 90 H102" />
-                        <rect class="thin" x="50" y="94" width="46" height="9" rx="2" />
-                        <path class="window" d="M62 110 H84" />
-                        <text x="73" y="138" class="name">the brass penny</text>
-                        <text x="73" y="154" class="note">parked: a radio and a battery</text>
-                        <text x="73" y="167" class="note">sealed in metal</text>
-                      </g>
-                      <path class="line" d="M146 88 H170" />
-                      <path class="line" d="M164 82 L171 88 L164 94" />
-                      <rect class="flic" x="196" y="52" width="72" height="72" rx="22" />
-                      <rect class="thin" x="206" y="62" width="52" height="52" rx="16" />
-                      <text x="232" y="152" class="name">a Flic, as it comes</text>
-                      <text x="232" y="168" class="note brass">shipped, already certified</text>
-                    </svg>
-                  )}
-                  {d.data.number === 16 && (
-                    <svg viewBox="0 0 300 200" class="draw">
-                      <rect class="line" x="34" y="8" width="104" height="186" rx="18" />
-                      <rect class="ink" x="70" y="16" width="32" height="8" rx="4" />
-                      <text x="86" y="44" class="small">Sunday 27 September</text>
-                      <text x="86" y="72" class="clock">18:42</text>
-                      <rect class="ghost" x="46" y="94" width="80" height="20" rx="6" />
-                      <rect class="ghost" x="46" y="120" width="80" height="20" rx="6" />
-                      <rect class="ghost" x="46" y="146" width="80" height="20" rx="6" />
-                      <path class="thin" d="M130 104 H160 M130 130 H160 M130 156 H160" />
-                      <text x="166" y="108" class="note left">no notifications</text>
-                      <text x="166" y="134" class="note left">no streaks or badges</text>
-                      <text x="166" y="160" class="note left">no recap, no feed</text>
-                      <circle class="brassdot" cx="166" cy="62" r="4" />
-                      <text x="176" y="66" class="name left">it waits to be opened</text>
-                    </svg>
-                  )}
-                  {d.data.number === 23 && (
-                    <svg viewBox="0 0 300 200" class="draw">
-                      {Array.from({ length: CLAIMS }, (_, i) => (
-                        <rect class:list={['cell', { lit: DIRECT.has(i) }]} x={14 + (i % COLS) * 8} y={22 + Math.floor(i / COLS) * 8} width="6" height="6" rx="1.2" />
-                      ))}
-                      <text x="14" y="148" class="name left">178 claims</text>
-                      <text x="14" y="164" class="note left">five direct, from golfers</text>
-                      <rect class="line" x="152" y="22" width="56" height="30" rx="5" />
-                      <text x="180" y="41" class="small">neutral</text>
-                      <rect class="line" x="230" y="22" width="56" height="30" rx="5" />
-                      <text x="258" y="41" class="small">sceptic</text>
-                      <path class="wall" d="M219 14 V60" />
-                      <path class="thin" d="M180 52 V76 L214 96 M258 52 V76 L224 96" />
-                      <rect class="brassbox" x="166" y="98" width="106" height="30" rx="5" />
-                      <text x="219" y="117" class="small">the more cautious</text>
-                      <text x="219" y="148" class="name">never averaged</text>
-                      <text x="219" y="164" class="note">a disagreement comes to me</text>
-                    </svg>
-                  )}
+                <div class="figure">
+                  {d.data.number === 19 && <Button />}
+                  {d.data.number === 16 && <Quiet />}
+                  {d.data.number === 23 && <Readers />}
                 </div>
               </article>
             </li>
@@ -545,114 +488,6 @@ const COLS = 14;
     justify-content: flex-start;
   }
 
-  /* One drawing style for all three: ink line, one touch of brass, italic words */
-  .draw {
-    width: 100%;
-    max-width: 260px;
-    overflow: visible;
-    font-family: 'Petrona Variable', Georgia, serif;
-  }
-
-  .draw .line {
-    fill: none;
-    stroke: var(--ink);
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .draw .thin {
-    fill: none;
-    stroke: var(--ink);
-    stroke-opacity: 0.4;
-    stroke-width: 1;
-  }
-
-  .draw .ink {
-    fill: var(--ink);
-  }
-
-  .draw .faded {
-    opacity: 0.5;
-  }
-
-  .draw .window {
-    stroke: var(--ink);
-    stroke-width: 1.6;
-    stroke-dasharray: 2 2;
-  }
-
-  .draw .flic {
-    fill: #fff;
-    stroke: var(--ink);
-    stroke-width: 1.6;
-  }
-
-  .draw .ghost {
-    fill: none;
-    stroke: var(--ink);
-    stroke-opacity: 0.35;
-    stroke-dasharray: 3 3;
-  }
-
-  .draw .wall {
-    stroke: var(--ink);
-    stroke-opacity: 0.6;
-    stroke-width: 2;
-    stroke-dasharray: 4 3;
-  }
-
-  .draw .brassdot,
-  .draw .cell.lit {
-    fill: var(--gold);
-  }
-
-  .draw .cell {
-    fill: rgb(38 33 26 / 0.14);
-  }
-
-  .draw .brassbox {
-    fill: rgb(201 162 74 / 0.22);
-    stroke: var(--brass);
-    stroke-width: 1.6;
-  }
-
-  .draw text {
-    text-anchor: middle;
-  }
-
-  .draw text.left {
-    text-anchor: start;
-  }
-
-  .draw .name {
-    fill: var(--ink);
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .draw .note {
-    fill: var(--soft);
-    font-size: 11.5px;
-    font-style: italic;
-  }
-
-  .draw .note.brass {
-    fill: var(--brass);
-  }
-
-  .draw .small {
-    fill: var(--ink);
-    font-size: 11px;
-    font-style: italic;
-  }
-
-  .draw .clock {
-    fill: var(--ink);
-    font: 600 26px -apple-system, 'SF Pro Display', system-ui, sans-serif;
-    text-anchor: middle;
-  }
-
   @media (max-width: 1100px) {
     .kit {
       transform: scale(0.85);
@@ -671,4 +506,9 @@ const COLS = 14;
     .status { margin-left: 0; flex-basis: 100%; }
     .kit { transform: scale(0.68); margin: -102px -75px; }
   }
+
 </style>
+
+<script>
+  import '../figures/play';
+</script>

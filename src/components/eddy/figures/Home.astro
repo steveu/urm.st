@@ -1,0 +1,176 @@
+---
+// Decision 0004 · Kids’ viewing stays home: its drawing on /work. Rules for these: src/components/figures/RULES.md
+// The home demo's own videos, as a history
+const HISTORY = ['#c9653a', '#4f7a8a', '#8b5fa6', '#5e7f5a', '#3f4a5a', '#c9653a'];
+const ALT = 'The kids’ viewing history stays inside the home server. A line from outside services stops at its wall: they never learn who watched what.';
+---
+
+<p class="visually-hidden">{ALT}</p>
+<div class="fig" data-figure="eddy-home" aria-hidden="true">
+  <div class="home">
+    <div class="house">
+      <span class="tag">home server</span>
+      <div class="history">
+        {HISTORY.map((c, i) => <span style={`background: ${c}; --i: ${i}`} />)}
+      </div>
+      <p class="lbl">viewing history</p>
+      <span class="bar" />
+    </div>
+    <div class="reach"><span /></div>
+    <div class="away">
+      <span class="pill">outside services</span>
+      <span class="note">never learn who watched what</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .fig {
+    width: 100%;
+  }
+
+  /* The three drawings share one hand: the band's teal for the system, gold for the line
+     the decision draws, small sans labels, and each plays in once when it comes into view */
+  .fig :is(.lbl, .note, .cap, .key) {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--faint);
+  }
+
+  /* 0004 · the home: the history stays inside, and the line from outside stops at the wall */
+  .home {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 340px;
+    height: 176px;
+  }
+
+  /* A hairline house, its name on the line, and the history inside it */
+  .house {
+    position: relative;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px 20px 16px;
+    border: 1.5px solid rgb(243 239 230 / 0.28);
+    border-radius: 20px;
+  }
+
+  .tag {
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    padding: 0 6px;
+    background: var(--eddy-deep);
+    font: 11px/16px var(--font-mono);
+    letter-spacing: 0.02em;
+    color: var(--soft);
+  }
+
+  .history {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+    gap: 6px;
+  }
+
+  .history span {
+    aspect-ratio: 16 / 9;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .house .lbl {
+    color: var(--soft);
+  }
+
+  /* The wall where the line stops: gold, the one line this decision draws */
+  .bar {
+    position: absolute;
+    right: -2.25px;
+    top: calc(50% - 15px);
+    width: 3px;
+    height: 30px;
+    border-radius: 2px;
+    background: var(--eddy-gold);
+  }
+
+  /* The line from outside, reaching in from the pill and stopping on the bar */
+  .reach {
+    flex: none;
+    width: 30px;
+    height: 2px;
+    margin-left: 2px;
+    overflow: hidden;
+  }
+
+  .reach span {
+    display: block;
+    height: 100%;
+    background: repeating-linear-gradient(270deg, var(--faint) 0 4px, transparent 4px 8px);
+    opacity: 0.6;
+  }
+
+  /* The pill sits on the line; its note hangs under it */
+  .away {
+    position: relative;
+    min-width: 0;
+  }
+
+  .pill {
+    display: block;
+    padding: 5px 10px;
+    border: 1px dashed rgb(243 239 230 / 0.35);
+    border-radius: 999px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--soft);
+  }
+
+  .away .note {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 11px;
+    width: 120px;
+  }
+
+  /* Entrance, once in view (play.ts lifts [data-wait]). Held back at once: only the way in moves.
+     The house settles, its history fills, the outside reaches in, and the wall lights where it stops */
+  @media (prefers-reduced-motion: no-preference) {
+    .fig[data-wait] :is(*, *::before, *::after) { transition: none !important; }
+
+    .fig[data-wait] .house { opacity: 0; transform: translateY(4px); }
+    .fig .house {
+      transition: opacity 380ms var(--ease-out), transform var(--fig-base) var(--fig-settle);
+    }
+
+    .fig[data-wait] .history span { opacity: 0; transform: translateY(-6px); }
+    .fig .history span {
+      transition: opacity 250ms var(--ease-out), transform var(--fig-fast) var(--fig-settle);
+      transition-delay: calc(120ms + var(--i) * var(--fig-step));
+    }
+
+    .fig[data-wait] .house .lbl { opacity: 0; }
+    .fig .house .lbl { transition: opacity 250ms 520ms var(--ease-out); }
+
+    .fig[data-wait] .away { opacity: 0; transform: translateX(10px); }
+    .fig .away {
+      transition: opacity 380ms 420ms var(--ease-out), transform var(--fig-base) 420ms var(--fig-settle);
+    }
+
+    .fig[data-wait] .reach span { transform: translateX(100%); }
+    .fig .reach span { transition: transform var(--fig-fast) 640ms var(--fig-settle); }
+
+    .fig[data-wait] .bar { background: rgb(243 239 230 / 0.28); transform: scaleY(0.94); }
+    .fig .bar {
+      transition: background-color 250ms 820ms var(--ease-out), transform var(--fig-base) 820ms var(--fig-spring);
+    }
+
+    .fig[data-wait] .away .note { opacity: 0; transform: translateY(4px); }
+    .fig .away .note {
+      transition: opacity 250ms 940ms var(--ease-out), transform var(--fig-fast) 940ms var(--fig-settle);
+    }
+  }
+</style>

@@ -3,7 +3,7 @@ project: one-thought
 number: 23
 title: Research claims are checked by two readers who never see each other
 date: 2026-09-18
-summary: Every research claim behind a thought is checked against the source text by two independent reviewers, one neutral and one sceptical, and graded by how close the study is to a golfer on a course — because the old checks let true findings get stretched.
+summary: True findings were being stretched, so each claim is now graded by how close its study is to golf, by two readers who never see each other.
 retroactive: true
 ---
 

@@ -4,7 +4,7 @@ number: 4
 title: Kids’ viewing stays home
 date: 2026-04-13
 written: 2026-05-16
-summary: All AI that touches what the kids watch runs on a local model at home, even though frontier models are better at the task.
+summary: The kids’ viewing history stays on the home server, and no outside service learns who watched what.
 amended: [2026-10-09]
 ---
 
