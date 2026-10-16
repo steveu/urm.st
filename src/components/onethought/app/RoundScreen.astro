@@ -1,0 +1,73 @@
+---
+// The round page (RoundView.swift): centred like a title page, the tap rule the darkest
+// body text on it, and no count anywhere. What you see at the turn is what you put in your
+// pocket on the first tee.
+interface Props {
+  name: string;
+  rule: string;
+}
+const { name, rule } = Astro.props;
+---
+
+<div class="ot-round">
+  <div class="mid">
+    <p class="eyebrow">In your pocket</p>
+    <p class="name">{name}</p>
+    <p class="rule">{rule}</p>
+  </div>
+  <div class="foot">
+    <div class="hair"></div>
+    <p class="hold">Hold it to mark a moment.</p>
+    <p class="quietlink">end round</p>
+  </div>
+</div>
+
+<style>
+  .ot-round {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 78px 28px 58px;
+    text-align: center;
+  }
+
+  .mid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .name {
+    margin-top: 18px !important;
+    font-size: 40px;
+    font-weight: 540;
+    line-height: 1.12;
+  }
+
+  .rule {
+    margin-top: 44px !important;
+    max-width: 300px;
+    font-size: 20.5px;
+    line-height: 1.3;
+  }
+
+  .foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .foot .hair {
+    width: 64px;
+  }
+
+  .hold {
+    margin: 16px 0 28px !important;
+    font-size: 14px;
+    color: var(--faint);
+  }
+</style>

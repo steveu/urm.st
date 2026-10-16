@@ -1,0 +1,103 @@
+---
+// The menu (MenuView.swift): a reading list. Family headers over hairlines, a brass
+// polarity mark by each name, the coaching line in quiet italic, and under it the
+// thought's sealed record, said small. The thoughts are the app's seed, word for word.
+interface Entry {
+  name: string;
+  line: string;
+  history?: string;
+}
+interface Props {
+  families: { family: string; entries: Entry[] }[];
+}
+const { families } = Astro.props;
+---
+
+<div class="ot-menu">
+  <p class="quietlink back">back</p>
+  <div class="list">
+    {
+      families.map(({ family, entries }) => (
+        <section>
+          <p class="eyebrow">{family}</p>
+          <div class="hair" />
+          {entries.map((e) => (
+            <div class="entry">
+              <span class="pip" />
+              <div>
+                <p class="name">{e.name}</p>
+                <p class="line">{e.line}</p>
+                {e.history && <p class="history">{e.history}</p>}
+              </div>
+            </div>
+          ))}
+        </section>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .ot-menu {
+    position: absolute;
+    inset: 0;
+    padding: 70px 28px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .back {
+    height: 44px;
+  }
+
+  /* ReadingScroll: no scroll bar; the paper fades up over the foot while there's more */
+  .list {
+    flex: 1;
+    overflow: hidden;
+    mask-image: linear-gradient(#000 calc(100% - 64px), transparent calc(100% - 20px));
+  }
+
+  section {
+    padding-bottom: 14px;
+  }
+
+  section .hair {
+    margin: 10px 0 20px;
+  }
+
+  .entry {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 24px;
+  }
+
+  /* A doing thought: filled, turned a shade past square */
+  .pip {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    margin-top: 11px;
+    border-radius: 1.5px;
+    background: var(--brass);
+    transform: rotate(48deg);
+  }
+
+  .name {
+    font-size: 22px;
+    font-weight: 540;
+    line-height: 1.2;
+  }
+
+  .line {
+    margin-top: 4px !important;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--faint);
+  }
+
+  .history {
+    margin-top: 5px !important;
+    font-size: 14px;
+    color: var(--quiet);
+  }
+</style>

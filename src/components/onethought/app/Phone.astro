@@ -1,0 +1,178 @@
+---
+// A phone for One Thought's screens. The screen inside is laid out at the iPhone's own
+// 390 by 844 points, in the SwiftUI views' own sizes, and scaled down to the frame, so the
+// screens read as screenshots of the app rather than sketches of it.
+interface Props {
+  /** The frame's outer width, in CSS pixels */
+  width?: number;
+  /** The screen's ground, paper by default */
+  ground?: string;
+}
+const { width = 300, ground = '#f7f3e8' } = Astro.props;
+const BEZEL = 9;
+const scale = (width - 2 * BEZEL) / 390;
+---
+
+<div class="ot-phone" style={`--w: ${width}px; --s: ${scale}; --bezel: ${BEZEL}px; --ground: ${ground}`}>
+  <div class="glass">
+    <div class="ot-screen">
+      <div class="status" aria-hidden="true">
+        <span class="time">9:41</span>
+        <span class="island"></span>
+        <span class="icons"
+          ><svg viewBox="0 0 18 12"
+            ><rect x="0" y="8" width="3" height="4" rx="0.8"></rect><rect x="5" y="5.5" width="3" height="6.5" rx="0.8"></rect><rect
+              x="10"
+              y="3"
+              width="3"
+              height="9"
+              rx="0.8"></rect><rect x="15" y="0" width="3" height="12" rx="0.8"></rect></svg
+          ><svg viewBox="0 0 27 13"
+            ><rect x="0.5" y="0.5" width="23" height="12" rx="3.6" fill="none" stroke="currentColor" opacity="0.4"></rect><rect
+              x="2.5"
+              y="2.5"
+              width="16"
+              height="8"
+              rx="2"></rect><path d="M25 4.5v4c.9-.3 1.5-1.1 1.5-2s-.6-1.7-1.5-2z" opacity="0.4"></path></svg
+          ></span
+        >
+      </div>
+      <slot />
+      <span class="home" aria-hidden="true"></span>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .ot-phone {
+    width: var(--w);
+    flex-shrink: 0;
+    padding: var(--bezel);
+    border-radius: calc(var(--w) * 0.155);
+    background: linear-gradient(145deg, #2c2925, #121110 40%, #1d1b18);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.05) inset,
+      0 50px 90px -40px rgb(70 45 10 / 0.55),
+      0 18px 30px -18px rgb(40 30 15 / 0.35);
+  }
+
+  .ot-phone .glass {
+    width: calc(390px * var(--s));
+    height: calc(844px * var(--s));
+    overflow: hidden;
+    border-radius: calc(var(--w) * 0.125);
+    background: var(--ground);
+  }
+
+  /* The app's tokens, from Palette.swift and Typography.swift */
+  .ot-screen {
+    --paper: #f7f3e8;
+    --ink: #26211a;
+    --brass: #8a6d34;
+    --faint: rgb(38 33 26 / 0.62);
+    --quiet: rgb(38 33 26 / 0.4);
+    --hairline: rgb(38 33 26 / 0.16);
+    --marker: #c7a14e;
+    position: relative;
+    width: 390px;
+    height: 844px;
+    transform: scale(var(--s));
+    transform-origin: 0 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Petrona Variable', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .ot-screen p {
+    margin: 0;
+  }
+
+  .ot-screen .status {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 2;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 34px 0 50px;
+    font: 600 17px -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--ink);
+  }
+
+  .ot-screen .island {
+    position: absolute;
+    left: 50%;
+    top: 11px;
+    width: 124px;
+    height: 36px;
+    margin-left: -62px;
+    border-radius: 20px;
+    background: #000;
+  }
+
+  .ot-screen .icons {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+
+  .ot-screen .icons svg {
+    height: 12px;
+    fill: currentColor;
+  }
+
+  .ot-screen .icons svg + svg {
+    height: 13px;
+  }
+
+  .ot-screen .home {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    width: 140px;
+    height: 5px;
+    margin-left: -70px;
+    border-radius: 3px;
+    background: var(--ink);
+    opacity: 0.85;
+  }
+
+  /* The app's small pieces, shared by the screens: the eyebrow, the marker swipe, the
+     quiet link */
+  .ot-screen .eyebrow {
+    font-size: 12px;
+    letter-spacing: 2.6px;
+    text-transform: uppercase;
+    color: var(--quiet);
+  }
+
+  .ot-screen .marked {
+    position: relative;
+    z-index: 0;
+  }
+
+  .ot-screen .marked::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 5px -5px 1px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, rgb(199 161 78 / 0.05), rgb(199 161 78 / 0.34) 9%, rgb(199 161 78 / 0.34) 91%, rgb(199 161 78 / 0.06));
+    transform: rotate(-1.3deg);
+  }
+
+  .ot-screen .quietlink {
+    font-size: 17px;
+    font-style: italic;
+    color: var(--quiet);
+  }
+
+  .ot-screen .hair {
+    height: 1px;
+    background: var(--hairline);
+  }
+</style>

@@ -1,0 +1,232 @@
+---
+// The wrist (WatchFace.swift), in play: the carried thought, its rule, and the seal-point.
+// The whole glass is the target. A tap blooms a ring out of the seal-point and across the
+// skin, and nothing ever counts on it. Laid out at the 46mm face's 208 by 248 points and
+// scaled to the case.
+interface Props {
+  name: string;
+  rule: string;
+  /** The case's width, in CSS pixels */
+  width?: number;
+}
+const { name, rule, width = 150 } = Astro.props;
+const scale = (width * 0.8) / 208;
+---
+
+<div class="ot-watch" style={`--w: ${width}px; --s: ${scale}`}>
+  <span class="band top" aria-hidden="true"></span>
+  <span class="band bottom" aria-hidden="true"></span>
+  <span class="crown" aria-hidden="true"></span>
+  <span class="side" aria-hidden="true"></span>
+  <div class="case">
+    <button type="button" class="glass" data-ot-watch aria-label="The watch: tap the glass to count. It answers with a mark, never a number.">
+      <span class="face">
+        <span class="time">10:09</span>
+        <span class="name">{name}</span>
+        <span class="rule">{rule}</span>
+        <span class="seal"><i class="bloom"></i><i class="dot"></i></span>
+        <span class="hold">Hold to mark a moment</span>
+        <i class="ripple"></i>
+      </span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .ot-watch {
+    position: relative;
+    width: var(--w);
+    height: calc(var(--w) * 1.19);
+    flex-shrink: 0;
+  }
+
+  /* The band, top and bottom, behind the case */
+  .band {
+    position: absolute;
+    left: 14%;
+    right: 14%;
+    height: 34%;
+    background: linear-gradient(90deg, #4a4339, #6a6052 50%, #4a4339);
+  }
+
+  .band.top {
+    bottom: 80%;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .band.bottom {
+    top: 80%;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .crown {
+    position: absolute;
+    right: -4.5%;
+    top: 27%;
+    width: 7%;
+    height: 16%;
+    border-radius: 3px;
+    background: repeating-linear-gradient(#b9b2a4 0 2px, #7d766a 2px 3px);
+  }
+
+  .side {
+    position: absolute;
+    right: -2.5%;
+    top: 52%;
+    width: 4%;
+    height: 20%;
+    border-radius: 2px;
+    background: #8d8678;
+  }
+
+  .case {
+    position: absolute;
+    inset: 0;
+    padding: 9%;
+    border-radius: 27%;
+    background: linear-gradient(150deg, #d8d2c4, #8f887b 45%, #b9b2a4);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.18) inset,
+      0 30px 50px -24px rgb(60 40 10 / 0.6);
+  }
+
+  .glass {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 22%;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 0 0 calc(var(--w) * 0.02) #000;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  .glass:focus-visible {
+    outline: 2px solid #c7a14e;
+    outline-offset: 3px;
+  }
+
+  /* The face, at the watch's own points: patina ink on a near-black ground */
+  .face {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 208px;
+    height: 248px;
+    margin: -124px 0 0 -104px;
+    transform: scale(var(--s));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 38px 8px 14px;
+    background: radial-gradient(circle 220px at 50% 30%, #1a1610, #0b0907);
+    color: #efe7d4;
+    font-family: 'Petrona Variable', Georgia, serif;
+    text-align: center;
+  }
+
+  .time {
+    position: absolute;
+    top: 9px;
+    right: 22px;
+    font: 600 15px -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: #efe7d4;
+  }
+
+  .name {
+    max-width: 152px;
+    font-size: 18px;
+    font-weight: 560;
+    letter-spacing: -0.18px;
+    line-height: 1.12;
+  }
+
+  .rule {
+    max-width: 160px;
+    margin-top: 5px;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.25;
+    color: rgb(239 231 212 / 0.66);
+  }
+
+  .seal {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    margin-top: auto;
+    display: grid;
+    place-items: center;
+  }
+
+  .seal i {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+    background: rgb(199 161 78 / 0.55);
+  }
+
+  .bloom {
+    inset: 0;
+    border: 1.5px solid #c7a14e;
+    opacity: 0;
+  }
+
+  .hold {
+    margin-top: 7px;
+    font-size: 10.5px;
+    font-style: italic;
+    color: rgb(239 231 212 / 0.42);
+  }
+
+  .ripple {
+    position: absolute;
+    left: 50%;
+    bottom: 46px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border: 1.5px solid #c7a14e;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* A tap, answered twice: on the skin and at the seal-point */
+  .glass:global(.tapped) .bloom {
+    animation: ot-bloom 0.64s cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  .glass:global(.tapped) .dot {
+    animation: ot-dot 0.52s ease-out;
+  }
+  .glass:global(.tapped) .ripple {
+    animation: ot-ripple 0.46s cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+
+  @keyframes ot-bloom {
+    from { opacity: 0.75; transform: scale(0.25); }
+    to { opacity: 0; transform: scale(1.5); }
+  }
+  @keyframes ot-dot {
+    28% { transform: scale(2.5); box-shadow: 0 0 7px rgb(199 161 78 / 0.85); }
+  }
+  @keyframes ot-ripple {
+    from { opacity: 0.55; transform: scale(0.4); }
+    to { opacity: 0; transform: scale(7); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass:global(.tapped) :is(.bloom, .dot, .ripple) {
+      animation: none;
+    }
+  }
+</style>

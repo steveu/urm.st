@@ -1,0 +1,86 @@
+---
+// The button: a plain Flic, as it comes. A soft white squircle, lit from the top right
+// where the sun is, that goes down a little when pressed. Drawn, not photographed, and
+// without its maker's mark.
+interface Props {
+  /** Its width, in CSS pixels */
+  size?: number;
+  /** A button you can press, or just the object */
+  live?: boolean;
+}
+const { size = 92, live = true } = Astro.props;
+const Tag = live ? 'button' : 'span';
+---
+
+<Tag
+  class="ot-flic"
+  style={`--f: ${size}px`}
+  {...live ? { type: 'button', 'data-ot-flic': '', 'aria-label': 'The button: press it to count. Nothing adds up.' } : { 'aria-hidden': 'true' }}
+>
+  <span class="cap"><span class="dome"></span></span>
+</Tag>
+
+<style>
+  .ot-flic {
+    position: relative;
+    display: block;
+    width: var(--f);
+    height: var(--f);
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  span.ot-flic {
+    cursor: default;
+  }
+
+  .ot-flic:focus-visible {
+    outline: 2px solid #8a6d34;
+    outline-offset: 6px;
+    border-radius: 30%;
+  }
+
+  /* The body: a squircle with its edge turned away into shade, a shadow raked left */
+  .cap {
+    position: absolute;
+    inset: 0;
+    border-radius: 31%;
+    background: linear-gradient(215deg, #ffffff 0%, #f1eee6 45%, #d5d0c3 100%);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.7),
+      inset -2px -3px 4px rgb(120 110 90 / 0.18),
+      -10px 12px 18px -6px rgb(80 60 25 / 0.32),
+      -2px 3px 3px rgb(80 60 25 / 0.18);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  /* The pressing face: a shallow dish, catching the light on its far rim */
+  .dome {
+    position: absolute;
+    inset: 13%;
+    border-radius: 29%;
+    background: radial-gradient(circle at 66% 30%, #ffffff 0%, #f6f3ec 46%, #e6e1d5 100%);
+    box-shadow:
+      inset 1px -1px 2px rgb(255 255 255 / 0.9),
+      inset -1px 2px 3px rgb(120 110 90 / 0.16);
+  }
+
+  .ot-flic:global(.pressed) .cap,
+  .ot-flic:active .cap {
+    transform: translate(-1px, 2px) scale(0.975);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.7),
+      inset -2px -3px 4px rgb(120 110 90 / 0.18),
+      -5px 6px 10px -5px rgb(80 60 25 / 0.32),
+      -1px 1px 2px rgb(80 60 25 / 0.2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cap {
+      transition: none;
+    }
+  }
+</style>

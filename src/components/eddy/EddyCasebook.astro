@@ -20,7 +20,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
             ><span class="dot"></span>In daily family use since April</span
           >
         </p>
-        <h2 id="eddy-title">A family video app, built around what it refuses to&nbsp;do.</h2>
+        <h2 id="eddy-title">A family video app with a feed that&nbsp;ends.</h2>
         <div class="lede">
           <p>
             Kids share a link from anywhere. A model running locally at home checks it against their age, and it comes back
@@ -139,7 +139,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
     --risk: #d4786d;
     position: relative;
     overflow: hidden;
-    padding-block: clamp(56px, 7vw, 88px) clamp(64px, 8vw, 104px);
+    padding-block: clamp(32px, 3.5vw, 48px) clamp(48px, 5vw, 72px);
     background: var(--eddy-deep);
     color: var(--ink);
   }
@@ -151,7 +151,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   .head {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 56px;
     align-items: center;
   }
@@ -197,7 +197,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   }
 
   h2 {
-    font-size: clamp(30px, 3.6vw, 46px);
+    font-size: clamp(34px, 4.4vw, 56px);
     line-height: 1.15;
     letter-spacing: -0.02em;
     text-wrap: balance;
@@ -246,12 +246,12 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
 
   /* The Eddy site's hero art: three squircle rings centred on the phone, which stands
      taller than them. Every length a multiple of --u, a 600th of the art's width. */
+  /* Sized from the phone, as the Eddy site has it: the outer ring twice the phone's width */
   .art {
     --u: calc(100cqw / 600);
     container-type: inline-size;
     position: relative;
-    width: 100%;
-    max-width: 580px;
+    width: 596px;
     justify-self: end;
     aspect-ratio: 600 / 720;
   }
@@ -262,8 +262,8 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   }
 
   .b1 { inset: calc(60 * var(--u)) 0; border-radius: calc(176 * var(--u)); opacity: 0.12; }
-  .b2 { inset: calc(120 * var(--u)) calc(60 * var(--u)); border-radius: calc(140 * var(--u)); opacity: 0.2; }
-  .b3 { inset: calc(180 * var(--u)) calc(120 * var(--u)); border-radius: calc(106 * var(--u)); opacity: 0.34; }
+  .b2 { inset: calc(120 * var(--u)) calc(60 * var(--u)); border-radius: calc(140 * var(--u)); opacity: 0.22; }
+  .b3 { inset: calc(180 * var(--u)) calc(120 * var(--u)); border-radius: calc(106 * var(--u)); opacity: 0.5; }
 
   .phone {
     position: absolute;
@@ -274,7 +274,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
 
   .body {
     width: 100%;
-    margin-top: clamp(56px, 7vw, 88px);
+    margin-top: clamp(24px, 3vw, 40px);
     display: flex;
     flex-direction: column;
     gap: 28px;
@@ -341,32 +341,31 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   }
 
   h3 {
-    font-size: clamp(20px, 1.8vw, 23px);
+    font-size: clamp(18px, 1.5vw, 20px);
     line-height: 1.25;
     text-wrap: balance;
   }
 
   .summary {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.6;
     color: var(--soft);
     text-wrap: pretty;
   }
 
+  /* The drawing sits on the band itself, no well round it, lined up with the words under it */
   .figure {
-    min-height: 250px;
+    min-height: 168px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    border-radius: 18px;
-    background: rgb(0 0 0 / 0.16);
+    justify-content: flex-start;
     color: var(--ring);
   }
 
   /* 0004 · the house */
   .house {
     width: 100%;
+    max-width: 250px;
     overflow: visible;
     font-family: var(--font-sans);
   }
@@ -434,7 +433,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   }
 
   .big {
-    font: 400 44px/1 var(--font-serif);
+    font: 400 34px/1 var(--font-serif);
     color: var(--ink);
   }
 
@@ -541,11 +540,18 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
     color: var(--soft);
   }
 
+  /* Narrower: the art and the phone come down together, holding the proportion */
+  @media (max-width: 1180px) {
+    .art { width: 480px; }
+    .phone { transform: translate(-50%, -50%) scale(0.805); }
+  }
+
   @media (max-width: 960px) {
     .head { grid-template-columns: minmax(0, 1fr); }
+    .phone { transform: translate(-50%, -50%); }
     /* Under the text, the art shrinks with the screen but the phone doesn't: leave room
        for it to stand out of the rings (half its 625px height less half the art's) */
-    .art { max-width: 520px; justify-self: center; margin-block: max(0px, calc(337px - 60vw)); }
+    .art { width: 100%; max-width: 520px; justify-self: center; margin-block: max(0px, calc(337px - 60vw)); }
   }
 
   @media (max-width: 960px) {
@@ -555,7 +561,7 @@ const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
   @media (max-width: 520px) {
     .eyebrow { flex-wrap: wrap; }
     .status { margin-left: 0; flex-basis: 100%; }
-    .figure { padding: 16px; }
+    .figure { min-height: 0; }
     .slate { grid-template-columns: auto 40px 96px; }
     .sources { font-size: 12px; }
   }

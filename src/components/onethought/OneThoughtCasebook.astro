@@ -1,0 +1,674 @@
+---
+// One Thought on /work: the three things you carry (the phone, the watch, the button), stood
+// in the Low Sun, the sealed page's plate drawn large behind them: a low sun on the horizon,
+// the green, a flag with its shadow raked long. The phone shows the menu of thoughts,
+// rebuilt from the SwiftUI view at the app's own size. Then three decisions drawn small and alike:
+// line in ink, one touch of brass, a few italic words.
+import '@fontsource-variable/petrona/wght.css';
+import '@fontsource-variable/petrona/wght-italic.css';
+import { getCollection } from 'astro:content';
+import { formatDate } from '../../data/projectNames';
+import { pennantFrames } from './app/pennant';
+import Phone from './app/Phone.astro';
+import MenuScreen from './app/MenuScreen.astro';
+import Watch from './app/Watch.astro';
+import Flic from './app/Flic.astro';
+
+const FEATURED = [19, 16, 23];
+const all = await getCollection('decisions', (d) => d.data.project === 'one-thought');
+const featured = FEATURED.map((n) => all.find((d) => d.data.number === n)!);
+
+// The thought carried in the hero, as the app seeds it
+const CARRIED = { name: 'Full Routine', rule: 'Tap when you catch yourself skipping it.' };
+
+// The menu, as the app seeds it (Seed.swift)
+const MENU = [
+  {
+    family: 'Process',
+    entries: [
+      { name: 'Full Routine', line: 'Same look, same waggle, same breath. Boring on purpose.', history: 'Kept four times.' },
+      { name: 'Commit to the Line', line: 'Doubt all you like before you pick. None after.' },
+    ],
+  },
+  {
+    family: 'Mind',
+    entries: [
+      { name: 'The Heckler', line: 'They only win if you answer back.' },
+      { name: 'Ancient History', line: 'The last shot is finished.' },
+    ],
+  },
+  { family: 'Decisions', entries: [{ name: 'Pins Are a Psyop', line: 'The flag is where they want you to aim.' }] },
+  { family: 'Feel', entries: [{ name: 'One Breath', line: 'You were going to breathe anyway. Spend one on purpose.' }] },
+];
+
+// The flag in the Low Sun behind the kit: the sealed page's stick and pennant, drawn large
+const STICK = 150;
+const pennant = pennantFrames();
+
+// The research re-check (ADR-0023): 178 claims, and only five of them direct, from golfers
+// or a closely matching aiming sport. Where the five fall in the grid is only for the eye
+const CLAIMS = 178;
+const DIRECT = new Set([16, 49, 83, 122, 160]);
+const COLS = 14;
+---
+
+<div class="casebook">
+  <div class="band">
+    <header class="head wrap">
+      <div class="text">
+        <p class="eyebrow">
+          <img src="/icons/one-thought.png" width="32" height="32" alt="" /> <span>One Thought</span><span class="status"
+            ><span class="dot"></span>In testing on TestFlight</span
+          >
+        </p>
+        <h2 id="one-thought-title">A golf app that stays in the&nbsp;bag.</h2>
+        <div class="lede">
+          <p>
+            You carry one thought round the course: keep your routine, take the boring target, let the last shot go. When it
+            comes up, you press a button in your pocket or tap your watch. The phone stays in the bag, nothing adds up while
+            you play, and afterwards the round is read back to you in one sentence.
+          </p>
+          <p class="mine">
+            I designed and built all of it: the phone and watch apps, the rules that write the sentence, and the research
+            checks behind every thought.
+          </p>
+          <p class="tech">SwiftUI · watchOS · GRDB · Flic · OpenStreetMap · Cloudflare Workers</p>
+          <p class="links">
+            <a href="/#one-thought-live">Play three holes on the home page <span aria-hidden="true">→</span></a>
+          </p>
+        </div>
+      </div>
+
+      <!-- What you carry: the round page, the watch, the button. Press either; nothing counts -->
+      <figure class="art">
+        <div class="kit">
+          <!-- The Low Sun, large: the sun resting on the horizon behind the phone, the green
+               running out under everything, a flag off to the right with its shadow raked
+               long to the left -->
+          <div class="scene" aria-hidden="true">
+            <span class="sun"></span>
+            <span class="ground"></span>
+            <svg class="horizon" viewBox="0 0 3000 40" preserveAspectRatio="none"
+              ><path d="M0 22 Q600 6 1200 16 T2400 14 T3000 20 L3000 40 L0 40Z" fill="#eae0c6" fill-opacity="0.75"></path><path
+                d="M0 22 Q600 6 1200 16 T2400 14 T3000 20"
+                fill="none"
+                stroke="#8a6d34"
+                stroke-opacity="0.4"
+                vector-effect="non-scaling-stroke"></path></svg
+            >
+            <svg class="flag" viewBox={`-320 -${STICK + 20} 360 ${STICK + 44}`} width="360" height={STICK + 44}>
+              <defs><filter id="ot-rake" x="-10%" y="-200%" width="120%" height="500%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter></defs>
+              <g filter="url(#ot-rake)" opacity="0.16" fill="#26211a">
+                <path d={`M0 0L-${STICK * 1.9} 13L-${STICK * 1.9 - 10} 16L3 3Z`}></path>
+                <ellipse cx="0" cy="3" rx="12" ry="3.4"></ellipse>
+              </g>
+              <path d={`M0 0V-${STICK}`} stroke="#26211a" stroke-opacity="0.78" stroke-width="2" stroke-linecap="round"></path>
+              <circle cx="0" cy={-STICK} r="2.6" fill="#26211a" fill-opacity="0.78"></circle>
+              <g transform={`translate(0 ${-STICK + 1}) scale(1.6)`}>
+                <path d={pennant[0]} fill="#8a6d34"><animate attributeName="d" dur="5.2s" repeatCount="indefinite" values={pennant.join(';')}></animate></path>
+              </g>
+            </svg>
+          </div>
+          <div class="phone">
+            <Phone width={290}><MenuScreen families={MENU} /></Phone>
+          </div>
+          <div class="watch"><Watch {...CARRIED} width={148} /></div>
+          <div class="flic"><Flic size={96} /></div>
+        </div>
+        <figcaption>Press the button or tap the watch. Nothing counts until the round is over.</figcaption>
+      </figure>
+    </header>
+
+    <div class="wrap body">
+      <div class="cases-head">
+        <p>Three decisions</p>
+        <a href="/work/one-thought/decisions">All {all.length} decisions <span aria-hidden="true">→</span></a>
+      </div>
+      <ol class="cases">
+        {
+          featured.map((d) => (
+            <li>
+              <article class="case">
+                <div class="case-text">
+                  <p class="when">{formatDate(d.data.date)}</p>
+                  <h3>{d.data.title}</h3>
+                  <p class="summary">{d.data.summary}</p>
+                  {d.data.number === 23 && (
+                    <p class="visually-hidden">Of 178 claims, five came from golfers or a closely matching aiming sport.</p>
+                  )}
+                </div>
+                <div class="figure" aria-hidden="true">
+                  {d.data.number === 19 && (
+                    <svg viewBox="0 0 300 200" class="draw">
+                      <g class="faded">
+                        <rect class="line" x="14" y="66" width="118" height="44" rx="8" />
+                        <path class="thin" d="M24 80 H122 M44 90 H102" />
+                        <rect class="thin" x="50" y="94" width="46" height="9" rx="2" />
+                        <path class="window" d="M62 110 H84" />
+                        <text x="73" y="138" class="name">the brass penny</text>
+                        <text x="73" y="154" class="note">parked: a radio and a battery</text>
+                        <text x="73" y="167" class="note">sealed in metal</text>
+                      </g>
+                      <path class="line" d="M146 88 H170" />
+                      <path class="line" d="M164 82 L171 88 L164 94" />
+                      <rect class="flic" x="196" y="52" width="72" height="72" rx="22" />
+                      <rect class="thin" x="206" y="62" width="52" height="52" rx="16" />
+                      <text x="232" y="152" class="name">a Flic, as it comes</text>
+                      <text x="232" y="168" class="note brass">shipped, already certified</text>
+                    </svg>
+                  )}
+                  {d.data.number === 16 && (
+                    <svg viewBox="0 0 300 200" class="draw">
+                      <rect class="line" x="34" y="8" width="104" height="186" rx="18" />
+                      <rect class="ink" x="70" y="16" width="32" height="8" rx="4" />
+                      <text x="86" y="44" class="small">Sunday 27 September</text>
+                      <text x="86" y="72" class="clock">18:42</text>
+                      <rect class="ghost" x="46" y="94" width="80" height="20" rx="6" />
+                      <rect class="ghost" x="46" y="120" width="80" height="20" rx="6" />
+                      <rect class="ghost" x="46" y="146" width="80" height="20" rx="6" />
+                      <path class="thin" d="M130 104 H160 M130 130 H160 M130 156 H160" />
+                      <text x="166" y="108" class="note left">no notifications</text>
+                      <text x="166" y="134" class="note left">no streaks or badges</text>
+                      <text x="166" y="160" class="note left">no recap, no feed</text>
+                      <circle class="brassdot" cx="166" cy="62" r="4" />
+                      <text x="176" y="66" class="name left">it waits to be opened</text>
+                    </svg>
+                  )}
+                  {d.data.number === 23 && (
+                    <svg viewBox="0 0 300 200" class="draw">
+                      {Array.from({ length: CLAIMS }, (_, i) => (
+                        <rect class:list={['cell', { lit: DIRECT.has(i) }]} x={14 + (i % COLS) * 8} y={22 + Math.floor(i / COLS) * 8} width="6" height="6" rx="1.2" />
+                      ))}
+                      <text x="14" y="148" class="name left">178 claims</text>
+                      <text x="14" y="164" class="note left">five direct, from golfers</text>
+                      <rect class="line" x="152" y="22" width="56" height="30" rx="5" />
+                      <text x="180" y="41" class="small">neutral</text>
+                      <rect class="line" x="230" y="22" width="56" height="30" rx="5" />
+                      <text x="258" y="41" class="small">sceptic</text>
+                      <path class="wall" d="M219 14 V60" />
+                      <path class="thin" d="M180 52 V76 L214 96 M258 52 V76 L224 96" />
+                      <rect class="brassbox" x="166" y="98" width="106" height="30" rx="5" />
+                      <text x="219" y="117" class="small">the more cautious</text>
+                      <text x="219" y="148" class="name">never averaged</text>
+                      <text x="219" y="164" class="note">a disagreement comes to me</text>
+                    </svg>
+                  )}
+                </div>
+              </article>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+  // The kit answers a press the way the real things do: the button goes down, the watch
+  // blooms a ring from its seal-point, and neither screen shows a number
+  const replay = (el: Element, cls: string, ms: number) => {
+    el.classList.remove(cls);
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add(cls);
+    clearTimeout((el as any)._t);
+    (el as any)._t = setTimeout(() => el.classList.remove(cls), ms);
+  };
+  document.querySelectorAll('[data-ot-watch]').forEach((w) => w.addEventListener('click', () => replay(w, 'tapped', 700)));
+  document.querySelectorAll('[data-ot-flic]').forEach((f) => f.addEventListener('click', () => replay(f, 'pressed', 140)));
+</script>
+
+<style>
+  /* The home band's palette, in its low sun, held still for the whole chapter */
+  .band {
+    --ink: #26211a;
+    --soft: rgb(38 33 26 / 0.74);
+    --faint: rgb(38 33 26 / 0.62);
+    --brass: #8a6d34;
+    --gold: #c9a24a;
+    --hair: rgb(38 33 26 / 0.16);
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(32px, 3.5vw, 48px) clamp(48px, 5vw, 72px);
+    /* The sky; the sun, the horizon and the ground are drawn behind the kit */
+    background: linear-gradient(180deg, #f1e8d4 0%, #f5e6c6 55%, #f8dfae 100%);
+    color: var(--ink);
+  }
+
+  .band :focus-visible {
+    outline-color: var(--brass);
+  }
+
+  .head {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--brass);
+  }
+
+  .eyebrow img {
+    border-radius: 7px;
+    box-shadow: 0 0 0 1px var(--hair);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--soft);
+  }
+
+  /* Amber, not green: in testing, not out */
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d99a2b;
+    box-shadow: 0 0 0 3px rgb(217 154 43 / 0.22);
+  }
+
+  h2,
+  h3 {
+    font-family: 'Petrona Variable', Georgia, serif;
+  }
+
+  h2 {
+    font-size: clamp(34px, 4.4vw, 56px);
+    font-weight: 560;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  .mine {
+    color: var(--ink);
+  }
+
+  .tech {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hair);
+    font: 12.5px var(--font-mono);
+    color: var(--faint);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .links a {
+    color: var(--brass);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The kit: the phone standing, the watch beside it, the button in front */
+  .art {
+    margin: 0;
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .kit {
+    position: relative;
+    z-index: 0;
+    width: 470px;
+    height: 640px;
+  }
+
+  /* Everything but the scene stands in front of it */
+  .text,
+  .body,
+  .art figcaption {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* The Low Sun, in the kit's own coordinates: the horizon at 470 of its 640, where the
+     sealed page's plate has it */
+  .scene {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .sun {
+    position: absolute;
+    left: 500px;
+    top: 418px;
+    width: 760px;
+    height: 760px;
+    margin: -380px 0 0 -380px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      #fff8e6 0 9%,
+      rgb(254 245 220 / 0.92) 13%,
+      rgb(250 222 160 / 0.6) 24%,
+      rgb(247 218 160 / 0.28) 42%,
+      rgb(245 225 185 / 0) 70%
+    );
+  }
+
+  /* The horizon and the ground fade in from the left, so the words sit in clear sky */
+  .horizon,
+  .ground {
+    mask-image: linear-gradient(90deg, transparent 1440px, #000 1580px);
+  }
+
+  .horizon {
+    position: absolute;
+    left: -1500px;
+    top: 452px;
+    width: 3000px;
+    height: 40px;
+  }
+
+  .ground {
+    position: absolute;
+    left: -1500px;
+    width: 3000px;
+    top: 491px;
+    height: 2000px;
+    background: linear-gradient(180deg, rgb(234 224 198 / 0.75), rgb(232 220 190 / 0.6) 30%, rgb(236 228 206 / 0.5));
+  }
+
+  .flag {
+    position: absolute;
+    left: calc(580px - 320px);
+    top: calc(470px - 150px - 20px);
+    overflow: visible;
+  }
+
+  /* The kit in the same low sun: each thing's shadow raked long to the left */
+  .kit .phone,
+  .kit .watch,
+  .kit .flic {
+    filter: drop-shadow(-34px 14px 18px rgb(110 75 25 / 0.2));
+  }
+
+  .kit .phone {
+    position: absolute;
+    left: 40px;
+    top: 0;
+  }
+
+  .kit .watch {
+    position: absolute;
+    right: 0;
+    top: 250px;
+    transform: rotate(4deg);
+  }
+
+  .kit .flic {
+    position: absolute;
+    left: -44px;
+    bottom: -6px;
+    transform: rotate(-8deg);
+  }
+
+  .art figcaption {
+    font-size: 14px;
+    font-style: italic;
+    font-family: 'Petrona Variable', Georgia, serif;
+    color: var(--soft);
+  }
+
+  .body {
+    width: 100%;
+    margin-top: clamp(24px, 3vw, 40px);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .cases-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .cases-head p {
+    letter-spacing: 0.04em;
+    color: var(--brass);
+  }
+
+  .cases-head a {
+    color: var(--brass);
+    text-decoration: none;
+  }
+
+  .cases-head a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The three decisions, drawn alike: subgrid lines the wells and text up across columns */
+  .cases {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px clamp(24px, 3vw, 40px);
+  }
+
+  .cases > li,
+  .case {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    row-gap: 20px;
+  }
+
+  .case .figure {
+    order: -1;
+  }
+
+  .case-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .when {
+    font: 13px var(--font-mono);
+    color: var(--faint);
+  }
+
+  h3 {
+    font-size: clamp(18px, 1.5vw, 20px);
+    font-weight: 600;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .summary {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  /* The drawing sits on the band itself, no well round it, lined up with the words under it */
+  .figure {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* One drawing style for all three: ink line, one touch of brass, italic words */
+  .draw {
+    width: 100%;
+    max-width: 260px;
+    overflow: visible;
+    font-family: 'Petrona Variable', Georgia, serif;
+  }
+
+  .draw .line {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .draw .thin {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+  }
+
+  .draw .ink {
+    fill: var(--ink);
+  }
+
+  .draw .faded {
+    opacity: 0.5;
+  }
+
+  .draw .window {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-dasharray: 2 2;
+  }
+
+  .draw .flic {
+    fill: #fff;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+
+  .draw .ghost {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.35;
+    stroke-dasharray: 3 3;
+  }
+
+  .draw .wall {
+    stroke: var(--ink);
+    stroke-opacity: 0.6;
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+
+  .draw .brassdot,
+  .draw .cell.lit {
+    fill: var(--gold);
+  }
+
+  .draw .cell {
+    fill: rgb(38 33 26 / 0.14);
+  }
+
+  .draw .brassbox {
+    fill: rgb(201 162 74 / 0.22);
+    stroke: var(--brass);
+    stroke-width: 1.6;
+  }
+
+  .draw text {
+    text-anchor: middle;
+  }
+
+  .draw text.left {
+    text-anchor: start;
+  }
+
+  .draw .name {
+    fill: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .draw .note {
+    fill: var(--soft);
+    font-size: 11.5px;
+    font-style: italic;
+  }
+
+  .draw .note.brass {
+    fill: var(--brass);
+  }
+
+  .draw .small {
+    fill: var(--ink);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .draw .clock {
+    fill: var(--ink);
+    font: 600 26px -apple-system, 'SF Pro Display', system-ui, sans-serif;
+    text-anchor: middle;
+  }
+
+  @media (max-width: 1100px) {
+    .kit {
+      transform: scale(0.85);
+      margin: -48px -35px;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .head { grid-template-columns: minmax(0, 1fr); }
+    .cases { grid-template-columns: minmax(0, 1fr); max-width: 560px; }
+  }
+
+  /* A phone's width: the kit and the spreads come down to fit */
+  @media (max-width: 520px) {
+    .eyebrow { flex-wrap: wrap; }
+    .status { margin-left: 0; flex-basis: 100%; }
+    .kit { transform: scale(0.68); margin: -102px -75px; }
+  }
+</style>
