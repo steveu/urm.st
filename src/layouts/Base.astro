@@ -2,19 +2,25 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+// Preload the two faces every page paints first: body text and headings
+import mulish from '@fontsource-variable/mulish/files/mulish-latin-wght-normal.woff2?url';
+import merriweather from '@fontsource-variable/merriweather/files/merriweather-latin-wght-normal.woff2?url';
 
 interface Props {
   title?: string;
   description?: string;
+  // Keep the page out of search results, e.g. the 404
+  noindex?: boolean;
 }
 
 const {
   title,
+  noindex = false,
   description = 'Steve Urmston is a product engineer in York, UK. He has designed, built and managed products since 2003, and now builds them with agents.',
 } = Astro.props;
 
 const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · product engineer';
-const canonical = new URL(Astro.url.pathname.replace(/\.html$/, ''), Astro.site);
+const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site);
 
 const person = {
   '@context': 'https://schema.org',
@@ -35,7 +41,9 @@ const person = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <link rel="preload" href={mulish} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={merriweather} as="font" type="font/woff2" crossorigin />
     <meta name="theme-color" content="#f6f5f2" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
