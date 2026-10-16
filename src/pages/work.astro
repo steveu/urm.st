@@ -2,16 +2,119 @@
 import Base from '../layouts/Base.astro';
 import EddyCasebook from '../components/eddy/EddyCasebook.astro';
 import OneThoughtCasebook from '../components/onethought/OneThoughtCasebook.astro';
+
+// Older work, kept to a line each
+const earlier = [
+  {
+    name: 'Bytemark Cloud',
+    years: '2014–18',
+    line: 'A cloud hosting product. I designed and built its first interface for customers, then ran it as product manager.',
+    link: { href: '/work/bytemark-cloud', label: 'How backups came to it' },
+  },
+  {
+    name: 'formstyl.es',
+    years: '2012',
+    line: 'A tool for web designers to build responsive forms. The interface worked; I never found a way to charge for it.',
+  },
+  {
+    name: 'York Assembly',
+    years: '2009',
+    line: 'A learning environment built for my MSc, and an experiment with 107 students on whether game mechanics raise participation. It stayed in use after the research ended.',
+    link: { href: '/assets/files/game_mechanics_vle.pdf', label: 'Dissertation (PDF)' },
+  },
+];
 ---
 
 <Base title="Work" description="Eddy, a family video app, and One Thought, a golf app, told through the decisions behind them.">
   <h1 class="visually-hidden">Work</h1>
   <section id="eddy" aria-labelledby="eddy-title"><EddyCasebook /></section>
   <section id="one-thought" aria-labelledby="one-thought-title"><OneThoughtCasebook /></section>
+  <section id="earlier" class="wrap earlier" aria-labelledby="earlier-title">
+    <h2 id="earlier-title">Earlier</h2>
+    <ul>
+      {
+        earlier.map((e) => (
+          <li>
+            <span class="name">{e.name}</span>
+            <span class="years">{e.years}</span>
+            <p class="line">
+              {e.line}
+              {e.link && (
+                <>
+                  {' '}
+                  <a href={e.link.href}>{e.link.label}&nbsp;→</a>
+                </>
+              )}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 </Base>
 
 <style>
   section[id] {
     scroll-margin-top: 24px;
+  }
+
+  .earlier {
+    padding-block: clamp(56px, 8vw, 96px);
+  }
+
+  .earlier h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .earlier ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  /* Name and years on the left, the line on the right; stacked on a phone */
+  .earlier li {
+    display: grid;
+    grid-template-columns: 200px 80px minmax(0, 1fr);
+    gap: 4px 24px;
+    align-items: baseline;
+    padding-block: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .name {
+    font-family: var(--font-serif);
+    font-size: 18px;
+  }
+
+  .years {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .line {
+    max-width: 680px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .line a {
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 760px) {
+    .earlier li {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .line {
+      grid-column: 1 / -1;
+    }
   }
 </style>
