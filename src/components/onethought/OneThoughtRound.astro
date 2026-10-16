@@ -12,11 +12,9 @@ import '@fontsource-variable/petrona/wght.css';
 import '@fontsource-variable/petrona/wght-italic.css';
 import '@fontsource/caveat/latin-500.css';
 import '@fontsource/pixelify-sans/latin-400.css';
-import { getCollection } from 'astro:content';
 import { THOUGHTS, OFFERED, START } from './thoughts';
 import { MARK } from './record';
 
-const decisionCount = (await getCollection('decisions', (d) => d.data.project === 'one-thought')).length;
 const start = THOUGHTS[START];
 const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
 ---
@@ -146,7 +144,7 @@ const tap = (rule: string) => rule.replace(/^Tap\b/, '<b>Tap</b>');
         The sentence comes from the app’s own rules. On TestFlight, for phone and watch, with no notifications, no streaks
         and no count while you play.
       </p>
-      <a class="primary" href="/work/one-thought/decisions">Why it’s built this way, in {decisionCount} decisions →</a>
+      <a class="primary" href="/work#one-thought">How One Thought was built →</a>
     </div>
   </div>
 

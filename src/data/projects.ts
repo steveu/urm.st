@@ -13,7 +13,6 @@ export type Project = {
   ink: string;
   /** iOS app icon, 96px square, under public/ */
   icon?: string;
-  href?: string;
   activity?: (typeof activity.projects)[keyof typeof activity.projects];
 };
 
@@ -29,7 +28,6 @@ export const projects: Project[] = [
     swatch: 'var(--eddy)',
     ink: 'var(--eddy)',
     icon: '/icons/eddy.png',
-    href: '/work#eddy',
     activity: activity.projects.eddy,
   },
   {
