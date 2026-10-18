@@ -23,7 +23,7 @@ export const work: Job[] = [
         start: '2021-03',
         highlights: [
           'HublAI: AI-directed data exploration and storytelling in an enterprise data product, first as workflows for business users, now as a multi-agent harness.',
-          'Work across the experience, the prompts, tools and context, and the evals that prove they work.',
+          'Work across the experience, the prompts, tools and context, and the LLM evaluations that measure them.',
           'Before that, design and frontend for an Innovate UK-funded programme on advanced AI capabilities.',
         ],
       },
@@ -171,8 +171,8 @@ export const projects: Project[] = [
 
 // One plain line, grouped; only what holds up in an interview
 export const skills = [
+  'LLM applications: agents, multi-agent orchestration, workflows, prompts, tools, context engineering',
+  'LLM evaluation, human-in-the-loop review, local inference (Ollama)',
   'TypeScript, React, GraphQL, Node, SQLite',
-  'LLM workflows, multi-agent harnesses, tools, context engineering, evals',
-  'Local models (Ollama)',
-  'Built with Claude Code, Codex and Pi',
+  'Coding agents: Claude Code, Codex, Pi',
 ];

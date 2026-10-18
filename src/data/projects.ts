@@ -26,7 +26,7 @@ export const projects: Project[] = [
   {
     key: 'eddy',
     name: 'Eddy',
-    description: 'A family video app where a local model checks every link.',
+    description: 'A family video app where a local model safety-checks every video.',
     state: 'live',
     status: 'Live',
     swatch: 'var(--eddy)',
@@ -51,7 +51,7 @@ export const projects: Project[] = [
   {
     key: 'hublai',
     name: 'HublAI',
-    description: 'AI-directed data analysis for a decision-intelligence platform.',
+    description: 'Multi-agent data exploration: prompts, tools, context and evals.',
     state: 'soon',
     status: 'In progress',
     swatch: 'transparent',
