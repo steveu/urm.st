@@ -1,5 +1,5 @@
 {
-  "name": "SteveUrmston",
+  "name": "Steve Urmston",
   "short_name": "urm.st",
   "icons": [
     {
@@ -13,6 +13,6 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#F7F7F7",
-  "background_color": "#F7F7F7"
+  "theme_color": "#f6f5f2",
+  "background_color": "#f6f5f2"
 }
