@@ -30,9 +30,159 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
           ))
         }
       </ul>
+      <span class="ink" aria-hidden="true"></span>
     </nav>
   </div>
 </header>
+
+<script>
+  // The underline is a line with mass: each edge is its own spring, the leading one stiffer,
+  // so it stretches as it travels and draws in as it lands. Only transform is written.
+  const nav = document.querySelector<HTMLElement>('.site-header nav');
+  const ink = nav?.querySelector<HTMLElement>('.ink');
+  if (nav && ink) {
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('a')];
+    const current = links.findIndex((a) => a.getAttribute('aria-current') === 'page');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LEAD = { k: 560, z: 0.86 };
+    const TRAIL = { k: 440, z: 1 };
+    // However quick the move, the line stretches at most this far past its longer length
+    const STRETCH = 24;
+    let maxW = 0;
+    // The line's drawn length before scaling, near the labels' own so it's never stretched far
+    const BASE = 40;
+    type Edge = { x: number; v: number; to: number };
+    const l: Edge = { x: 0, v: 0, to: 0 };
+    const r: Edge = { x: 0, v: 0, to: 0 };
+    let shown = 0;
+    let showTo = 0;
+    let y = 0;
+    let raf = 0;
+    let last = 0;
+    let at = -1;
+    let rightward = true;
+
+    // Where each label's line sits, in the nav's own coordinates
+    const spans = links.map((a) => a.querySelector('span')!);
+    const box = (i: number) => {
+      const n = nav.getBoundingClientRect();
+      const b = spans[i].getBoundingClientRect();
+      y = b.bottom - n.top - 2;
+      return { l: b.left - n.left, r: b.right - n.left };
+    };
+
+    const paint = () => {
+      ink.style.transform = `translate(${l.x}px, ${y}px) scaleX(${Math.max(0, r.x - l.x) / BASE})`;
+      ink.style.opacity = String(shown);
+    };
+
+    const step = (e: Edge, s: { k: number; z: number }, dt: number) => {
+      const c = 2 * s.z * Math.sqrt(s.k);
+      e.v += (s.k * (e.to - e.x) - c * e.v) * dt;
+      e.x += e.v * dt;
+    };
+
+    const frame = (t: number) => {
+      const dt = Math.min(1 / 30, (t - last) / 1000 || 1 / 60);
+      last = t;
+      // Moving right, the right edge leads; moving left, the left one does. Set when the move
+      // starts, so the leading edge passing its mark doesn't swap the roles mid-flight
+      for (let n = 0; n < 4; n++) {
+        step(l, rightward ? TRAIL : LEAD, dt / 4);
+        step(r, rightward ? LEAD : TRAIL, dt / 4);
+        // The trailing edge is pulled along rather than left behind
+        if (r.x - l.x > maxW) {
+          if (rightward) {
+            l.x = r.x - maxW;
+            l.v = Math.max(l.v, r.v);
+          } else {
+            r.x = l.x + maxW;
+            r.v = Math.min(r.v, l.v);
+          }
+        }
+      }
+      shown += (showTo - shown) * Math.min(1, dt * 14);
+      paint();
+      const busy = [l, r].some((e) => Math.abs(e.to - e.x) > 0.2 || Math.abs(e.v) > 2) || Math.abs(showTo - shown) > 0.01;
+      if (busy) raf = requestAnimationFrame(frame);
+      else {
+        l.x = l.to;
+        r.x = r.to;
+        shown = showTo;
+        paint();
+        raf = 0;
+      }
+    };
+
+    const go = (i: number, jump = false) => {
+      at = i;
+      if (i < 0) {
+        // Nowhere to rest: draw in to the middle of where it was, and fade
+        const mid = (l.to + r.to) / 2;
+        l.to = r.to = mid;
+        showTo = 0;
+      } else {
+        const b = box(i);
+        if (shown < 0.05) {
+          // Appearing from nothing: grow out from the label's middle
+          l.x = r.x = (b.l + b.r) / 2;
+          l.v = r.v = 0;
+        }
+        rightward = b.l + b.r > l.x + r.x;
+        maxW = Math.max(r.x - l.x, b.r - b.l) + Math.min(STRETCH, 0.4 * (b.r - b.l));
+        l.to = b.l;
+        r.to = b.r;
+        showTo = 1;
+      }
+      if (jump || reduce) {
+        l.x = l.to;
+        r.x = r.to;
+        l.v = r.v = 0;
+        shown = showTo;
+        paint();
+        return;
+      }
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    // The line only moves when you've gone somewhere: coming from another page in the nav, it
+    // carries on from that page's item; coming from the home page, it grows out of this one's
+    let from: number | null = null;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('nav-ink') ?? 'null');
+      sessionStorage.removeItem('nav-ink');
+      if (saved && Date.now() - saved.t < 4000) from = saved.i;
+    } catch {}
+
+    nav.classList.add('has-ink');
+    if (from !== null && from !== current && current >= 0 && !reduce) {
+      if (from >= 0) go(from, true);
+      requestAnimationFrame(() => go(current));
+    } else go(current, true);
+
+    const leave = () => {
+      try {
+        sessionStorage.setItem('nav-ink', JSON.stringify({ i: current, t: Date.now() }));
+      } catch {}
+    };
+    links.forEach((a) => a.addEventListener('click', leave));
+    document.querySelector('.site-header .brand')?.addEventListener('click', leave);
+    // Fonts arriving or the window changing move the labels. Mid-flight only the target
+    // moves, so a glide isn't cut short
+    const remeasure = () => {
+      if (!raf) return go(at, true);
+      if (at < 0) return;
+      const b = box(at);
+      l.to = b.l;
+      r.to = b.r;
+    };
+    new ResizeObserver(remeasure).observe(nav);
+    document.fonts?.ready.then(remeasure);
+  }
+</script>
 
 <style>
   .site-header {
@@ -134,6 +284,47 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 
   nav li:last-child a {
     padding-right: 0;
+  }
+
+  /* With the script, one line travels between the labels in place of each label's own */
+  nav {
+    position: relative;
+  }
+
+  .ink {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--orange);
+    transform-origin: 0 0;
+    /* Its own layer: Safari otherwise leaves copies behind a transformed line as it moves */
+    will-change: transform;
+    backface-visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  nav.has-ink a[aria-current='page'] span {
+    border-color: transparent;
+  }
+
+  /* A press sinks the label a pixel, and it springs back */
+  nav a span {
+    display: inline-block;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.42s var(--fig-spring);
+  }
+
+  nav a:active span {
+    transform: translateY(1px);
+    transition-duration: 0.2s, 0.2s, 0.06s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    nav a span {
+      transition: color 0.2s ease;
+    }
   }
 
   @media (max-width: 640px) {
