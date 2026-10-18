@@ -16,17 +16,29 @@ interface Props {
 const {
   title,
   noindex = false,
-  description = 'Steve Urmston is a product engineer in York, UK. He has designed, built and managed products since 2003, and now builds them with agents.',
+  description = 'Steve Urmston is an applied AI engineer in York, UK. He builds AI products, from interface to evals, and has designed, built and managed products since 2003.',
 } = Astro.props;
 
-const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · product engineer';
+const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · Applied AI Engineer';
 const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site);
 
 const person = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Steve Urmston',
-  jobTitle: 'Product Engineer',
+  jobTitle: 'Applied AI Engineer',
+  description: 'Applied AI engineer building AI products, from interface to evals: agents, workflows and the context they run on.',
+  knowsAbout: [
+    'Applied AI',
+    'AI agents',
+    'LLM evaluation',
+    'Context engineering',
+    'Local models',
+    'Product design',
+    'Frontend engineering',
+    'TypeScript',
+    'React',
+  ],
   url: 'https://urm.st',
   email: 'mailto:steve@urm.st',
   address: { '@type': 'PostalAddress', addressLocality: 'York', addressCountry: 'GB' },
@@ -45,6 +57,7 @@ const person = {
     <link rel="preload" href={mulish} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={merriweather} as="font" type="font/woff2" crossorigin />
     <meta name="theme-color" content="#f6f5f2" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -58,7 +71,7 @@ const person = {
     <meta property="og:image" content={new URL('/og.png', Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Steve Urmston, Product Engineer: I’ve designed, built and managed products since 2003. Now I build with agents." />
+    <meta property="og:image:alt" content="Steve Urmston, Applied AI Engineer: I build AI products, from interface to evals." />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json" set:html={JSON.stringify(person)} />
     <slot name="head" />
