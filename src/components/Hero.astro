@@ -9,8 +9,9 @@ import ProjectList from './ProjectList.astro';
       <span class="after">from interface to&nbsp;evals.</span>
     </h1>
     <p class="lede">
-      Agents, workflows and the context they run on, shaped by what someone needs rather than what the model can
-      do. I’ve designed, built and managed products since&nbsp;2003.
+      <span>Models get better every month.</span>{' '}
+      <span>Knowing what to build gets harder.</span>{' '}
+      <span class="payoff">That’s the part I’ve done since&nbsp;2003.</span>
     </p>
   </div>
 
@@ -36,7 +37,7 @@ import ProjectList from './ProjectList.astro';
 
   h1 {
     font-size: clamp(34px, 5.4vw, 72px);
-    line-height: 1.12;
+    line-height: 1.2;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
@@ -51,11 +52,21 @@ import ProjectList from './ProjectList.astro';
   }
 
   .lede {
-    max-width: 640px;
-    font-size: clamp(17px, 1.6vw, 19px);
-    line-height: 1.6;
+    font-size: clamp(18px, 1.9vw, 23px);
+    line-height: 1.5;
     color: var(--muted);
     text-wrap: pretty;
+  }
+
+  /* The payoff takes its own line once there's room for the setup on one */
+  .payoff {
+    color: var(--text);
+  }
+
+  @media (min-width: 720px) {
+    .payoff {
+      display: block;
+    }
   }
 
   /* Entrance: one orchestrated reveal, nothing else moves */
