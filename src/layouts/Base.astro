@@ -16,18 +16,18 @@ interface Props {
 const {
   title,
   noindex = false,
-  description = 'Steve Urmston is an applied AI engineer in York, UK. He builds AI products, from interface to evals, and has designed, built and managed products since 2003.',
+  description = 'Steve Urmston is an AI product engineer in York, UK, working from interface to evals. He has designed, built and managed products since 2003.',
 } = Astro.props;
 
-const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · Applied AI Engineer';
+const fullTitle = title ? `${title} · Steve Urmston` : 'Steve Urmston · AI Product Engineer';
 const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site);
 
 const person = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Steve Urmston',
-  jobTitle: 'Applied AI Engineer',
-  description: 'Applied AI engineer building AI products, from interface to evals: agents, workflows and the context they run on.',
+  jobTitle: 'AI Product Engineer',
+  description: 'AI product engineer working from interface to evals: agents, workflows and the context they run on.',
   knowsAbout: [
     'Applied AI',
     'Large language models',
@@ -73,7 +73,7 @@ const person = {
     <meta property="og:image" content={new URL('/og.png', Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Steve Urmston, Applied AI Engineer: I build AI products, from interface to evals." />
+    <meta property="og:image:alt" content="Steve Urmston, AI Product Engineer: I build AI products, from interface to evals." />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json" set:html={JSON.stringify(person)} />
     <slot name="head" />
