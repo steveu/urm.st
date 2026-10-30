@@ -1,17 +1,20 @@
 ---
 // Decision 0015 · The guard judges safety; the family judges taste: its drawing on /work. Rules for these: src/components/figures/RULES.md
-const ALT = 'The guard scored 51% clear-yes precision against a 95% target, because a parent’s Block meant two things. Block now splits into Unsafe, the only answer the guard is measured on, and Not for us, the family’s taste.';
+const ALT = 'The guard scored 51% clear-yes precision against a 95% target, because a parent’s Block meant two things. Block now splits into Unsafe, the only answer the guard is measured on, and Not for us, the family’s taste. Judged on Unsafe alone, the same guard scores 96.6%.';
 ---
 
 <p class="visually-hidden">{ALT}</p>
 <div class="fig" data-figure="eddy-split" aria-hidden="true">
   <div class="split">
     <div class="score">
-      <p class="big">51%</p>
-      <p class="cap">clear-yes precision</p>
+      <p class="big was">51%</p>
+      <span class="arrow">→</span>
+      <p class="big now">96.6%</p>
     </div>
+    <p class="cap"><span>clear-yes precision</span><span class="after">· same guard, Unsafe only</span></p>
     <div class="rail">
-      <span class="fill" />
+      <span class="fill was" />
+      <span class="fill now" />
       <span class="target"><span class="tag">target 95%</span></span>
     </div>
     <div class="fork">
@@ -42,7 +45,8 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
   }
 
   /* 0015 · the split: the score short of its target, and why — one answer meant two, so the
-     decision draws its line (gold) through Block, and only the Unsafe half is scored */
+     decision draws its line (gold) through Block, and scored on the Unsafe half alone, the
+     same guard clears the target */
   .split {
     width: 100%;
     max-width: 340px;
@@ -61,21 +65,51 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
     color: var(--ink);
   }
 
+  /* The old score stays as the before, dimmed; the new one is the focal number */
+  .big.was {
+    color: var(--faint);
+  }
+
+  .arrow {
+    font-size: 16px;
+    color: var(--faint);
+  }
+
+  .split > .cap {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 4px;
+    margin-top: 6px;
+  }
+
   /* The measure: a hairline track, the score in the band's teal, the target a pale tick */
   .rail {
     position: relative;
     height: 6px;
-    margin-top: 24px;
+    margin-top: 28px;
     border-radius: 3px;
     background: rgb(243 239 230 / 0.1);
   }
 
+  /* One bar in two pieces: the 51% the first replay reached, then what the split recovered */
   .rail .fill {
     position: absolute;
-    inset: 0 49% 0 0;
-    border-radius: 3px;
+    top: 0;
+    bottom: 0;
     background: var(--ring);
     transform-origin: left;
+  }
+
+  .rail .fill.was {
+    left: 0;
+    right: 49%;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .rail .fill.now {
+    left: 51%;
+    right: 3.4%;
+    border-radius: 0 3px 3px 0;
   }
 
   .rail .target {
@@ -162,16 +196,25 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
 
   /* Entrance, once in view (play.ts lifts [data-wait]). Held back at once: only the way in moves.
      The story in order: the score falls short of its target, Block arrives, the gold line
-     splits it, and the two answers settle at its ends, Unsafe landing first */
+     splits it, the two answers settle at its ends, and on Unsafe alone the bar runs on past
+     the target as the new score lands */
   @media (prefers-reduced-motion: no-preference) {
     .fig[data-wait] :is(*, *::before, *::after) { transition: none !important; }
 
-    /* The score and its target settle down into place, the numeral heavier and slower */
-    .fig[data-wait] .score { opacity: 0; transform: translateY(4px); }
-    .fig .score {
+    /* The first score and its target settle down into place, the numeral heavier and slower,
+       and the old score dims as the new one lands */
+    .fig[data-wait] :is(.big.was, .arrow, .cap > span:first-child) { opacity: 0; transform: translateY(4px); }
+    .fig :is(.big.was, .arrow, .cap > span:first-child) {
       transition:
         opacity calc(var(--fig-base) * 0.6) var(--ease-out),
         transform var(--fig-base) var(--fig-settle);
+    }
+    .fig[data-wait] .big.was { color: var(--ink); }
+    .fig .big.was {
+      transition:
+        opacity calc(var(--fig-base) * 0.6) var(--ease-out),
+        transform var(--fig-base) var(--fig-settle),
+        color var(--fig-fast) var(--ease-out) 820ms;
     }
     .fig[data-wait] .target { opacity: 0; transform: translateY(-6px); }
     .fig .target {
@@ -183,7 +226,26 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
 
     /* The fill runs out along the rail and comes to rest well short of the tick */
     .fig[data-wait] .rail .fill { transform: scaleX(0); }
-    .fig .rail .fill { transition: transform var(--fig-slow) var(--fig-settle) 100ms; }
+    .fig .rail .fill.was { transition: transform var(--fig-base) var(--fig-settle) 100ms; }
+
+    /* Once Unsafe is on its own, the bar runs on past the tick */
+    .fig .rail .fill.now { transition: transform var(--fig-base) var(--fig-settle) 820ms; }
+
+    /* The new score is the one that lands, with the spring's small overshoot, and its label
+       comes with it */
+    .fig[data-wait] :is(.big.now, .after) { opacity: 0; transform: translateY(6px); }
+    .fig .big.now {
+      transition:
+        opacity calc(var(--fig-base) * 0.6) var(--ease-out),
+        transform var(--fig-base) var(--fig-spring);
+      transition-delay: 820ms;
+    }
+    .fig .after {
+      transition:
+        opacity calc(var(--fig-base) * 0.6) var(--ease-out),
+        transform var(--fig-base) var(--fig-settle);
+      transition-delay: calc(820ms + var(--fig-step));
+    }
 
     /* Block slides in along the flow, then the gold line draws out of it */
     .fig[data-wait] .chip.block { opacity: 0; transform: translateX(-6px); }
@@ -196,8 +258,7 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
     .fig[data-wait] .fork path { stroke-dashoffset: 1; }
     .fig .fork path { transition: stroke-dashoffset var(--fig-fast) var(--fig-settle) 540ms; }
 
-    /* Each answer arrives at the end of its branch as the line reaches it; Unsafe is the
-       one that lands, with the spring's small overshoot */
+    /* Each answer arrives at the end of its branch as the line reaches it, Unsafe first */
     .fig[data-wait] .end { opacity: 0; transform: translateX(-10px); }
     .fig .end {
       transition:
@@ -205,9 +266,6 @@ const ALT = 'The guard scored 51% clear-yes precision against a 95% target, beca
         transform var(--fig-base) var(--fig-settle);
       transition-delay: calc(700ms + var(--fig-step));
     }
-    .fig .end.unsafe {
-      transition-timing-function: var(--ease-out), var(--fig-spring);
-      transition-delay: 700ms;
-    }
+    .fig .end.unsafe { transition-delay: 700ms; }
   }
 </style>

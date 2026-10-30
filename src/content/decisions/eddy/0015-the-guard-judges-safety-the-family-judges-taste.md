@@ -3,8 +3,8 @@ project: eddy
 number: 15
 title: The guard judges safety; the family judges taste
 date: 2026-10-02
-summary: A 51% precision score was measuring two things at once, unsafe and not for us. Block now splits in two, and the guard is judged only on Unsafe.
-amended: [2026-10-09]
+summary: A 51% precision score was mixing unsafe with not for us. Block now splits in two, and judged on Unsafe alone, the same guard scores 96.6%.
+amended: [2026-10-09, 2026-10-30]
 ---
 
 The Decisions screen gave a parent two answers for any video: Allow or Block. The first replay of the guard's test harness scored the current candidate prompt against those answers and reported a clear-yes precision of **51%**, against a target of at least 95%.
@@ -38,3 +38,7 @@ The rule: **the guard decides one question — whether a video is unsafe for thi
 ## Amendment — 9 October 2026: intended, not yet wired
 
 The original said Not for us feeds the slate. That's the intent, but no ranking code reads the label yet, so the consequence now says so. Nothing else in the decision changes.
+
+## Amendment — 30 October 2026: the Unsafe-only number
+
+The Deferred list said to revisit if Unsafe-only precision still missed the target. On the 18 October replay it doesn't. Scored on Allow against Unsafe alone, the same guard the 51% was measured on has a clear-yes precision of **96.6%** on the held-out decisions (134 videos, 95% confidence interval 91.6–98.7%) and 97.9% on the rest (526 videos). That meets the 95% target, though the held-out interval still reaches below it, so the item stays open until the lower bound clears too. The two runs used different snapshots — the later one has more decisions, revised labels and recovered videos ([“Guard changes must beat the incumbent on replay”](./guard-changes-must-beat-the-incumbent-on-replay)) — so the gap between 51% and 96.6% comes from what was measured and on which videos, not from a change in the guard. Nothing else in the decision changes.
