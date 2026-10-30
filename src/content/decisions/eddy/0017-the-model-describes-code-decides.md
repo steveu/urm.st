@@ -48,4 +48,4 @@ Each step can only make the verdict stricter, and a missing or unknown age band 
 
 - **Retire the old prompt.** Make the rubric prompt the default and remove the switch once the harness ([“Guard changes must beat the incumbent on replay”](./guard-changes-must-beat-the-incumbent-on-replay)) has nothing left to compare it with.
 - **Kid requests and typed interests** still use a verdict prompt. Moving them onto the rubric is undecided.
-- **Calibrated scores.** A score read from the model's own token probabilities could be thresholded where a self-reported number can't. Not built.
+- **Calibrated scores.** A score read from the model's own token probabilities could be thresholded where a self-reported number can't. Not built in the live guard. Since 18 October the replay harness can read how the model's probability is spread over 0–3 for each dimension, and measure a threshold on the chance that a score is over its limit. It can only make a verdict stricter, and adopting it is a decision for [“Guard changes must beat the incumbent on replay”](./guard-changes-must-beat-the-incumbent-on-replay).

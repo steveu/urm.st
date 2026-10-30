@@ -6,6 +6,7 @@ date: 2026-10-02
 written: 2026-10-09
 summary: A new prompt, rubric or model replaces the current guard only if it does better on the videos a parent has already judged, scored against labels that are never overwritten.
 retroactive: true
+amended: [2026-10-18]
 ---
 
 **Status:** the harness is built, with one configuration wired in: the rubric guard ([“The model describes; code decides; only an explicit clear yes reaches a kid”](./the-model-describes-code-decides)). The rule applies to guard changes from here on; the switch to the rubric prompt was made before the harness existed, on a re-run of parked candidates.
@@ -46,5 +47,10 @@ The rule: **a guard configuration replaces the incumbent only if it beats it on 
 ## Deferred
 
 - **More configurations.** Only the rubric guard is wired in; the older verdict prompt and off-the-shelf baseline models are next.
-- **Scoring the holdout separately.** Items are marked; the report doesn't split them out yet.
 - **Retrieved precedents.** Showing the guard past decisions as examples is designed, not built. The holdout is never to be used as precedent, so it stays an honest test.
+
+## Amendment — 18 October 2026: the holdout scored, and two gaps in the measurement closed
+
+The first Deferred list included scoring the holdout separately. The report now does: every figure is given for the holdout and the rest beside the overall one, with 95% confidence intervals throughout.
+
+Two gaps in the measurement are closed alongside it. Decided videos whose details had since been pruned used to drop out of the snapshot. Their title and channel are now fetched back from YouTube's Data API and kept in a file beside the database, and the snapshot rebuilds those items from it, reported separately, because a title or channel can have changed since the parent decided. And the harness can now score the verdict the guard actually gave at the time against today's labels, with no model calls. That gives precision for clear verdicts only: every escalation gets a parent's decision, but clear verdicts are only sampled, so the uncertain rate comes from the verdicts recorded over the last 14 days instead. Those include offline re-runs of parked videos, which can't be told apart from live traffic, so the figure is labelled as all recorded verdicts. Nothing else in the decision changes.
