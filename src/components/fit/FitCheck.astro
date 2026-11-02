@@ -7,6 +7,7 @@
 import { LIMITS } from '../../fit/check';
 import { LOCATION_SUMMARY, VERDICT_COPY } from '../../fit/copy';
 import { FIT_CHECK_PATH } from '../../fit/handler';
+import { BOARD_LIST } from '../../fit/links';
 import { SAMPLE_POSTINGS } from '../../fit/samples';
 import { SAMPLE_RESULTS } from '../../fit/sample-results';
 import { markedPostingHtml, resultHtml, VERDICT_LEVEL } from './result';
@@ -129,12 +130,12 @@ const LINES = [
       </div>
 
       <form class="paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
-        <label class="step" for="fit-text">Or paste a job posting</label>
+        <label class="step" for="fit-text">Or paste a job posting, or its link</label>
         <textarea
           id="fit-text"
           name="text"
           rows="7"
-          placeholder="Paste the job description: the role, what you’d do, and where."
+          placeholder="Paste the job description: the role, what you’d do, and where. Or a job link from Greenhouse, Lever or Ashby."
           aria-describedby="fit-count fit-privacy"
           data-text></textarea>
         <div class="row">
@@ -143,6 +144,7 @@ const LINES = [
         </div>
         <p class="need" data-need hidden></p>
         <button type="submit" disabled data-go>Check the fit</button>
+        <p class="links">{BOARD_LIST} links are read from the board’s public listing. LinkedIn links can’t be read: paste the description.</p>
         <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
       </form>
     </div>
@@ -164,8 +166,18 @@ const LINES = [
 
 <script>
   import { VERDICT_COPY } from '../../fit/copy';
+  import { BOARD_NAMES, parseJobLink, type ParsedLink } from '../../fit/links';
   import { validateAssessment } from '../../fit/schema';
-  import { errorHtml, progressHtml, resultHtml, unassessableHtml, type ErrorCause } from './result';
+  import {
+    boardPostingHtml,
+    ERROR_COPY,
+    errorHtml,
+    linkSteps,
+    progressHtml,
+    resultHtml,
+    unassessableHtml,
+    type ErrorCause,
+  } from './result';
 
   const root = document.querySelector<HTMLElement>('[data-fit]');
   if (root) {
@@ -187,19 +199,30 @@ const LINES = [
     // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
     const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
 
+    // A link is read from its board, so the length rules are the board's text's, not the paste's
+    const linkIn = (): ParsedLink | null => parseJobLink(prepared());
+    const ready = (link: ParsedLink | null, len: number) => (link ? link.kind === 'board' : len >= min && len <= max);
+
     function counter() {
       const len = prepared().length;
-      count.textContent = `${n(len)} / ${n(max)}`;
-      count.classList.toggle('over', len > max);
+      const link = linkIn();
+      count.textContent = link?.kind === 'board' ? `${BOARD_NAMES[link.board]} link` : `${n(len)} / ${n(max)}`;
+      count.classList.toggle('over', !link && len > max);
       const msg =
-        len > max
-          ? `${n(len - max)} characters over. Trim it to the job description itself.`
-          : len > 0 && len < min
-            ? 'That looks short for a job posting. Paste the whole description.'
-            : '';
+        link?.kind === 'linkedin'
+          ? ERROR_COPY.linkedin
+          : link?.kind === 'other'
+            ? ERROR_COPY.other_link
+            : link
+              ? ''
+              : len > max
+                ? `${n(len - max)} characters over. Trim it to the job description itself.`
+                : len > 0 && len < min
+                  ? 'That looks short for a job posting. Paste the whole description.'
+                  : '';
       need.textContent = msg;
       need.hidden = !msg;
-      go.disabled = running || len < min || len > max;
+      go.disabled = running || !ready(link, len);
     }
     box.addEventListener('input', counter);
     counter();
@@ -226,19 +249,45 @@ const LINES = [
       status.textContent = say;
     }
 
-    const CAUSES: Record<string, ErrorCause> = { empty: 'too_short', too_short: 'too_short', too_long: 'too_long', busy: 'busy' };
+    const CAUSES: Record<string, ErrorCause> = {
+      empty: 'too_short',
+      too_short: 'too_short',
+      too_long: 'too_long',
+      busy: 'busy',
+      linkedin: 'linkedin',
+      unsupported_link: 'other_link',
+      not_found: 'link_not_found',
+      board_failed: 'link_failed',
+    };
+    // The same errors, said about a linked job's listing rather than the paste
+    const LINK_CAUSES: Record<string, ErrorCause> = { empty: 'link_too_short', too_short: 'link_too_short' };
+
+    interface LinkedPosting {
+      board: keyof typeof BOARD_NAMES;
+      title: string | null;
+      text: string;
+      truncated: boolean;
+    }
+    const isLinkedPosting = (p: unknown): p is LinkedPosting => {
+      const o = p as LinkedPosting | null;
+      return !!o && typeof o.text === 'string' && o.board in BOARD_NAMES && typeof o.truncated === 'boolean';
+    };
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = prepared();
-      if (running || text.length < min || text.length > max) return;
+      const link = linkIn();
+      if (running || !ready(link, text.length)) return;
       running = true;
       counter();
       root.querySelectorAll<HTMLInputElement>('input[name="fit-sample"]').forEach((r) => (r.checked = false));
       root.dataset.live = '';
 
+      const boardName = link?.kind === 'board' ? BOARD_NAMES[link.board] : null;
+      let label = boardName ? `Your link · ${boardName}` : LABEL;
+      const steps = boardName ? linkSteps(boardName) : undefined;
       const started = Date.now();
-      show(progressHtml(LABEL, 0, 0), 'Checking your posting');
+      show(progressHtml(label, 0, 0, steps), 'Checking your posting');
       reveal();
       const tick = setInterval(() => {
         const secs = live.querySelector('.secs');
@@ -253,26 +302,36 @@ const LINES = [
         });
         clearInterval(tick);
         const body = await res.json().catch(() => null);
+        // For a link, the text the quotes come from is the board's, sent back with the answer
+        const linked = boardName && isLinkedPosting(body?.posting) ? body.posting : null;
+        if (linked?.title) label = `${linked.title} · ${boardName}`;
+        const source = linked ? linked.text : text;
+        const postingView = (quotes: string[]) =>
+          linked ? boardPostingHtml(linked.text, quotes, boardName!, linked.truncated) : '';
+
         if (res.status === 429) {
-          show(errorHtml(LABEL, 'rate_limited'), 'Too many checks in a row');
-        } else if (body?.status === 'ok') {
-          // The function checked every quote; check them again here, against exactly what was
-          // sent, before any of it is shown
-          live.innerHTML = progressHtml(LABEL, 1);
-          const { status: _s, promptVersion: _p, ...answer } = body;
-          const checked = validateAssessment(answer, text);
+          show(errorHtml(label, 'rate_limited'), 'Too many checks in a row');
+        } else if (body?.status === 'ok' && (!boardName || linked)) {
+          // The function checked every quote; check them again here, against exactly what the
+          // model read, before any of it is shown
+          live.innerHTML = progressHtml(label, 1, 0, steps);
+          const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
+          const checked = validateAssessment(answer, source);
           await wait(reduce ? 0 : 400);
-          if (checked.ok) show(resultHtml(checked.value, { label: LABEL, contact: true }), VERDICT_COPY[checked.value.verdict].label);
-          else show(unassessableHtml(LABEL), 'Couldn’t assess this one');
+          if (checked.ok) {
+            const a = checked.value;
+            const quotes = [...a.reasons.map((r) => r.quote), a.location.quote, a.injection.quote].filter((q): q is string => !!q);
+            show(resultHtml(a, { label, contact: true }) + postingView(quotes), VERDICT_COPY[a.verdict].label);
+          } else show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
         } else if (body?.status === 'unassessable') {
-          show(unassessableHtml(LABEL), 'Couldn’t assess this one');
+          show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
         } else {
-          const cause = CAUSES[body?.error] ?? 'unavailable';
-          show(errorHtml(LABEL, cause), 'The check didn’t run');
+          const cause = (boardName && LINK_CAUSES[body?.error]) || CAUSES[body?.error] || 'unavailable';
+          show(errorHtml(label, cause), 'The check didn’t run');
         }
       } catch {
         clearInterval(tick);
-        show(errorHtml(LABEL, 'network'), 'The check didn’t run');
+        show(errorHtml(label, 'network'), 'The check didn’t run');
       } finally {
         running = false;
         counter();
@@ -749,11 +808,11 @@ const LINES = [
   }
 
   /* A sample's whole posting, with the quotes marked where they came from */
-  .posting {
+  .result :global(.posting) {
     margin-top: 22px;
   }
 
-  .posting summary {
+  .result :global(.posting summary) {
     width: fit-content;
     font-size: 13.5px;
     font-weight: 700;
@@ -761,7 +820,7 @@ const LINES = [
     cursor: pointer;
   }
 
-  .posting .ptext {
+  .result :global(.posting .ptext) {
     max-height: 340px;
     overflow: auto;
     margin-top: 12px;
@@ -774,8 +833,15 @@ const LINES = [
     color: var(--soft);
   }
 
-  .posting :global(mark) {
+  .result :global(.posting mark) {
     color: var(--ink);
+  }
+
+  .result :global(.posting .cut) {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--faint);
   }
 
   .measure {
@@ -841,6 +907,17 @@ const LINES = [
     text-decoration: underline;
     text-decoration-color: var(--mark);
     text-underline-offset: 3px;
+  }
+
+  /* Said already, and more specifically, when a link is turned away */
+  .need:not([hidden]) ~ .links {
+    display: none;
+  }
+
+  .links {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--faint);
   }
 
   .need {

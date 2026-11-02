@@ -3,6 +3,7 @@
 // from src/fit/copy.ts or a quote from the posting; the quotes are the visitor's own text, so
 // they're always escaped, and a flagged injection quote may well contain markup.
 import { INJECTION_COPY, LOCATION_COPY, REASONS, UNASSESSABLE_COPY, VERDICT_COPY, type Side, type Verdict } from '../../fit/copy.ts';
+import { BOARD_LIST } from '../../fit/links.ts';
 import type { FitAssessment } from '../../fit/schema.ts';
 
 export const escapeHtml = (s: string) =>
@@ -65,6 +66,11 @@ export const ERROR_COPY = {
   busy: 'The model is busy just now. Try again in a minute.',
   unavailable: 'The check isn’t available just now. The samples still work.',
   network: 'Couldn’t reach the check. Try again in a moment.',
+  linkedin: 'LinkedIn links can’t be read here. Copy the job description from LinkedIn and paste that instead.',
+  other_link: `That link isn’t one I can read. ${BOARD_LIST} job links work; for anything else, paste the job description.`,
+  link_not_found: 'That job isn’t on the board, or is no longer listed. Check the link, or paste the job description.',
+  link_failed: 'Couldn’t read that job from the board just now. Try again, or paste the job description.',
+  link_too_short: 'That job’s listing has too little text to judge. Paste the job description instead.',
 } as const;
 export type ErrorCause = keyof typeof ERROR_COPY;
 
@@ -75,11 +81,15 @@ export function errorHtml(label: string, cause: ErrorCause): string {
 /** The two things that really happen, in order: the model reads it, then every quote is checked. */
 export const STEPS = ['Reading it against my profile', 'Checking every quote against your text'] as const;
 
-export function progressHtml(label: string, step: 0 | 1, seconds = 0): string {
-  const items = STEPS.map((s, i) => {
+/** For a link, the first step says where the posting comes from: fetching it is part of that request. */
+export const linkSteps = (board: string) =>
+  [`Fetching it from ${board} and reading it against my profile`, 'Checking every quote against the posting'] as const;
+
+export function progressHtml(label: string, step: 0 | 1, seconds = 0, steps: readonly [string, string] = STEPS): string {
+  const items = steps.map((s, i) => {
     const state = i < step ? 'done' : i === step ? 'active' : 'todo';
     const time = i === 0 && step === 0 ? ` <span class="secs">${seconds}s</span>` : '';
-    return `<li data-state="${state}"><span class="dot" aria-hidden="true"></span>${s}${time}</li>`;
+    return `<li data-state="${state}"><span class="dot" aria-hidden="true"></span>${escapeHtml(s)}${time}</li>`;
   }).join('');
   return (
     `<p class="whose">${escapeHtml(label)}</p>` +
@@ -123,4 +133,18 @@ export function markedPostingHtml(text: string, quotes: string[]): string {
     at = to;
   }
   return out + escapeHtml(text.slice(at));
+}
+
+/**
+ * A linked posting as the check read it from the board, with its quotes marked: the visitor
+ * pasted a link, so this is the only place they see the text behind the evidence.
+ */
+export function boardPostingHtml(text: string, quotes: string[], board: string, truncated: boolean): string {
+  const cut = truncated
+    ? `<p class="cut">The listing is longer than 12,000 characters, so the check read the start of it, shown here.</p>`
+    : '';
+  return (
+    `<details class="posting"><summary>Read the posting, as read from ${escapeHtml(board)}</summary>` +
+    `${cut}<div class="ptext">${markedPostingHtml(text, quotes)}</div></details>`
+  );
 }
