@@ -3,7 +3,10 @@
 //
 //   npm run build
 //   ANTHROPIC_API_KEY=… npm run preview:fit              # or: node --env-file=<file> scripts/preview-fit.ts
-//   HOST=0.0.0.0 PORT=4391 npm run preview:fit           # to reach it from another device
+//   FIT_HOST=0.0.0.0 FIT_PORT=4391 npm run preview:fit   # to reach it from another device
+//
+// FIT_HOST and FIT_PORT win over HOST and PORT, because an env file shared with another
+// project may set HOST for that project. Variables set in the shell win over --env-file.
 //
 // The API key is read from the environment only (ANTHROPIC_WORKSPACE_ID too, if the key
 // needs one). Netlify's rate limit doesn't exist here, so a small in-memory limiter with the
@@ -14,8 +17,8 @@ import { extname, join, normalize, resolve } from 'node:path';
 import fitCheck from '../netlify/functions/fit-check.mts';
 import { FIT_CHECK_PATH, RATE_LIMIT } from '../src/fit/handler.ts';
 
-const HOST = process.env.HOST || '127.0.0.1';
-const PORT = Number(process.env.PORT || 4391);
+const HOST = process.env.FIT_HOST || process.env.HOST || '127.0.0.1';
+const PORT = Number(process.env.FIT_PORT || process.env.PORT || 4391);
 const DIST = resolve(import.meta.dirname, '..', 'dist');
 const MAX_BODY_BYTES = 64 * 1024 + 1;
 
@@ -81,9 +84,18 @@ async function api(req: IncomingMessage, res: ServerResponse) {
   res.end(Buffer.from(await out.arrayBuffer()));
 }
 
+/** The path decoded, or null when it isn't valid percent-encoding (such as /%E0%A4%A). */
+function decodePath(pathname: string): string | null {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return null;
+  }
+}
+
 // Astro builds /about to about.html and / to index.html
-function file(pathname: string): string | null {
-  const clean = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '');
+function file(decoded: string): string | null {
+  const clean = normalize(decoded).replace(/^(\.\.[/\\])+/, '');
   const base = join(DIST, clean);
   if (!base.startsWith(DIST)) return null;
   for (const p of [base, `${base}.html`, join(base, 'index.html')]) {
@@ -93,22 +105,34 @@ function file(pathname: string): string | null {
 }
 
 function serve(pathname: string, res: ServerResponse) {
-  const found = file(pathname);
+  const decoded = decodePath(pathname);
+  if (decoded === null) {
+    res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end('Bad request');
+    return;
+  }
+  const found = file(decoded);
   const path = found ?? join(DIST, '404.html');
   res.writeHead(found ? 200 : 404, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream' });
   createReadStream(path).pipe(res);
 }
 
+function fail(res: ServerResponse) {
+  if (!res.headersSent) res.writeHead(500);
+  res.end();
+}
+
+// One bad request must never take the preview down
 createServer((req, res) => {
-  const { pathname } = new URL(req.url ?? '/', 'http://localhost');
-  if (pathname === FIT_CHECK_PATH) {
-    api(req, res).catch(() => {
-      if (!res.headersSent) res.writeHead(500);
-      res.end();
-    });
-    return;
+  try {
+    const { pathname } = new URL(req.url ?? '/', 'http://localhost');
+    if (pathname === FIT_CHECK_PATH) {
+      api(req, res).catch(() => fail(res));
+      return;
+    }
+    serve(pathname, res);
+  } catch {
+    fail(res);
   }
-  serve(pathname, res);
 }).listen(PORT, HOST, () => {
   console.log(`Serving dist with the fit check at http://${HOST}:${PORT} (POST ${FIT_CHECK_PATH})`);
 });

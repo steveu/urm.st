@@ -30,11 +30,11 @@ Try it locally, with the key in your environment:
 ```sh
 npm run build
 ANTHROPIC_API_KEY=… npm run preview:fit   # serves dist/ and the function at http://127.0.0.1:4391
-HOST=0.0.0.0 PORT=4391 npm run preview:fit   # to reach it from another device
+FIT_HOST=0.0.0.0 npm run preview:fit         # to reach it from another device
 npm run fit:try                               # run the invented sample postings live and print the cost
 npm run fit:samples                           # recompute the samples' committed answers (after a prompt, model or sample change)
 npm run fit:redteam                           # re-run the red team and rewrite its figures (a couple of pence)
 npm run fit:agreement                         # re-run agreement with job-radar's labels (needs ~/data/job-radar/radar.db; under 10p)
 ```
 
-`node --env-file=<file> scripts/preview-fit.ts` works too. The preview stands in for Netlify's rate limit with an in-memory one using the same numbers.
+`node --env-file=<file> scripts/preview-fit.ts` works too. The preview binds to `FIT_HOST` and `FIT_PORT`, falling back to `HOST` and `PORT`, then `127.0.0.1:4391`; an env file shared with another project may set `HOST`, so set `FIT_HOST` to choose. Variables set in the shell win over the env file. The preview stands in for Netlify's rate limit with an in-memory one using the same numbers.
