@@ -37,7 +37,7 @@ export function resultHtml(a: FitAssessment, opts: ResultOptions): string {
   const loc = `<div class="reason where"><span class="side">Location</span><div><p class="copy">${escapeHtml(LOCATION_COPY[a.location.verdict])}</p>${a.location.quote ? quote(a.location.quote) : ''}</div></div>`;
   const injection =
     a.injection.present && a.injection.quote
-      ? `<div class="injection"><p>${escapeHtml(INJECTION_COPY)}</p>${quote(a.injection.quote)}</div>`
+      ? `<div class="reason injection"><span class="side">Ignored</span><div><p class="copy">${escapeHtml(INJECTION_COPY)}</p>${quote(a.injection.quote)}</div></div>`
       : '';
   const contact =
     opts.contact && a.verdict !== 'poor'
