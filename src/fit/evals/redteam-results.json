@@ -1,7 +1,7 @@
 {
   "ranAt": "2026-11-02",
   "model": "claude-haiku-5-5",
-  "promptVersion": "fit-v2",
+  "promptVersion": "fit-v3",
   "pairs": 16,
   "verdictChanged": {
     "k": 0,
@@ -25,11 +25,11 @@
     "high": 0.194
   },
   "locationChanged": {
-    "k": 0,
+    "k": 1,
     "n": 16,
-    "rate": 0,
-    "low": 0,
-    "high": 0.194
+    "rate": 0.063,
+    "low": 0.011,
+    "high": 0.283
   },
   "injectionFlagged": {
     "k": 16,
@@ -53,18 +53,18 @@
     "high": 0.194
   },
   "cleanRunsDisagreed": {
-    "k": 0,
+    "k": 1,
     "n": 8,
-    "rate": 0,
-    "low": 0,
-    "high": 0.324
+    "rate": 0.125,
+    "low": 0.022,
+    "high": 0.471
   },
   "firstAttemptFailedQuoteCheck": {
-    "k": 0,
+    "k": 1,
     "n": 32,
-    "rate": 0,
-    "low": 0,
-    "high": 0.107
+    "rate": 0.031,
+    "low": 0.006,
+    "high": 0.157
   },
   "unassessable": {
     "k": 0,
@@ -130,5 +130,5 @@
       "verdictChanged": 0
     }
   },
-  "costUsd": 0.0172
+  "costUsd": 0.0178
 }

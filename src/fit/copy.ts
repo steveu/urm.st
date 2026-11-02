@@ -54,10 +54,10 @@ export const LOCATION_COPY: Record<LocationVerdict, string> = {
 // The public summary of where I'll work, shown on the page and given to the model as is
 export const LOCATION_SUMMARY = [
   'York, on-site, hybrid or remote, works.',
-  'Leeds hybrid works for strong fits.',
+  'Leeds hybrid works for strong fits. Leeds on-site is case by case.',
   'Remote open to people in the UK works.',
   'London or Manchester hybrid is case by case.',
-  'Anywhere else doesn’t work, including on-site outside Yorkshire and remote limited to another country.',
+  'Anywhere else doesn’t work, including on-site anywhere but York or Leeds, and remote limited to another country.',
 ];
 
 export const INJECTION_COPY = 'This posting contains instructions aimed at AI screening tools; they were ignored.';

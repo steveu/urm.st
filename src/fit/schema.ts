@@ -93,7 +93,7 @@ const isObject = (x: unknown): x is Record<string, unknown> => typeof x === 'obj
 
 /**
  * Check parsed model output against the schema, plus what JSON schema can't say: two or
- * three distinct reasons, every quote verbatim from the posting, a quote wherever a value
+ * three distinct reasons quoting distinct passages, every quote verbatim from the posting, a quote wherever a value
  * claims something, and a verdict its reasons can support.
  */
 export function validateAssessment(raw: unknown, source: string): Validation {
@@ -118,12 +118,19 @@ export function validateAssessment(raw: unknown, source: string): Validation {
     problems.push(`reasons: expected ${MIN_REASONS} to ${MAX_REASONS}`);
   } else {
     const seen = new Set<string>();
+    const quotes = new Set<string>();
     reasons.forEach((r, i) => {
       if (!isObject(r)) return problems.push(`reasons[${i}]: expected an object`);
       if (!REASON_CODES.includes(r.code as ReasonCode)) problems.push(`reasons[${i}].code: not a known reason code`);
       else if (seen.has(r.code as string)) problems.push(`reasons[${i}].code: ${r.code} given twice`);
       seen.add(r.code as string);
       quote(`reasons[${i}].quote`, r.quote, true);
+      // The same passage twice reads as one reason padded out
+      if (typeof r.quote === 'string') {
+        const q = normaliseForQuote(stripWrapping(r.quote));
+        if (quotes.has(q)) problems.push(`reasons[${i}].quote: the same passage is quoted for another reason`);
+        quotes.add(q);
+      }
     });
     // A strong fit needs a reason for it, and a poor fit a reason against
     const sides = reasons.filter(isObject).map((r) => REASONS[r.code as ReasonCode]?.side);

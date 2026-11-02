@@ -68,6 +68,12 @@ describe('validateAssessment', () => {
     expect(validateAssessment(repeated, POSTING)).toMatchObject({ ok: false, problems: [expect.stringContaining('given twice')] });
   });
 
+  it('rejects two reasons quoting the same passage, however it is spaced or quoted', () => {
+    const a = validAnswer();
+    a.reasons[1] = { code: 'ai_product_end_to_end', quote: '  "own the assistant end to end,   from the chat interface to the evals."' };
+    expect(validateAssessment(a, POSTING)).toMatchObject({ ok: false, problems: [expect.stringContaining('the same passage')] });
+  });
+
   it('rejects a reason quote that is not in the posting', () => {
     const a = validAnswer();
     a.reasons[1].quote = 'Build in Rust and Svelte.';

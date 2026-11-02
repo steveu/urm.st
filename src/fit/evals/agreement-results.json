@@ -1,7 +1,7 @@
 {
   "ranAt": "2026-11-02",
   "model": "claude-haiku-5-5",
-  "promptVersion": "fit-v2",
+  "promptVersion": "fit-v3",
   "heldOutAfter": "2026-10-30T19:14:24Z",
   "found": 106,
   "tooShort": 0,
@@ -13,32 +13,32 @@
   "unassessable": 1,
   "verdicts": {
     "strong": {
-      "positive": 1,
-      "negative": 2
+      "positive": 2,
+      "negative": 1
     },
     "possible": {
-      "positive": 4,
-      "negative": 3
+      "positive": 3,
+      "negative": 8
     },
     "poor": {
       "positive": 1,
-      "negative": 94
+      "negative": 90
     }
   },
   "verdict": {
     "poorWereSkips": {
-      "k": 94,
-      "n": 95,
+      "k": 90,
+      "n": 91,
       "rate": 0.989,
-      "low": 0.943,
+      "low": 0.94,
       "high": 0.998
     },
     "fitWereKeepOrMaybe": {
       "k": 5,
-      "n": 10,
-      "rate": 0.5,
-      "low": 0.237,
-      "high": 0.763
+      "n": 14,
+      "rate": 0.357,
+      "low": 0.163,
+      "high": 0.612
     },
     "recallOfPositives": {
       "k": 5,
@@ -48,34 +48,34 @@
       "high": 0.97
     },
     "skipsCalledPoor": {
-      "k": 94,
+      "k": 90,
       "n": 99,
-      "rate": 0.949,
-      "low": 0.887,
-      "high": 0.978
+      "rate": 0.909,
+      "low": 0.836,
+      "high": 0.951
     },
     "agreement": {
-      "k": 99,
+      "k": 95,
       "n": 105,
-      "rate": 0.943,
-      "low": 0.881,
-      "high": 0.974
+      "rate": 0.905,
+      "low": 0.834,
+      "high": 0.947
     }
   },
   "verdictOrLocation": {
     "poorWereSkips": {
-      "k": 94,
-      "n": 95,
+      "k": 90,
+      "n": 91,
       "rate": 0.989,
-      "low": 0.943,
+      "low": 0.94,
       "high": 0.998
     },
     "fitWereKeepOrMaybe": {
       "k": 5,
-      "n": 10,
-      "rate": 0.5,
-      "low": 0.237,
-      "high": 0.763
+      "n": 14,
+      "rate": 0.357,
+      "low": 0.163,
+      "high": 0.612
     },
     "recallOfPositives": {
       "k": 5,
@@ -85,26 +85,26 @@
       "high": 0.97
     },
     "skipsCalledPoor": {
-      "k": 94,
+      "k": 90,
       "n": 99,
-      "rate": 0.949,
-      "low": 0.887,
-      "high": 0.978
+      "rate": 0.909,
+      "low": 0.836,
+      "high": 0.951
     },
     "agreement": {
-      "k": 99,
+      "k": 95,
       "n": 105,
-      "rate": 0.943,
-      "low": 0.881,
-      "high": 0.974
+      "rate": 0.905,
+      "low": 0.834,
+      "high": 0.947
     }
   },
   "firstAttemptFailedQuoteCheck": {
-    "k": 2,
+    "k": 5,
     "n": 106,
-    "rate": 0.019,
-    "low": 0.005,
-    "high": 0.066
+    "rate": 0.047,
+    "low": 0.02,
+    "high": 0.106
   },
-  "costUsd": 0.0772
+  "costUsd": 0.0837
 }

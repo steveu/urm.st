@@ -1,14 +1,10 @@
 {
   "model": "claude-haiku-5-5",
-  "promptVersion": "fit-v2",
+  "promptVersion": "fit-v3",
   "results": {
     "strong": {
       "verdict": "strong",
       "reasons": [
-        {
-          "code": "ai_product_end_to_end",
-          "quote": "Own the assistant end to end: the chat interface, the prompts and tools behind it, and the evals that tell us whether it is getting better."
-        },
         {
           "code": "owns_agent",
           "quote": "Own the assistant end to end: the chat interface, the prompts and tools behind it, and the evals that tell us whether it is getting better."
@@ -16,6 +12,10 @@
         {
           "code": "typescript_react",
           "quote": "Build in TypeScript and React on the front end, with a small Node service for tools."
+        },
+        {
+          "code": "evals_in_scope",
+          "quote": "You have written evals for an AI feature and changed the product because of what they showed."
         }
       ],
       "location": {
@@ -36,7 +36,7 @@
         },
         {
           "code": "typescript_react",
-          "quote": "Strong React and TypeScript, and a track record of building and maintaining a design system."
+          "quote": "Lead the frontend of our web app: React, TypeScript and our in-house component library."
         },
         {
           "code": "frontend_without_ai",
@@ -60,12 +60,12 @@
           "quote": "Design and run Python microservices that route, queue and cache model requests."
         },
         {
-          "code": "ml_or_data_science",
-          "quote": "Work with ML engineers to deploy and scale their models on Kubernetes."
+          "code": "specialism_gap",
+          "quote": "Five or more years building backend services in Python or Go."
         },
         {
-          "code": "frontend_without_ai",
-          "quote": "Own the platform's reliability: monitoring, alerting and an on-call rota shared across the team."
+          "code": "ml_or_data_science",
+          "quote": "Work with ML engineers to deploy and scale their models on Kubernetes."
         }
       ],
       "location": {
@@ -85,8 +85,8 @@
           "quote": "Design the assistant's flows in Figma, from the first prompt a clinician sees to how they edit a draft."
         },
         {
-          "code": "ai_leans_platform",
-          "quote": "We're designing an assistant that drafts follow-up notes for clinicians to check and send."
+          "code": "unrelated_role",
+          "quote": "This is a design role: you won't write production code."
         }
       ],
       "location": {
