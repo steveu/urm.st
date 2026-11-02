@@ -147,7 +147,7 @@ const LINES = [
         <p>
           The judgement uses my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>,
           published as is, and a public summary of where I’ll work. Claude Haiku reads the posting and picks from fixed
-          reasons; it never writes words for this page. Instructions hidden in a posting are treated as text, and flagged.
+          reasons; it never writes words for this page.
         </p>
         <p class="figures" data-eval-figures>
           {EVAL_FIGURES.agreement}
@@ -1011,6 +1011,9 @@ const LINES = [
     }
     .out { padding: 28px 0 0; border-left: 0; border-top: 1px solid var(--hair); }
     .paste { padding-top: 28px; border-top: 1px solid var(--hair); }
+    /* Stacked, the hidden samples would hold the column at the tallest one's height, leaving
+       a gap between a check's progress and the box */
+    .band[data-live] .result:not([data-for='live']) { display: none; }
   }
 
   @media (max-width: 640px) {
