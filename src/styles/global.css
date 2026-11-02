@@ -22,6 +22,10 @@
   --eddy-deep: #24403f;
   --eddy-gold: #e0b46a;
   --one-thought: #c7a14e;
+  /* job-radar: an ink indigo, deep for its band, light for marks and quotes on it */
+  --job-radar: #565ba3;
+  --job-radar-deep: #1d1f35;
+  --job-radar-light: #b9bdf4;
   --live: #2e8a57;
 
   /* The original site's pair: Merriweather headings, Muli (now Mulish) for everything else */

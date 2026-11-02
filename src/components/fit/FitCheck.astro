@@ -1,0 +1,940 @@
+---
+// Home band for job-radar's fit check: paste a job posting and see whether I'd fit it, with a
+// quote from the posting behind every reason. Four made-up samples come first, answered ahead
+// of time by the real check and committed (src/fit/sample-results.json), so they're instant,
+// free, and switch with scripts off: they're radio buttons, and CSS shows the checked one.
+// Every word in a result is site copy or the posting's own text; see ./result.ts.
+import { LIMITS } from '../../fit/check';
+import { LOCATION_SUMMARY, VERDICT_COPY } from '../../fit/copy';
+import { FIT_CHECK_PATH } from '../../fit/handler';
+import { SAMPLE_POSTINGS } from '../../fit/samples';
+import { SAMPLE_RESULTS } from '../../fit/sample-results';
+import { markedPostingHtml, resultHtml, VERDICT_LEVEL } from './result';
+
+const START = 'strong';
+
+const samples = SAMPLE_POSTINGS.map((s) => {
+  const result = SAMPLE_RESULTS.results[s.id];
+  if (!result) throw new Error(`No committed result for the ${s.id} sample: run scripts/fit-samples.ts`);
+  const quotes = [...result.reasons.map((r) => r.quote), result.location.quote, result.injection.quote].filter((q): q is string => !!q);
+  return { ...s, result, posting: markedPostingHtml(s.text, quotes) };
+});
+
+// The art: a posting on the radar, read and marked. Line widths in the art's own units
+const LINES = [
+  { w: 132, title: true },
+  { w: 96 },
+  { w: 176 },
+  { w: 160, mark: 1 },
+  { w: 184 },
+  { w: 120 },
+  { w: 172, mark: 2 },
+  { w: 150 },
+  { w: 180, mark: 3 },
+  { w: 108 },
+];
+---
+
+<section id="fit-check" class="band" aria-labelledby="fit-check-title" data-fit>
+  <div class="wrap">
+    <header class="head">
+      <div class="text">
+        <p class="eyebrow">job-radar</p>
+        <h2 id="fit-check-title">Would I fit your role? Paste the posting and see the&nbsp;evidence.</h2>
+        <p class="lede">
+          job-radar is the tool I built to read job postings for my own search. Here it reads yours: a verdict, the reasons
+          behind it and whether the location works, each reason with a quote from the posting, checked word for word before
+          it’s shown. It says no as plainly as yes.
+        </p>
+      </div>
+      <!-- A posting on the radar, its evidence marked -->
+      <div class="art" aria-hidden="true" data-art>
+        <svg viewBox="0 0 600 560">
+          <g class="rings">
+            <circle cx="430" cy="290" r="120"></circle>
+            <circle cx="430" cy="290" r="200"></circle>
+            <circle cx="430" cy="290" r="280"></circle>
+            <circle cx="430" cy="290" r="360"></circle>
+          </g>
+          <g class="sheet">
+            <rect class="paper" x="150" y="96" width="260" height="344" rx="16"></rect>
+            {
+              LINES.map((l, i) => {
+                const y = 136 + i * 26 + (l.title ? 0 : 8);
+                return (
+                  <>
+                    {l.mark && <rect class="hl" style={`--i:${l.mark}`} x="176" y={y - 6} width={l.w + 12} height="20" rx="4" />}
+                    <rect class:list={['ln', l.title && 'title']} x="182" y={y} width={l.w} height={l.title ? 12 : 8} rx={l.title ? 6 : 4} />
+                  </>
+                );
+              })
+            }
+            <g class="tag">
+              {[0, 1, 2].map((n) => <rect class:list={['bar', n < VERDICT_LEVEL.strong && 'on']} x={182 + n * 13} y={412 - n * 7} width="8" height={10 + n * 7} rx="2" />)}
+            </g>
+          </g>
+        </svg>
+      </div>
+    </header>
+
+    <div class="demo">
+      <fieldset class="samples">
+        <legend class="step">Try a sample posting</legend>
+        <ul>
+          {
+            samples.map((s) => (
+              <li>
+                <label>
+                  <input class="visually-hidden" type="radio" name="fit-sample" value={s.id} checked={s.id === START} />
+                  <span class="glyph" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span class="name">
+                    {s.title}
+                    <span class="co">{s.company}</span>
+                  </span>
+                </label>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="note">Made-up postings and companies, answered ahead of time by the real check.</p>
+      </fieldset>
+
+      <div class="out">
+        <div class="results" data-results>
+          {
+            samples.map((s) => (
+              <article class="result" data-for={s.id} data-announce={`${s.title}: ${VERDICT_COPY[s.result.verdict].label}`}>
+                <Fragment set:html={resultHtml(s.result, { label: `Sample · ${s.title}, ${s.company}` })} />
+                <details class="posting">
+                  <summary>Read the posting</summary>
+                  <div class="ptext" set:html={s.posting} />
+                </details>
+              </article>
+            ))
+          }
+          <article class="result" data-for="live" data-live-result></article>
+        </div>
+        <!--
+          EVAL FIGURES (#40): replace this paragraph with the scorer's measured agreement with my own
+          labels (with the sample size), the red-team figures (how often an injection changed the
+          verdict, how often it was flagged), and a link to how they were measured.
+        -->
+        <p class="measure" data-eval-figures>
+          How often this agrees with my own judgement is being measured; the figure and its sample size will go here.
+        </p>
+      </div>
+
+      <form class="paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
+        <label class="step" for="fit-text">Or paste a job posting</label>
+        <textarea
+          id="fit-text"
+          name="text"
+          rows="7"
+          placeholder="Paste the job description: the role, what you’d do, and where."
+          aria-describedby="fit-count fit-privacy"
+          data-text></textarea>
+        <div class="row">
+          <p class="privacy" id="fit-privacy">Not stored or logged.</p>
+          <p class="count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
+        </div>
+        <p class="need" data-need hidden></p>
+        <button type="submit" disabled data-go>Check the fit</button>
+        <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
+      </form>
+    </div>
+
+    <div class="close">
+      <p>
+        The judgement uses my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>,
+        published as is, and a public summary of where I’ll work. Claude Haiku reads the posting and picks from fixed
+        reasons; it never writes words for this page. Instructions hidden in a posting are treated as text, and flagged.
+      </p>
+      <div class="where-i-work">
+        <p class="label">Where I’ll work</p>
+        <ul>{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
+      </div>
+    </div>
+  </div>
+  <p class="visually-hidden" role="status" data-status></p>
+</section>
+
+<script>
+  import { VERDICT_COPY } from '../../fit/copy';
+  import { validateAssessment } from '../../fit/schema';
+  import { errorHtml, progressHtml, resultHtml, unassessableHtml, type ErrorCause } from './result';
+
+  const root = document.querySelector<HTMLElement>('[data-fit]');
+  if (root) {
+    const form = root.querySelector<HTMLFormElement>('[data-paste]')!;
+    const box = root.querySelector<HTMLTextAreaElement>('[data-text]')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const need = root.querySelector<HTMLElement>('[data-need]')!;
+    const go = root.querySelector<HTMLButtonElement>('[data-go]')!;
+    const live = root.querySelector<HTMLElement>('[data-live-result]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const art = root.querySelector<HTMLElement>('[data-art]')!;
+    const min = Number(form.dataset.min);
+    const max = Number(form.dataset.max);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LABEL = 'Your posting';
+    const n = (x: number) => x.toLocaleString('en-GB');
+    let running = false;
+
+    // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
+    const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
+
+    function counter() {
+      const len = prepared().length;
+      count.textContent = `${n(len)} / ${n(max)}`;
+      count.classList.toggle('over', len > max);
+      const msg =
+        len > max
+          ? `${n(len - max)} characters over. Trim it to the job description itself.`
+          : len > 0 && len < min
+            ? 'That looks short for a job posting. Paste the whole description.'
+            : '';
+      need.textContent = msg;
+      need.hidden = !msg;
+      go.disabled = running || len < min || len > max;
+    }
+    box.addEventListener('input', counter);
+    counter();
+
+    // Picking a sample: CSS shows it; this leaves any pasted result and says what changed
+    root.addEventListener('change', (e) => {
+      const input = e.target as HTMLInputElement;
+      if (input.name !== 'fit-sample') return;
+      delete root.dataset.live;
+      root.querySelectorAll<HTMLDetailsElement>('.posting[open]').forEach((d) => (d.open = false));
+      status.textContent = root.querySelector<HTMLElement>(`[data-for="${input.value}"]`)?.dataset.announce ?? '';
+    });
+
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    // On a phone the result sits above the box; bring it into view if it's off screen
+    function reveal() {
+      const r = live.getBoundingClientRect();
+      if (r.top < 0 || r.top > innerHeight * 0.6) live.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    function show(html: string, say: string) {
+      live.innerHTML = html;
+      status.textContent = say;
+    }
+
+    const CAUSES: Record<string, ErrorCause> = { empty: 'too_short', too_short: 'too_short', too_long: 'too_long', busy: 'busy' };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = prepared();
+      if (running || text.length < min || text.length > max) return;
+      running = true;
+      counter();
+      root.querySelectorAll<HTMLInputElement>('input[name="fit-sample"]').forEach((r) => (r.checked = false));
+      root.dataset.live = '';
+
+      const started = Date.now();
+      show(progressHtml(LABEL, 0, 0), 'Checking your posting');
+      reveal();
+      const tick = setInterval(() => {
+        const secs = live.querySelector('.secs');
+        if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
+      }, 1000);
+
+      try {
+        const res = await fetch(form.dataset.path!, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        clearInterval(tick);
+        const body = await res.json().catch(() => null);
+        if (res.status === 429) {
+          show(errorHtml(LABEL, 'rate_limited'), 'Too many checks in a row');
+        } else if (body?.status === 'ok') {
+          // The function checked every quote; check them again here, against exactly what was
+          // sent, before any of it is shown
+          live.innerHTML = progressHtml(LABEL, 1);
+          const { status: _s, promptVersion: _p, ...answer } = body;
+          const checked = validateAssessment(answer, text);
+          await wait(reduce ? 0 : 400);
+          if (checked.ok) show(resultHtml(checked.value, { label: LABEL, contact: true }), VERDICT_COPY[checked.value.verdict].label);
+          else show(unassessableHtml(LABEL), 'Couldn’t assess this one');
+        } else if (body?.status === 'unassessable') {
+          show(unassessableHtml(LABEL), 'Couldn’t assess this one');
+        } else {
+          const cause = CAUSES[body?.error] ?? 'unavailable';
+          show(errorHtml(LABEL, cause), 'The check didn’t run');
+        }
+      } catch {
+        clearInterval(tick);
+        show(errorHtml(LABEL, 'network'), 'The check didn’t run');
+      } finally {
+        running = false;
+        counter();
+      }
+    });
+
+    // The first time the band is seen, the sheet settles and its evidence is marked, line by
+    // line. Scripts off or reduced motion: it's just there.
+    if (!reduce) {
+      art.classList.add('ready');
+      new IntersectionObserver(
+        (entries, io) => {
+          if (!entries[0].isIntersecting) return;
+          io.disconnect();
+          art.classList.add('in');
+        },
+        { threshold: 0.5 },
+      ).observe(art);
+    }
+  }
+</script>
+
+<style>
+  .band {
+    --ink: #efeff8;
+    --soft: #c6c8e0;
+    --faint: #9a9dc0;
+    --mark: var(--job-radar-light);
+    --hair: rgb(239 239 248 / 0.14);
+    --well: rgb(239 239 248 / 0.06);
+    position: relative;
+    overflow: hidden;
+    padding: clamp(40px, 5vw, 64px) 0 56px;
+    background: var(--job-radar-deep);
+    color: var(--ink);
+  }
+
+  .band :focus-visible {
+    outline-color: var(--mark);
+  }
+
+  .band :global(a) {
+    color: var(--mark);
+    text-underline-offset: 3px;
+  }
+
+  .band :global(a:hover) {
+    color: var(--ink);
+  }
+
+  /* ---- The head: eyebrow, title and lede, with the art beside ---- */
+  .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .eyebrow {
+    font: 500 14px var(--font-mono);
+    letter-spacing: 0.02em;
+    color: var(--mark);
+  }
+
+  h2 {
+    font-size: clamp(30px, 3.6vw, 46px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 640px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  .art {
+    width: 100%;
+    max-width: 440px;
+    justify-self: end;
+  }
+
+  .art svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .rings circle {
+    fill: none;
+    stroke: var(--mark);
+    stroke-width: 1.5;
+  }
+  .rings circle:nth-child(1) { opacity: 0.32; }
+  .rings circle:nth-child(2) { opacity: 0.2; }
+  .rings circle:nth-child(3) { opacity: 0.12; }
+  .rings circle:nth-child(4) { opacity: 0.07; }
+
+  .sheet {
+    transform: rotate(-3deg);
+    transform-origin: 280px 268px;
+    filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.4));
+  }
+
+  .paper { fill: #f4f2ec; }
+  .ln { fill: #1d1f35; opacity: 0.16; }
+  .ln.title { opacity: 0.6; }
+  .hl { fill: var(--mark); transform-box: fill-box; transform-origin: left center; }
+  .bar { fill: #1d1f35; opacity: 0.14; }
+  .bar.on { opacity: 0.75; }
+
+  /* The way in: the sheet settles onto the radar, then its evidence is marked in reading order */
+  .art.ready:not(.in) .sheet { opacity: 0; transform: translateY(14px) rotate(-1deg); }
+  .art.ready:not(.in) .hl { transform: scaleX(0); }
+  .art.ready:not(.in) .tag { opacity: 0; }
+  .art.ready:not(.in) .rings { opacity: 0; }
+
+  .art.in .rings { transition: opacity var(--fig-slow) var(--ease-out); }
+  .art.in .sheet {
+    transition:
+      transform var(--fig-base) var(--fig-settle),
+      opacity var(--fig-fast) var(--ease-out);
+  }
+  .art.in .hl { transition: transform var(--fig-base) var(--fig-settle) calc(380ms + var(--i) * 180ms); }
+  .art.in .tag { transition: opacity var(--fig-fast) var(--ease-out) 1000ms; }
+
+  /* ---- The demo: samples and the box on the left, the result on the right ---- */
+  .demo {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-areas:
+      'samples out'
+      'paste out';
+    grid-template-rows: auto 1fr;
+    column-gap: clamp(32px, 4vw, 56px);
+    row-gap: 36px;
+    margin-top: 44px;
+  }
+
+  .samples { grid-area: samples; }
+  .out { grid-area: out; }
+  .paste { grid-area: paste; }
+
+  .step {
+    padding: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--mark);
+  }
+
+  .samples {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .samples ul {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 14px -10px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .samples label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    line-height: 1.3;
+    color: var(--soft);
+    cursor: pointer;
+  }
+
+  .samples label:hover {
+    background: rgb(239 239 248 / 0.05);
+  }
+
+  .samples label:has(:checked) {
+    background: rgb(239 239 248 / 0.1);
+    color: var(--ink);
+  }
+
+  .samples label:has(:focus-visible) {
+    outline: 2px solid var(--mark);
+    outline-offset: 0;
+  }
+
+  .name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .co {
+    font-size: 12.5px;
+    color: var(--faint);
+  }
+
+  /* A little sheet for each posting, as in the art */
+  .glyph {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 26px;
+    height: 32px;
+    padding: 7px 5px;
+    border-radius: 4px;
+    background: rgb(244 242 236 / 0.9);
+  }
+
+  .glyph i {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: rgb(29 31 53 / 0.25);
+  }
+
+  .glyph i:nth-child(1) { width: 70%; background: rgb(29 31 53 / 0.6); }
+  .glyph i:nth-child(3) { width: 85%; }
+
+  label:has(:checked) .glyph i:nth-child(2) {
+    background: var(--mark);
+    box-shadow: 0 0 0 1px var(--mark);
+  }
+
+  .note {
+    margin-top: 12px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--faint);
+  }
+
+  /* ---- The result: all of them stacked in one cell, so the column holds the tallest ---- */
+  .out {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    padding-left: clamp(32px, 4vw, 56px);
+    border-left: 1px solid var(--hair);
+  }
+
+  .results {
+    display: grid;
+  }
+
+  .result {
+    grid-area: 1 / 1;
+    min-width: 0;
+    visibility: hidden;
+  }
+
+  .band:has(input[value='strong']:checked) [data-for='strong'],
+  .band:has(input[value='possible']:checked) [data-for='possible'],
+  .band:has(input[value='poor']:checked) [data-for='poor'],
+  .band:has(input[value='injection']:checked) [data-for='injection'],
+  .band[data-live] [data-for='live'] {
+    visibility: visible;
+  }
+
+  .result :global(.whose) {
+    font-size: 12.5px;
+    color: var(--faint);
+  }
+
+  .result :global(.verdict) {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 10px;
+  }
+
+  .result :global(.verdict h3) {
+    font-size: clamp(30px, 3.4vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Three bars rising to the verdict, like a signal: one colour, no traffic light */
+  .result :global(.meter) {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 26px;
+  }
+
+  .result :global(.meter i) {
+    width: 7px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1.5px rgb(185 189 244 / 0.4);
+  }
+
+  .result :global(.meter i:nth-child(1)) { height: 10px; }
+  .result :global(.meter i:nth-child(2)) { height: 18px; }
+  .result :global(.meter i:nth-child(3)) { height: 26px; }
+
+  .result :global(.meter i.on) {
+    background: var(--mark);
+    box-shadow: none;
+  }
+
+  .result :global(.line) {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  .result :global(.reasons) {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 24px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .result :global(.copy) {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+
+  /* Which way each reason pulls, in a narrow column, so the copy and quotes line up */
+  .result :global(.reason) {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .result :global(.side) {
+    padding-top: 3px;
+    font: 500 11.5px var(--font-mono);
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    color: var(--faint);
+  }
+
+  .result :global([data-side='for'] .side) {
+    color: var(--mark);
+  }
+
+  /* The posting's own words: set in the serif, marked as if by hand, so the evidence reads as theirs */
+  .result :global(.quote) {
+    margin: 8px 0 0;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* The opening mark hangs, so the words line up with the copy above */
+  .result :global(.quote p) { text-indent: -0.42em; }
+  .result :global(.quote p::before) { content: '“'; color: var(--faint); }
+  .result :global(.quote p::after) { content: '”'; color: var(--faint); }
+
+  .band :global(mark) {
+    padding: 1px 2px;
+    border-radius: 3px;
+    background: rgb(185 189 244 / 0.18);
+    color: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .result :global(.where) {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hair);
+  }
+
+  .result :global(.injection) {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--well);
+    box-shadow: inset 0 0 0 1px var(--hair);
+  }
+
+  .result :global(.injection > p) {
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
+  .result :global(.contact) {
+    margin-top: 22px;
+    font-size: 15px;
+    color: var(--soft);
+  }
+
+  .result :global(.contact a) {
+    font-weight: 700;
+  }
+
+  .result :global(.plain) {
+    margin-top: 12px;
+    max-width: 480px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--soft);
+  }
+
+  /* Progress: the two steps that really happen, the current one lit */
+  .result :global(.progress) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15px;
+  }
+
+  .result :global(.progress li) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--faint);
+  }
+
+  .result :global(.progress [data-state='active']) { color: var(--ink); }
+  .result :global(.progress [data-state='done']) { color: var(--soft); }
+
+  .result :global(.progress .dot) {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+
+  .result :global(.progress [data-state='done'] .dot) { background: var(--mark); box-shadow: none; }
+
+  .result :global(.progress [data-state='active'] .dot) {
+    box-shadow: inset 0 0 0 1.5px var(--mark);
+    animation: reading 1.2s ease-in-out infinite;
+  }
+
+  @keyframes reading {
+    50% { background: var(--mark); }
+  }
+
+  .result :global(.secs) {
+    font: 12px var(--font-mono);
+    color: var(--faint);
+  }
+
+  .result :global(.hint) {
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--faint);
+  }
+
+  /* A sample's whole posting, with the quotes marked where they came from */
+  .posting {
+    margin-top: 22px;
+  }
+
+  .posting summary {
+    width: fit-content;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--mark);
+    cursor: pointer;
+  }
+
+  .posting .ptext {
+    max-height: 340px;
+    overflow: auto;
+    margin-top: 12px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: var(--well);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    color: var(--soft);
+  }
+
+  .posting :global(mark) {
+    color: var(--ink);
+  }
+
+  .measure {
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--faint);
+  }
+
+  /* ---- The box ---- */
+  .paste {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 14px 16px;
+    border: 0;
+    border-radius: 12px;
+    background: rgb(239 239 248 / 0.07);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    font: 14px/1.55 var(--font-sans);
+    color: var(--ink);
+    resize: vertical;
+  }
+
+  textarea::placeholder {
+    color: var(--faint);
+  }
+
+  textarea:focus-visible {
+    outline: 2px solid var(--mark);
+    outline-offset: 1px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .privacy {
+    font-weight: 700;
+    color: var(--soft);
+  }
+
+  .count {
+    font: 12px var(--font-mono);
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .count.over {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--mark);
+    text-underline-offset: 3px;
+  }
+
+  .need {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--soft);
+  }
+
+  button {
+    min-height: 44px;
+    margin-top: 4px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 99px;
+    background: var(--ink);
+    font: 700 15px var(--font-sans);
+    color: var(--job-radar-deep);
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) {
+    background: #fff;
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* ---- The close ---- */
+  .close {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px 64px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--hair);
+  }
+
+  .close > p {
+    max-width: 640px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--soft);
+    text-wrap: pretty;
+  }
+
+  .label {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .where-i-work ul {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--soft);
+  }
+
+  .where-i-work ul {
+    max-width: 420px;
+  }
+
+  @media (max-width: 960px) {
+    .head { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .art { max-width: 200px; justify-self: start; }
+    .close { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 860px) {
+    .demo {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'samples' 'out' 'paste';
+      grid-template-rows: auto;
+      max-width: 620px;
+      row-gap: 32px;
+    }
+    .out { padding: 28px 0 0; border-left: 0; border-top: 1px solid var(--hair); }
+    .paste { padding-top: 28px; border-top: 1px solid var(--hair); }
+  }
+
+  @media (max-width: 640px) {
+    h2 { font-size: clamp(26px, 7vw, 42px); }
+    .result :global(.reason) { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .art { max-width: 150px; }
+    .paste button { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .result :global(.progress [data-state='active'] .dot) { animation: none; background: var(--mark); }
+  }
+</style>
