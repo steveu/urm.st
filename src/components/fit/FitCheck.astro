@@ -178,8 +178,12 @@ const LINES = [
     const n = (x: number) => x.toLocaleString('en-GB');
     const GO = go.textContent;
     let running = false;
-    // The text whose answer is showing: checking it again would cost a call for the same answer
+    // The text whose answer is in the live result, showing or behind a sample: checking it
+    // again would cost a call for the same answer, so the button brings that answer back
     let answered: string | null = null;
+    let answeredSay = '';
+    const band = root;
+    const liveShown = () => 'live' in band.dataset;
 
     // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
     const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
@@ -210,7 +214,8 @@ const LINES = [
       // With scripts on, the button stays focusable throughout: it's marked rather than disabled.
       // An outline while there's nothing new to check; filled once there is; dimmed while it runs
       go.disabled = false;
-      go.setAttribute('aria-disabled', String(running || !ready(link, len) || prepared() === answered));
+      const showing = prepared() === answered && liveShown();
+      go.setAttribute('aria-disabled', String(running || !ready(link, len) || showing));
       go.setAttribute('aria-busy', String(running));
       go.textContent = running ? 'Checking…' : GO;
     }
@@ -222,7 +227,6 @@ const LINES = [
       const input = e.target as HTMLInputElement;
       if (input.name !== 'fit-sample') return;
       delete root.dataset.live;
-      answered = null;
       counter();
       root.querySelectorAll<HTMLDetailsElement>('.posting[open]').forEach((d) => (d.open = false));
       const picked = root.querySelector<HTMLElement>(`[data-for="${input.value}"]`);
@@ -279,11 +283,21 @@ const LINES = [
       e.preventDefault();
       const text = prepared();
       const link = linkIn();
-      if (running || !ready(link, text.length) || text === answered) return;
-      running = true;
-      counter();
+      if (running || !ready(link, text.length) || (text === answered && liveShown())) return;
       root.querySelectorAll<HTMLInputElement>('input[name="fit-sample"]').forEach((r) => (r.checked = false));
       root.dataset.live = '';
+      // Back from a sample to a paste already answered: show that answer again, no new call
+      if (text === answered) {
+        counter();
+        status.textContent = answeredSay;
+        play(live);
+        reveal();
+        return;
+      }
+      // The live result is about to hold this check, not the last answer
+      answered = null;
+      running = true;
+      counter();
 
       const boardName = link?.kind === 'board' ? BOARD_NAMES[link.board] : null;
       let label = boardName ? `Your ${boardName} link` : LABEL;
@@ -335,9 +349,11 @@ const LINES = [
             show(resultHtml(a, { label, contact: true }) + postingView(quotes), VERDICT_COPY[a.verdict].label);
           } else show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
           answered = text;
+          answeredSay = status.textContent ?? '';
         } else if (body?.status === 'unassessable') {
           show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
           answered = text;
+          answeredSay = status.textContent ?? '';
         } else {
           const cause = (boardName && LINK_CAUSES[body?.error]) || CAUSES[body?.error] || 'unavailable';
           show(errorHtml(label, cause), 'The check didn’t run');
