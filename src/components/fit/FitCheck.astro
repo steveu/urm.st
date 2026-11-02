@@ -7,7 +7,6 @@
 import { LIMITS } from '../../fit/check';
 import { LOCATION_SUMMARY, VERDICT_COPY } from '../../fit/copy';
 import { FIT_CHECK_PATH } from '../../fit/handler';
-import { BOARD_LIST } from '../../fit/links';
 import { SAMPLE_POSTINGS } from '../../fit/samples';
 import { SAMPLE_RESULTS } from '../../fit/sample-results';
 import { EVAL_FIGURES } from '../../fit/evals/figures';
@@ -44,9 +43,8 @@ const LINES = [
         <p class="eyebrow">job-radar</p>
         <h2 id="fit-check-title">Would I fit your role? Paste the posting and see the&nbsp;evidence.</h2>
         <p class="lede">
-          job-radar is the tool I built to read job postings for my own search. Here it reads yours: a verdict, the reasons
-          behind it and whether the location works, each reason with a quote from the posting, checked word for word before
-          it’s shown. It says no as plainly as yes.
+          job-radar is the tool I built to read postings for my own job search. Here it reads yours: a verdict and its
+          reasons, each backed by a quote from the posting, checked word for word. It says no as plainly as yes.
         </p>
       </div>
       <!-- A posting on the radar, its evidence marked -->
@@ -88,21 +86,14 @@ const LINES = [
               <li>
                 <label>
                   <input class="visually-hidden" type="radio" name="fit-sample" value={s.id} checked={s.id === START} />
-                  <span class="glyph" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  <span class="name">
-                    {s.title}
-                    <span class="co">{s.company}</span>
-                  </span>
+                  <span class="name">{s.title}</span>
+                  <span class="co">{s.company}</span>
                 </label>
               </li>
             ))
           }
         </ul>
-        <p class="note">Made-up postings and companies, answered ahead of time by the real check.</p>
+        <p class="note">Made-up postings, answered ahead of time by the real check.</p>
       </fieldset>
 
       <div class="out">
@@ -110,7 +101,7 @@ const LINES = [
           {
             samples.map((s) => (
               <article class="result" data-for={s.id} data-announce={`${s.title}: ${VERDICT_COPY[s.result.verdict].label}`}>
-                <Fragment set:html={resultHtml(s.result, { label: `Sample · ${s.title}, ${s.company}` })} />
+                <Fragment set:html={resultHtml(s.result, { label: `${s.title}, ${s.company}` })} />
                 <details class="posting">
                   <summary>Read the posting</summary>
                   <div class="ptext" set:html={s.posting} />
@@ -123,21 +114,22 @@ const LINES = [
       </div>
 
       <form class="paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
-        <label class="step" for="fit-text">Or paste a job posting, or its link</label>
+        <label class="step" for="fit-text">Or paste a job posting or link</label>
         <textarea
           id="fit-text"
           name="text"
-          rows="7"
-          placeholder="Paste the job description: the role, what you’d do, and where. Or a job link from Greenhouse, Lever or Ashby."
-          aria-describedby="fit-count fit-privacy"
+          rows="6"
+          placeholder="The job description, or a job link from Greenhouse, Lever or Ashby."
+          aria-describedby="fit-privacy fit-count"
           data-text></textarea>
-        <div class="row">
-          <p class="privacy" id="fit-privacy">Not stored or logged.</p>
-          <p class="count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
-        </div>
         <p class="need" data-need hidden></p>
-        <button type="submit" disabled data-go>Check the fit</button>
-        <p class="links">{BOARD_LIST} links are read from the board’s public listing. LinkedIn links can’t be read: paste the description.</p>
+        <div class="row">
+          <button type="submit" disabled data-go>Check the fit</button>
+          <p class="meta">
+            <span id="fit-privacy">Not stored or logged.</span>
+            <span class="count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</span>
+          </p>
+        </div>
         <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
       </form>
     </div>
@@ -145,20 +137,19 @@ const LINES = [
     <div class="close">
       <div class="how">
         <p>
-          The judgement uses my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>,
-          published as is, and a public summary of where I’ll work. Claude Haiku reads the posting and picks from fixed
-          reasons; it never writes words for this page.
+          Claude Haiku reads the posting against my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>{' '}
+          and picks from fixed reasons; it never writes words for this page.
         </p>
         <p class="figures" data-eval-figures>
           {EVAL_FIGURES.agreement}
           {EVAL_FIGURES.redTeam}
         </p>
-        <a class="primary" href="/work/fit-check">How this was measured →</a>
+        <details class="where-i-work">
+          <summary>Where I’ll work</summary>
+          <ul>{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
+        </details>
       </div>
-      <div class="where-i-work">
-        <p class="label">Where I’ll work</p>
-        <ul>{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
-      </div>
+      <a class="primary" href="/work/fit-check">How this was measured →</a>
     </div>
   </div>
   <p class="visually-hidden" role="status" data-status></p>
@@ -233,10 +224,20 @@ const LINES = [
       if (input.name !== 'fit-sample') return;
       delete root.dataset.live;
       root.querySelectorAll<HTMLDetailsElement>('.posting[open]').forEach((d) => (d.open = false));
-      status.textContent = root.querySelector<HTMLElement>(`[data-for="${input.value}"]`)?.dataset.announce ?? '';
+      const picked = root.querySelector<HTMLElement>(`[data-for="${input.value}"]`);
+      status.textContent = picked?.dataset.announce ?? '';
+      if (picked) play(picked);
     });
 
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    // A result that has just been chosen or has just come back settles in, verdict first
+    function play(el: HTMLElement) {
+      if (reduce) return;
+      el.classList.remove('play');
+      void el.offsetWidth;
+      el.classList.add('play');
+    }
 
     // On a phone the result sits above the box; bring it into view if it's off screen
     function reveal() {
@@ -284,10 +285,11 @@ const LINES = [
       root.dataset.live = '';
 
       const boardName = link?.kind === 'board' ? BOARD_NAMES[link.board] : null;
-      let label = boardName ? `Your link · ${boardName}` : LABEL;
+      let label = boardName ? `Your ${boardName} link` : LABEL;
       const steps = boardName ? linkSteps(boardName) : undefined;
       const started = Date.now();
       show(progressHtml(label, 0, 0, steps), 'Checking your posting');
+      play(live);
       reveal();
       const tick = setInterval(() => {
         const secs = live.querySelector('.secs');
@@ -304,7 +306,7 @@ const LINES = [
         const body = await res.json().catch(() => null);
         // For a link, the text the quotes come from is the board's, sent back with the answer
         const linked = boardName && isLinkedPosting(body?.posting) ? body.posting : null;
-        if (linked?.title) label = `${linked.title} · ${boardName}`;
+        if (linked?.title) label = `${linked.title}, from ${boardName}`;
         const source = linked ? linked.text : text;
         const postingView = (quotes: string[]) =>
           linked ? boardPostingHtml(linked.text, quotes, boardName!, linked.truncated) : '';
@@ -314,7 +316,13 @@ const LINES = [
         } else if (body?.status === 'ok' && (!boardName || linked)) {
           // The function checked every quote; check them again here, against exactly what the
           // model read, before any of it is shown
-          live.innerHTML = progressHtml(label, 1, 0, steps);
+          // The second step lights in place, so the list doesn't redraw
+          const [first, second] = live.querySelectorAll<HTMLElement>('.progress li');
+          if (first && second) {
+            first.dataset.state = 'done';
+            first.querySelector('.secs')?.remove();
+            second.dataset.state = 'active';
+          } else live.innerHTML = progressHtml(label, 1, 0, steps);
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, source);
           await wait(reduce ? 0 : 400);
@@ -361,7 +369,7 @@ const LINES = [
     --faint: #9a9dc0;
     --mark: var(--job-radar-light);
     --hair: rgb(239 239 248 / 0.14);
-    --well: rgb(239 239 248 / 0.06);
+    --hl: rgb(185 189 244 / 0.24);
     position: relative;
     overflow: hidden;
     padding: clamp(40px, 5vw, 64px) 0 56px;
@@ -382,7 +390,7 @@ const LINES = [
     color: var(--ink);
   }
 
-  /* ---- The head: eyebrow, title and lede, with the art beside ---- */
+  /* ---- The head: eyebrow, title and lede, with the art beside, as in Eddy's band ---- */
   .head {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -397,8 +405,9 @@ const LINES = [
   }
 
   .eyebrow {
-    font: 500 14px var(--font-mono);
-    letter-spacing: 0.02em;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     color: var(--mark);
   }
 
@@ -453,20 +462,26 @@ const LINES = [
   .bar { fill: #1d1f35; opacity: 0.14; }
   .bar.on { opacity: 0.75; }
 
-  /* The way in: the sheet settles onto the radar, then its evidence is marked in reading order */
-  .art.ready:not(.in) .sheet { opacity: 0; transform: translateY(14px) rotate(-1deg); }
-  .art.ready:not(.in) .hl { transform: scaleX(0); }
-  .art.ready:not(.in) .tag { opacity: 0; }
+  /* The way in: the rings come up, the sheet settles onto them under its own weight, then its
+     evidence is marked in reading order and the verdict lands */
   .art.ready:not(.in) .rings { opacity: 0; }
+  .art.ready:not(.in) .sheet { opacity: 0; transform: translateY(12px) rotate(-1deg); }
+  .art.ready:not(.in) .hl { transform: scaleX(0); }
+  .art.ready:not(.in) .tag { opacity: 0; transform: translateY(6px); }
 
   .art.in .rings { transition: opacity var(--fig-slow) var(--ease-out); }
   .art.in .sheet {
     transition:
       transform var(--fig-base) var(--fig-settle),
-      opacity var(--fig-fast) var(--ease-out);
+      opacity calc(var(--fig-base) * 0.6) var(--ease-out);
   }
-  .art.in .hl { transition: transform var(--fig-base) var(--fig-settle) calc(380ms + var(--i) * 180ms); }
-  .art.in .tag { transition: opacity var(--fig-fast) var(--ease-out) 1000ms; }
+  .art.in .hl { transition: transform var(--fig-fast) var(--fig-settle) calc(360ms + var(--i) * 140ms); }
+  .tag { transform-box: fill-box; }
+  .art.in .tag {
+    transition:
+      transform var(--fig-fast) var(--fig-spring) 900ms,
+      opacity calc(var(--fig-fast) * 0.6) var(--ease-out) 900ms;
+  }
 
   /* ---- The demo: samples and the box on the left, the result on the right ---- */
   .demo {
@@ -477,8 +492,8 @@ const LINES = [
       'paste out';
     grid-template-rows: auto 1fr;
     column-gap: clamp(32px, 4vw, 56px);
-    row-gap: 36px;
-    margin-top: 44px;
+    row-gap: 40px;
+    margin-top: 40px;
   }
 
   .samples { grid-area: samples; }
@@ -503,22 +518,20 @@ const LINES = [
   .samples ul {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin: 14px -10px 0;
+    gap: 2px;
+    margin: 14px -12px 0;
     padding: 0;
     list-style: none;
   }
 
   .samples label {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 9px 10px;
+    flex-direction: column;
+    gap: 1px;
+    padding: 9px 12px;
     border-radius: 10px;
-    font-size: 14.5px;
-    line-height: 1.3;
-    color: var(--soft);
     cursor: pointer;
+    transition: background-color 0.16s var(--ease-out);
   }
 
   .samples label:hover {
@@ -527,7 +540,6 @@ const LINES = [
 
   .samples label:has(:checked) {
     background: rgb(239 239 248 / 0.1);
-    color: var(--ink);
   }
 
   .samples label:has(:focus-visible) {
@@ -536,42 +548,19 @@ const LINES = [
   }
 
   .name {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    font-size: 14.5px;
+    line-height: 1.35;
+    color: var(--soft);
+  }
+
+  label:has(:checked) .name {
+    color: var(--ink);
   }
 
   .co {
     font-size: 12.5px;
+    line-height: 1.35;
     color: var(--faint);
-  }
-
-  /* A little sheet for each posting, as in the art */
-  .glyph {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    width: 26px;
-    height: 32px;
-    padding: 7px 5px;
-    border-radius: 4px;
-    background: rgb(244 242 236 / 0.9);
-  }
-
-  .glyph i {
-    display: block;
-    height: 3px;
-    border-radius: 2px;
-    background: rgb(29 31 53 / 0.25);
-  }
-
-  .glyph i:nth-child(1) { width: 70%; background: rgb(29 31 53 / 0.6); }
-  .glyph i:nth-child(3) { width: 85%; }
-
-  label:has(:checked) .glyph i:nth-child(2) {
-    background: var(--mark);
-    box-shadow: 0 0 0 1px var(--mark);
   }
 
   .note {
@@ -583,9 +572,6 @@ const LINES = [
 
   /* ---- The result: all of them stacked in one cell, so the column holds the tallest ---- */
   .out {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
     min-width: 0;
     padding-left: clamp(32px, 4vw, 56px);
     border-left: 1px solid var(--hair);
@@ -610,19 +596,19 @@ const LINES = [
   }
 
   .result :global(.whose) {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--faint);
   }
 
   .result :global(.verdict) {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-top: 10px;
+    gap: 16px;
+    margin-top: 8px;
   }
 
   .result :global(.verdict h3) {
-    font-size: clamp(30px, 3.4vw, 40px);
+    font-size: clamp(32px, 3.4vw, 42px);
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
@@ -651,20 +637,38 @@ const LINES = [
   }
 
   .result :global(.line) {
-    margin-top: 8px;
+    margin-top: 10px;
     font-size: 16px;
     line-height: 1.5;
     color: var(--soft);
     text-wrap: pretty;
   }
 
+  /* Each reason on one grid: which way it pulls in a narrow column, the copy and its quote beside */
   .result :global(.reasons) {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    margin: 24px 0 0;
+    gap: 22px;
+    margin: 32px 0 0;
     padding: 0;
     list-style: none;
+  }
+
+  .result :global(.reason) {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .result :global(.side) {
+    font-size: 12.5px;
+    line-height: 22.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--faint);
+  }
+
+  .result :global([data-side='for'] .side) {
+    color: var(--mark);
   }
 
   .result :global(.copy) {
@@ -674,32 +678,16 @@ const LINES = [
     text-wrap: pretty;
   }
 
-  /* Which way each reason pulls, in a narrow column, so the copy and quotes line up */
-  .result :global(.reason) {
-    display: grid;
-    grid-template-columns: 76px minmax(0, 1fr);
-  }
-
-  .result :global(.side) {
-    padding-top: 3px;
-    font: 500 11.5px var(--font-mono);
-    letter-spacing: 0.02em;
-    text-transform: lowercase;
-    color: var(--faint);
-  }
-
-  .result :global([data-side='for'] .side) {
-    color: var(--mark);
-  }
-
-  /* The posting's own words: set in the serif, marked as if by hand, so the evidence reads as theirs */
+  /* The posting's own words: set in the serif and marked low, as with a highlighter, so the
+     evidence reads as theirs */
   .result :global(.quote) {
-    margin: 8px 0 0;
+    margin: 6px 0 0;
     font-family: var(--font-serif);
     font-size: 14px;
-    line-height: 1.75;
-    color: var(--ink);
+    line-height: 1.8;
+    color: var(--soft);
     overflow-wrap: anywhere;
+    text-wrap: pretty;
   }
 
   /* The opening mark hangs, so the words line up with the copy above */
@@ -708,37 +696,34 @@ const LINES = [
   .result :global(.quote p::after) { content: '”'; color: var(--faint); }
 
   .band :global(mark) {
-    padding: 1px 2px;
-    border-radius: 3px;
-    background: rgb(185 189 244 / 0.18);
-    color: inherit;
+    padding: 0 1px;
+    background: linear-gradient(transparent 48%, var(--hl) 48% 92%, transparent 92%);
+    color: var(--ink);
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
 
-  .result :global(.where) {
-    margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid var(--hair);
-  }
-
+  /* A flagged instruction comes first, on the same grid as the reasons */
   .result :global(.injection) {
-    margin-top: 20px;
-    padding: 14px 16px;
-    border-radius: 10px;
-    background: var(--well);
-    box-shadow: inset 0 0 0 1px var(--hair);
+    margin-top: 32px;
   }
 
-  .result :global(.injection > p) {
-    font-size: 14.5px;
-    font-weight: 700;
-    line-height: 1.45;
+  .result :global(.injection .side) {
     color: var(--ink);
   }
 
-  .result :global(.contact) {
+  .result :global(.injection + .reasons) {
     margin-top: 22px;
+  }
+
+  .result :global(.where) {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--hair);
+  }
+
+  .result :global(.contact) {
+    margin-top: 28px;
     font-size: 15px;
     color: var(--soft);
   }
@@ -753,14 +738,15 @@ const LINES = [
     font-size: 16px;
     line-height: 1.55;
     color: var(--soft);
+    text-wrap: pretty;
   }
 
   /* Progress: the two steps that really happen, the current one lit */
   .result :global(.progress) {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin: 18px 0 0;
+    gap: 14px;
+    margin: 20px 0 0;
     padding: 0;
     list-style: none;
     font-size: 15px;
@@ -769,8 +755,9 @@ const LINES = [
   .result :global(.progress li) {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     color: var(--faint);
+    transition: color 0.3s var(--ease-out);
   }
 
   .result :global(.progress [data-state='active']) { color: var(--ink); }
@@ -778,17 +765,18 @@ const LINES = [
 
   .result :global(.progress .dot) {
     flex-shrink: 0;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     box-shadow: inset 0 0 0 1.5px currentColor;
+    transition: background-color 0.3s var(--ease-out);
   }
 
   .result :global(.progress [data-state='done'] .dot) { background: var(--mark); box-shadow: none; }
 
   .result :global(.progress [data-state='active'] .dot) {
     box-shadow: inset 0 0 0 1.5px var(--mark);
-    animation: reading 1.2s ease-in-out infinite;
+    animation: reading 1.4s ease-in-out infinite;
   }
 
   @keyframes reading {
@@ -797,44 +785,67 @@ const LINES = [
 
   .result :global(.secs) {
     font: 12px var(--font-mono);
+    font-variant-numeric: tabular-nums;
     color: var(--faint);
   }
 
   .result :global(.hint) {
-    margin-top: 16px;
+    margin-top: 20px;
+    max-width: 440px;
     font-size: 13px;
     line-height: 1.5;
     color: var(--faint);
   }
 
-  /* A sample's whole posting, with the quotes marked where they came from */
+  /* A posting's whole text, with the quotes marked where they came from */
   .result :global(.posting) {
-    margin-top: 22px;
+    margin-top: 28px;
   }
 
-  .result :global(.posting summary) {
+  .band :global(details > summary) {
     width: fit-content;
-    font-size: 13.5px;
+    list-style: none;
+    font-size: 14px;
     font-weight: 700;
     color: var(--mark);
     cursor: pointer;
   }
 
+  .band :global(details > summary::-webkit-details-marker) {
+    display: none;
+  }
+
+  /* A small chevron that turns as it opens */
+  .band :global(details > summary::after) {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 10px;
+    border: solid currentColor;
+    border-width: 0 1.5px 1.5px 0;
+    transform: translateY(-3px) rotate(45deg);
+    transition: transform 0.2s var(--ease-out);
+  }
+
+  .band :global(details[open] > summary::after) {
+    transform: translateY(0) rotate(-135deg);
+  }
+
+  .band :global(details > summary:hover) {
+    color: var(--ink);
+  }
+
   .result :global(.posting .ptext) {
     max-height: 340px;
     overflow: auto;
-    margin-top: 12px;
-    padding: 16px 18px;
-    border-radius: 10px;
-    background: var(--well);
-    font-size: 13px;
-    line-height: 1.65;
+    margin-top: 14px;
+    padding: 2px 0 2px 18px;
+    border-left: 1px solid var(--hair);
+    font-size: 13.5px;
+    line-height: 1.7;
     white-space: pre-wrap;
     color: var(--soft);
-  }
-
-  .result :global(.posting mark) {
-    color: var(--ink);
   }
 
   .result :global(.posting .cut) {
@@ -844,90 +855,89 @@ const LINES = [
     color: var(--faint);
   }
 
-  /* ---- The box ---- */
+  /* ---- The box: a quiet well in the band's own colours, no frame until it has focus ---- */
   .paste {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    gap: 14px;
     min-width: 0;
   }
 
   textarea {
     width: 100%;
-    min-height: 180px;
-    padding: 14px 16px;
+    min-height: 168px;
+    max-height: 320px;
+    padding: 16px 18px;
     border: 0;
-    border-radius: 12px;
-    background: rgb(239 239 248 / 0.07);
-    box-shadow: inset 0 0 0 1px var(--hair);
-    font: 14px/1.55 var(--font-sans);
+    border-radius: 14px;
+    background: rgb(239 239 248 / 0.05);
+    font: 15px/1.55 var(--font-sans);
     color: var(--ink);
-    resize: vertical;
+    resize: none;
+    field-sizing: content;
+    transition:
+      background-color 0.2s var(--ease-out),
+      box-shadow 0.2s var(--ease-out);
   }
 
   textarea::placeholder {
     color: var(--faint);
+    opacity: 1;
   }
 
-  textarea:focus-visible {
-    outline: 2px solid var(--mark);
-    outline-offset: 1px;
+  textarea:hover {
+    background: rgb(239 239 248 / 0.07);
+  }
+
+  textarea:focus {
+    outline: none;
+    background: rgb(239 239 248 / 0.07);
+    box-shadow: inset 0 0 0 1.5px rgb(185 189 244 / 0.55);
   }
 
   .row {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    font-size: 13px;
+    gap: 12px 20px;
   }
 
-  .privacy {
-    font-weight: 700;
-    color: var(--soft);
+  .meta {
+    display: flex;
+    gap: 14px;
+    font-size: 12.5px;
+    color: var(--faint);
   }
 
   .count {
-    font: 12px var(--font-mono);
-    color: var(--faint);
     font-variant-numeric: tabular-nums;
   }
 
   .count.over {
     color: var(--ink);
-    text-decoration: underline;
-    text-decoration-color: var(--mark);
-    text-underline-offset: 3px;
-  }
-
-  /* Said already, and more specifically, when a link is turned away */
-  .need:not([hidden]) ~ .links {
-    display: none;
-  }
-
-  .links {
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--faint);
   }
 
   .need {
-    font-size: 13px;
+    font-size: 13.5px;
     line-height: 1.5;
-    color: var(--soft);
+    color: var(--ink);
   }
 
+  /* Waiting, the button is an outline; once there's something to check, it fills */
   button {
     min-height: 44px;
-    margin-top: 4px;
-    padding: 0 22px;
+    padding: 0 24px;
     border: 0;
     border-radius: 99px;
     background: var(--ink);
     font: 700 15px var(--font-sans);
     color: var(--job-radar-deep);
     cursor: pointer;
+    transition:
+      background-color 0.2s var(--ease-out),
+      color 0.2s var(--ease-out),
+      box-shadow 0.2s var(--ease-out);
   }
 
   button:hover:not(:disabled) {
@@ -935,55 +945,58 @@ const LINES = [
   }
 
   button:disabled {
-    opacity: 0.4;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: var(--faint);
     cursor: default;
   }
 
-  /* ---- The close ---- */
+  /* ---- The close: how it works and how well, as in the other bands ---- */
   .close {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 24px 64px;
-    margin-top: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px 48px;
+    margin-top: 56px;
     padding-top: 24px;
     border-top: 1px solid var(--hair);
   }
 
+  .how {
+    max-width: 680px;
+  }
+
   .how p {
-    max-width: 640px;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
     color: var(--soft);
     text-wrap: pretty;
   }
 
   .how .figures {
-    margin-top: 12px;
+    margin-top: 10px;
     font-size: 13.5px;
+    line-height: 1.6;
     color: var(--faint);
   }
 
-  .how .primary {
-    display: inline-block;
-    margin-top: 12px;
+  .primary {
     font-weight: 700;
     text-decoration: none;
   }
 
-  .how .primary:hover {
+  .band .primary:hover {
+    color: var(--mark);
     text-decoration: underline;
   }
 
-  .label {
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--faint);
+  .where-i-work {
+    margin-top: 16px;
   }
 
   .where-i-work ul {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     padding: 0;
     list-style: none;
     font-size: 13.5px;
@@ -991,14 +1004,14 @@ const LINES = [
     color: var(--soft);
   }
 
-  .where-i-work ul {
-    max-width: 420px;
+  .where-i-work li + li {
+    margin-top: 4px;
   }
 
   @media (max-width: 960px) {
     .head { grid-template-columns: minmax(0, 1fr); gap: 8px; }
     .art { max-width: 200px; justify-self: start; }
-    .close { grid-template-columns: minmax(0, 1fr); }
+    .close { flex-direction: column; }
   }
 
   @media (max-width: 860px) {
@@ -1018,9 +1031,55 @@ const LINES = [
 
   @media (max-width: 640px) {
     h2 { font-size: clamp(26px, 7vw, 42px); }
-    .result :global(.reason) { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .result :global(.reason) { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .result :global(.quote) { margin-top: 4px; }
     .art { max-width: 150px; }
-    .paste button { width: 100%; }
+    .row { flex-direction: column; align-items: stretch; }
+    .meta { justify-content: space-between; }
+  }
+
+  /* A result that has just been chosen or come back: the verdict lands, then its line and
+     reasons follow in reading order. Rises are short and settle; fades run shorter */
+  @media (prefers-reduced-motion: no-preference) {
+    .result.play :global(:is(.whose, .verdict h3, .line, .injection, .reason, .contact, .posting, .plain, .progress, .hint)) {
+      animation:
+        fit-rise var(--fig-base) var(--fig-settle) both,
+        fit-fade calc(var(--fig-base) * 0.6) var(--ease-out) both;
+      animation-delay: calc(var(--d, 0) * var(--fig-step));
+    }
+
+    .result.play :global(.meter i) {
+      transform-origin: bottom;
+      animation:
+        fit-bar var(--fig-fast) var(--fig-spring) both,
+        fit-fade calc(var(--fig-fast) * 0.6) var(--ease-out) both;
+    }
+    .result.play :global(.meter i:nth-child(2)) { animation-delay: var(--fig-step); }
+    .result.play :global(.meter i:nth-child(3)) { animation-delay: calc(2 * var(--fig-step)); }
+
+    .result.play :global(.verdict h3) { --d: 1; }
+    .result.play :global(.line), .result.play :global(.plain), .result.play :global(.progress) { --d: 2; }
+    .result.play :global(.injection), .result.play :global(.hint) { --d: 3; }
+    .result.play :global(.reasons .reason:nth-child(1)) { --d: 3; }
+    .result.play :global(.reasons .reason:nth-child(2)) { --d: 4; }
+    .result.play :global(.reasons .reason:nth-child(3)) { --d: 5; }
+    .result.play :global(.injection ~ .reasons .reason:nth-child(1)) { --d: 4; }
+    .result.play :global(.injection ~ .reasons .reason:nth-child(2)) { --d: 5; }
+    .result.play :global(.injection ~ .reasons .reason:nth-child(3)) { --d: 6; }
+    .result.play :global(.where) { --d: 6; }
+    .result.play :global(.contact), .result.play :global(.posting) { --d: 7; }
+  }
+
+  @keyframes fit-rise {
+    from { transform: translateY(8px); }
+  }
+
+  @keyframes fit-fade {
+    from { opacity: 0; }
+  }
+
+  @keyframes fit-bar {
+    from { transform: scaleY(0.6); }
   }
 
   @media (prefers-reduced-motion: reduce) {
