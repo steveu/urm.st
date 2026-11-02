@@ -5,7 +5,7 @@
 // free, and switch with scripts off: they're radio buttons, and CSS shows the checked one.
 // Every word in a result is site copy or the posting's own text; see ./result.ts.
 import { LIMITS } from '../../fit/check';
-import { LOCATION_SUMMARY, VERDICT_COPY } from '../../fit/copy';
+import { VERDICT_COPY } from '../../fit/copy';
 import { FIT_CHECK_PATH } from '../../fit/handler';
 import { SAMPLE_POSTINGS } from '../../fit/samples';
 import { SAMPLE_RESULTS } from '../../fit/sample-results';
@@ -43,8 +43,8 @@ const LINES = [
         <p class="eyebrow">job-radar</p>
         <h2 id="fit-check-title">Would I fit your role? Paste the posting and see the&nbsp;evidence.</h2>
         <p class="lede">
-          job-radar is the tool I built to read postings for my own job search. Here it reads yours: a verdict and its
-          reasons, each backed by a quote from the posting, checked word for word. It says no as plainly as yes.
+          I built job-radar to read postings for my own job search. Here it reads yours: a verdict and its reasons, each
+          backed by a quote from the posting, checked word for word. It says no as plainly as yes.
         </p>
       </div>
       <!-- A posting on the radar, its evidence marked -->
@@ -54,7 +54,6 @@ const LINES = [
             <circle cx="430" cy="290" r="120"></circle>
             <circle cx="430" cy="290" r="200"></circle>
             <circle cx="430" cy="290" r="280"></circle>
-            <circle cx="430" cy="290" r="360"></circle>
           </g>
           <g class="sheet">
             <rect class="paper" x="150" y="96" width="260" height="344" rx="16"></rect>
@@ -63,7 +62,7 @@ const LINES = [
                 const y = 136 + i * 26 + (l.title ? 0 : 8);
                 return (
                   <>
-                    {l.mark && <rect class="hl" style={`--i:${l.mark}`} x="176" y={y - 6} width={l.w + 12} height="20" rx="4" />}
+                    {l.mark && <rect class="hl" style={`--i:${l.mark}`} x="178" y={y + 4} width={l.w + 8} height="7" rx="2" />}
                     <rect class:list={['ln', l.title && 'title']} x="182" y={y} width={l.w} height={l.title ? 12 : 8} rx={l.title ? 6 : 4} />
                   </>
                 );
@@ -94,6 +93,7 @@ const LINES = [
           }
         </ul>
         <p class="note">Made-up postings, answered ahead of time by the real check.</p>
+        <a class="jump" href="#fit-paste">Or paste your own ↓</a>
       </fieldset>
 
       <div class="out">
@@ -113,16 +113,15 @@ const LINES = [
         </div>
       </div>
 
-      <form class="paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
+      <form class="paste" id="fit-paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
         <label class="step" for="fit-text">Or paste a job posting or link</label>
         <textarea
           id="fit-text"
           name="text"
           rows="6"
           placeholder="The job description, or a job link from Greenhouse, Lever or Ashby."
-          aria-describedby="fit-privacy fit-count"
+          aria-describedby="fit-need fit-privacy fit-count"
           data-text></textarea>
-        <p class="need" data-need hidden></p>
         <div class="row">
           <button type="submit" disabled data-go>Check the fit</button>
           <p class="meta">
@@ -130,25 +129,16 @@ const LINES = [
             <span class="count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</span>
           </p>
         </div>
+        <p class="need" id="fit-need" data-need hidden></p>
         <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
       </form>
     </div>
 
     <div class="close">
-      <div class="how">
-        <p>
-          Claude Haiku reads the posting against my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>{' '}
-          and picks from fixed reasons; it never writes words for this page.
-        </p>
-        <p class="figures" data-eval-figures>
-          {EVAL_FIGURES.agreement}
-          {EVAL_FIGURES.redTeam}
-        </p>
-        <details class="where-i-work">
-          <summary>Where I’ll work</summary>
-          <ul>{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
-        </details>
-      </div>
+      <p>
+        Claude Haiku reads the posting against my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>{' '}
+        and picks from fixed reasons; it never writes words for this page. <Fragment set:html={EVAL_FIGURES.closeHtml} />
+      </p>
       <a class="primary" href="/work/fit-check">How this was measured →</a>
     </div>
   </div>
@@ -167,6 +157,7 @@ const LINES = [
     progressHtml,
     resultHtml,
     unassessableHtml,
+    WAIT_HEADINGS,
     type ErrorCause,
   } from './result';
 
@@ -185,7 +176,10 @@ const LINES = [
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const LABEL = 'Your posting';
     const n = (x: number) => x.toLocaleString('en-GB');
+    const GO = go.textContent;
     let running = false;
+    // The text whose answer is showing: checking it again would cost a call for the same answer
+    let answered: string | null = null;
 
     // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
     const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
@@ -213,7 +207,12 @@ const LINES = [
                   : '';
       need.textContent = msg;
       need.hidden = !msg;
-      go.disabled = running || !ready(link, len);
+      // With scripts on, the button stays focusable throughout: it's marked rather than disabled.
+      // An outline while there's nothing new to check; filled once there is; dimmed while it runs
+      go.disabled = false;
+      go.setAttribute('aria-disabled', String(running || !ready(link, len) || prepared() === answered));
+      go.setAttribute('aria-busy', String(running));
+      go.textContent = running ? 'Checking…' : GO;
     }
     box.addEventListener('input', counter);
     counter();
@@ -223,6 +222,8 @@ const LINES = [
       const input = e.target as HTMLInputElement;
       if (input.name !== 'fit-sample') return;
       delete root.dataset.live;
+      answered = null;
+      counter();
       root.querySelectorAll<HTMLDetailsElement>('.posting[open]').forEach((d) => (d.open = false));
       const picked = root.querySelector<HTMLElement>(`[data-for="${input.value}"]`);
       status.textContent = picked?.dataset.announce ?? '';
@@ -278,7 +279,7 @@ const LINES = [
       e.preventDefault();
       const text = prepared();
       const link = linkIn();
-      if (running || !ready(link, text.length)) return;
+      if (running || !ready(link, text.length) || text === answered) return;
       running = true;
       counter();
       root.querySelectorAll<HTMLInputElement>('input[name="fit-sample"]').forEach((r) => (r.checked = false));
@@ -322,6 +323,8 @@ const LINES = [
             first.dataset.state = 'done';
             first.querySelector('.secs')?.remove();
             second.dataset.state = 'active';
+            const heading = live.querySelector('.verdict h3');
+            if (heading) heading.textContent = WAIT_HEADINGS[1];
           } else live.innerHTML = progressHtml(label, 1, 0, steps);
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, source);
@@ -331,8 +334,10 @@ const LINES = [
             const quotes = [...a.reasons.map((r) => r.quote), a.location.quote, a.injection.quote].filter((q): q is string => !!q);
             show(resultHtml(a, { label, contact: true }) + postingView(quotes), VERDICT_COPY[a.verdict].label);
           } else show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
+          answered = text;
         } else if (body?.status === 'unassessable') {
           show(unassessableHtml(label) + postingView([]), 'Couldn’t assess this one');
+          answered = text;
         } else {
           const cause = (boardName && LINK_CAUSES[body?.error]) || CAUSES[body?.error] || 'unavailable';
           show(errorHtml(label, cause), 'The check didn’t run');
@@ -345,6 +350,17 @@ const LINES = [
         counter();
       }
     });
+
+    // A posting longer than its reader fades out at the foot, so it's plain there's more
+    root.addEventListener(
+      'toggle',
+      (e) => {
+        const d = e.target as HTMLElement;
+        const text = d.matches?.('.posting[open]') ? d.querySelector<HTMLElement>('.ptext') : null;
+        if (text) text.classList.toggle('more', text.scrollHeight > text.clientHeight + 1);
+      },
+      true,
+    );
 
     // The first time the band is seen, the sheet settles and its evidence is marked, line by
     // line. Scripts off or reduced motion: it's just there.
@@ -446,21 +462,22 @@ const LINES = [
   }
   .rings circle:nth-child(1) { opacity: 0.32; }
   .rings circle:nth-child(2) { opacity: 0.2; }
-  .rings circle:nth-child(3) { opacity: 0.12; }
-  .rings circle:nth-child(4) { opacity: 0.07; }
+  .rings circle:nth-child(3) { opacity: 0.1; }
 
+  /* The sheet is tonal, in the band's own colours, so the title stays the brightest thing */
   .sheet {
     transform: rotate(-3deg);
     transform-origin: 280px 268px;
-    filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.4));
+    filter: drop-shadow(0 16px 32px rgb(0 0 0 / 0.25));
   }
 
-  .paper { fill: #f4f2ec; }
-  .ln { fill: #1d1f35; opacity: 0.16; }
-  .ln.title { opacity: 0.6; }
-  .hl { fill: var(--mark); transform-box: fill-box; transform-origin: left center; }
-  .bar { fill: #1d1f35; opacity: 0.14; }
-  .bar.on { opacity: 0.75; }
+  .paper { fill: #2a2d4a; stroke: var(--hair); stroke-width: 1.5; }
+  .ln { fill: var(--soft); opacity: 0.22; }
+  .ln.title { opacity: 0.5; }
+  /* Marked as the posting's text is: a low band under the line */
+  .hl { fill: var(--mark); opacity: 0.5; transform-box: fill-box; transform-origin: left center; }
+  .bar { fill: var(--soft); opacity: 0.22; }
+  .bar.on { fill: var(--mark); opacity: 0.85; }
 
   /* The way in: the rings come up, the sheet settles onto them under its own weight, then its
      evidence is marked in reading order and the verdict lands */
@@ -568,6 +585,15 @@ const LINES = [
     font-size: 12.5px;
     line-height: 1.5;
     color: var(--faint);
+  }
+
+  /* On a phone the box is a long way down, under the samples and a whole result */
+  .jump {
+    display: none;
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
   }
 
   /* ---- The result: all of them stacked in one cell, so the column holds the tallest ---- */
@@ -678,8 +704,7 @@ const LINES = [
     text-wrap: pretty;
   }
 
-  /* The posting's own words: set in the serif and marked low, as with a highlighter, so the
-     evidence reads as theirs */
+  /* The posting's own words: set in the serif, a step quieter than the reason they back */
   .result :global(.quote) {
     margin: 6px 0 0;
     font-family: var(--font-serif);
@@ -695,7 +720,8 @@ const LINES = [
   .result :global(.quote p::before) { content: '“'; color: var(--faint); }
   .result :global(.quote p::after) { content: '”'; color: var(--faint); }
 
-  .band :global(mark) {
+  /* In the posting itself, a mark shows where each quote came from: a highlighter, low */
+  .result :global(.ptext mark) {
     padding: 0 1px;
     background: linear-gradient(transparent 48%, var(--hl) 48% 92%, transparent 92%);
     color: var(--ink);
@@ -784,9 +810,45 @@ const LINES = [
   }
 
   .result :global(.secs) {
-    font: 12px var(--font-mono);
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
     color: var(--faint);
+  }
+
+  /* While it reads, the verdict's place is held: the meter fills on a loop under a heading for
+     the step in hand, so the result lands where the wait was */
+  .result :global(.verdict.waiting h3) {
+    color: var(--faint);
+  }
+
+  /* On a phone the wait's heading is longer than any verdict, so it steps down to one line */
+  @media (max-width: 640px) {
+    .result :global(.verdict.waiting h3) { font-size: 24px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .result :global(.verdict.waiting .meter i) {
+      transform-origin: bottom;
+      animation: 1.2s var(--fig-spring) infinite;
+    }
+    .result :global(.verdict.waiting .meter i:nth-child(1)) { animation-name: fit-wait-1; }
+    .result :global(.verdict.waiting .meter i:nth-child(2)) { animation-name: fit-wait-2; }
+    .result :global(.verdict.waiting .meter i:nth-child(3)) { animation-name: fit-wait-3; }
+  }
+
+  @keyframes fit-wait-1 {
+    0%, 100% { background: transparent; transform: scaleY(0.6); }
+    12%, 84% { background: var(--mark); transform: none; }
+  }
+
+  @keyframes fit-wait-2 {
+    0%, 26%, 100% { background: transparent; transform: scaleY(0.6); }
+    38%, 84% { background: var(--mark); transform: none; }
+  }
+
+  @keyframes fit-wait-3 {
+    0%, 52%, 100% { background: transparent; transform: scaleY(0.6); }
+    64%, 84% { background: var(--mark); transform: none; }
   }
 
   .result :global(.hint) {
@@ -837,7 +899,7 @@ const LINES = [
   }
 
   .result :global(.posting .ptext) {
-    max-height: 340px;
+    max-height: 360px;
     overflow: auto;
     margin-top: 14px;
     padding: 2px 0 2px 18px;
@@ -846,6 +908,12 @@ const LINES = [
     line-height: 1.7;
     white-space: pre-wrap;
     color: var(--soft);
+  }
+
+  /* Longer than the reader: it fades at the foot, and the end can scroll clear of the fade */
+  .result :global(.posting .ptext.more) {
+    padding-bottom: 32px;
+    mask-image: linear-gradient(#000 calc(100% - 40px), transparent);
   }
 
   .result :global(.posting .cut) {
@@ -865,7 +933,7 @@ const LINES = [
 
   textarea {
     width: 100%;
-    min-height: 168px;
+    min-height: 128px;
     max-height: 320px;
     padding: 16px 18px;
     border: 0;
@@ -918,33 +986,46 @@ const LINES = [
     color: var(--ink);
   }
 
+  /* Under the button, so a message doesn't push it down mid-paste */
   .need {
     font-size: 13.5px;
     line-height: 1.5;
     color: var(--ink);
   }
 
-  /* Waiting, the button is an outline; once there's something to check, it fills */
+  /* With nothing new to check, the button is an outline; once there is, it fills with the
+     band's one accent; while a check runs it stays filled, dimmed */
   button {
     min-height: 44px;
     padding: 0 24px;
     border: 0;
     border-radius: 99px;
-    background: var(--ink);
+    background: var(--mark);
     font: 700 15px var(--font-sans);
     color: var(--job-radar-deep);
     cursor: pointer;
     transition:
       background-color 0.2s var(--ease-out),
       color 0.2s var(--ease-out),
-      box-shadow 0.2s var(--ease-out);
+      box-shadow 0.2s var(--ease-out),
+      opacity 0.2s var(--ease-out);
   }
 
-  button:hover:not(:disabled) {
-    background: #fff;
+  button:hover {
+    background: var(--ink);
   }
 
-  button:disabled {
+  button[aria-busy='true'] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  button[aria-busy='true']:hover {
+    background: var(--mark);
+  }
+
+  button:disabled,
+  button[aria-disabled='true']:not([aria-busy='true']) {
     background: transparent;
     box-shadow: inset 0 0 0 1px var(--hair);
     color: var(--faint);
@@ -963,22 +1044,17 @@ const LINES = [
     border-top: 1px solid var(--hair);
   }
 
-  .how {
+  .close p {
     max-width: 680px;
-  }
-
-  .how p {
     font-size: 16px;
     line-height: 1.6;
     color: var(--soft);
     text-wrap: pretty;
   }
 
-  .how .figures {
-    margin-top: 10px;
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--faint);
+  .close :global(strong) {
+    font-weight: 700;
+    color: var(--ink);
   }
 
   .primary {
@@ -989,23 +1065,6 @@ const LINES = [
   .band .primary:hover {
     color: var(--mark);
     text-decoration: underline;
-  }
-
-  .where-i-work {
-    margin-top: 16px;
-  }
-
-  .where-i-work ul {
-    margin: 10px 0 0;
-    padding: 0;
-    list-style: none;
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--soft);
-  }
-
-  .where-i-work li + li {
-    margin-top: 4px;
   }
 
   @media (max-width: 960px) {
@@ -1023,10 +1082,18 @@ const LINES = [
       row-gap: 32px;
     }
     .out { padding: 28px 0 0; border-left: 0; border-top: 1px solid var(--hair); }
+    .jump { display: inline-block; }
     .paste { padding-top: 28px; border-top: 1px solid var(--hair); }
-    /* Stacked, the hidden samples would hold the column at the tallest one's height, leaving
-       a gap between a check's progress and the box */
-    .band[data-live] .result:not([data-for='live']) { display: none; }
+    /* Stacked, the hidden results would hold the column at the tallest one's height, leaving
+       a gap above the box, so only the one shown takes up room */
+    .result { display: none; }
+    .band:has(input[value='strong']:checked) [data-for='strong'],
+    .band:has(input[value='possible']:checked) [data-for='possible'],
+    .band:has(input[value='poor']:checked) [data-for='poor'],
+    .band:has(input[value='injection']:checked) [data-for='injection'],
+    .band[data-live] [data-for='live'] {
+      display: block;
+    }
   }
 
   @media (max-width: 640px) {
@@ -1036,6 +1103,9 @@ const LINES = [
     .art { max-width: 150px; }
     .row { flex-direction: column; align-items: stretch; }
     .meta { justify-content: space-between; }
+    /* On a phone the posting opens to its full length rather than scrolling inside the page */
+    .result :global(.posting .ptext) { max-height: none; overflow: visible; }
+    .result :global(.posting .ptext.more) { padding-bottom: 2px; mask-image: none; }
   }
 
   /* A result that has just been chosen or come back: the verdict lands, then its line and

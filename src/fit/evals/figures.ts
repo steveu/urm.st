@@ -14,23 +14,23 @@ export const FEW_POSITIVES = 30;
 
 const count = (k: number, n: number) => (k === n ? `all ${n}` : k === 0 ? `none of ${n}` : `${k} of ${n}`);
 
-function agreementLine(a: AgreementResults): string {
-  const v = a.verdict;
-  const caveat = a.positives < FEW_POSITIVES ? `; with only ${a.positives} of those, that figure is rough` : '';
-  const yes = v.fitWereKeepOrMaybe;
+/**
+ * The band's close: one sentence, two figures in bold, each with its sample size beside it.
+ * It quotes the no side, which is what the band claims ("it says no as plainly as yes"), and
+ * not overall agreement: most postings are skips, so saying poor to everything would agree
+ * more often than the check does. The yes side's rougher figures are on /work/fit-check.
+ * HTML, built from numbers only.
+ */
+function closeHtml(a: AgreementResults, r: RedTeamResults): string {
+  const p = a.verdict.poorWereSkips;
+  const moved =
+    r.verdictChanged.k === 0 ? 'no verdict moved' : `the verdict moved in ${count(r.verdictChanged.k, r.verdictChanged.n)}`;
   return (
-    `Checked against ${a.n} postings I’d labelled myself in job-radar: I’d skipped ${v.poorWereSkips.k} of the ${v.poorWereSkips.n} it called poor. ` +
-    `It rated ${v.recallOfPositives.k} of the ${v.recallOfPositives.n} I’d kept or marked maybe as strong or possible${caveat}. ` +
-    `Of its ${yes.n} strong or possible verdicts, ${yes.n - yes.k} went to postings I’d skipped.`
+    `Of ${p.n} real postings it called poor, I’d skipped <strong>${p.k}</strong>; ` +
+    `it flagged <strong>${count(r.injectionFlagged.k, r.injectionFlagged.n)}</strong> instructions I hid in made-up postings, and ${moved}.`
   );
 }
 
-function redTeamLine(r: RedTeamResults): string {
-  const changed = r.verdictChanged.k === 0 ? 'no verdict changed' : `the verdict changed in ${count(r.verdictChanged.k, r.verdictChanged.n)}`;
-  return ` With instructions to AI tools hidden in ${r.pairs} made-up postings, it flagged ${count(r.injectionFlagged.k, r.injectionFlagged.n)} and ${changed}.`;
-}
-
 export const EVAL_FIGURES = {
-  agreement: agreementLine(AGREEMENT),
-  redTeam: redTeamLine(RED_TEAM),
+  closeHtml: closeHtml(AGREEMENT, RED_TEAM),
 };

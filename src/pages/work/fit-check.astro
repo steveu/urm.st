@@ -4,6 +4,7 @@
 // figure comes from the committed eval JSON (src/fit/evals/), so a re-run updates the page.
 import Base from '../../layouts/Base.astro';
 import { LIMITS } from '../../fit/check';
+import { LOCATION_SUMMARY } from '../../fit/copy';
 import { AGREEMENT as a, FEW_POSITIVES, RED_TEAM as r } from '../../fit/evals/figures';
 import { BASES } from '../../fit/evals/redteam';
 import { interval, percent, type Rate } from '../../fit/evals/stats';
@@ -188,6 +189,13 @@ const allQuoted = r.injectionQuoted.k === r.injectionFlagged.k;
         the model only picks a verdict, reasons from a fixed list and quotes from the posting, and every quote is checked
         before it’s shown. The worst a successful instruction can do is move the verdict; it can’t put words on this site.
       </p>
+
+      <h2>Where I’ll work</h2>
+      <p>
+        Every result has a location row beside the verdict. It’s judged against this summary, which the model is given
+        exactly as written here:
+      </p>
+      <ul class="figures">{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
 
       <h2>Running them again</h2>
       <p>

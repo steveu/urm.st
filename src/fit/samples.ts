@@ -33,14 +33,14 @@ Example Ltd · York, hybrid (two days a week in our Micklegate office)
 Example Ltd makes planning software for independent bookshops. We are adding an assistant that helps shop owners plan orders, answer customer questions and spot slow stock.
 
 What you'll do
-- Own the assistant end to end: the chat interface, the prompts and tools behind it, and the evals that tell us whether it is getting better.
+- Own the assistant end to end: the chat interface, and the prompts and tools behind it.
+- Run the evals that tell us whether it is getting better, and decide from them what ships.
 - Design how the assistant shows its working, so owners can trust a suggestion or overrule it.
 - Build in TypeScript and React on the front end, with a small Node service for tools.
 - Work with our designer and our two founders on what we build next.
 
 About you
 - Several years building product interfaces, with recent hands-on work on LLM features in production.
-- You have written evals for an AI feature and changed the product because of what they showed.
 - You care about interaction detail as much as model choice.
 
 Salary £70,000 to £85,000.`,

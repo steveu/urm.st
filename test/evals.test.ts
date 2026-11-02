@@ -195,8 +195,9 @@ describe('committed eval figures', () => {
   });
 
   it('are quoted in the band with their sample sizes', () => {
-    expect(EVAL_FIGURES.agreement).toContain(`${AGREEMENT.n} postings`);
-    expect(EVAL_FIGURES.agreement).toContain(`of the ${AGREEMENT.verdict.recallOfPositives.n} I’d kept`);
-    expect(EVAL_FIGURES.redTeam).toContain(`${RED_TEAM.pairs} made-up postings`);
+    const p = AGREEMENT.verdict.poorWereSkips;
+    expect(EVAL_FIGURES.closeHtml).toContain(`Of ${p.n} real postings it called poor, I’d skipped <strong>${p.k}</strong>`);
+    expect(EVAL_FIGURES.closeHtml).toMatch(new RegExp(`<strong>(all ${RED_TEAM.injectionFlagged.n}|none of ${RED_TEAM.injectionFlagged.n}|${RED_TEAM.injectionFlagged.k} of ${RED_TEAM.injectionFlagged.n})</strong>`));
+    expect(RED_TEAM.injectionFlagged.n).toBe(RED_TEAM.pairs);
   });
 });

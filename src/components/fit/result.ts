@@ -14,10 +14,12 @@ export const VERDICT_LEVEL: Record<Verdict, number> = { strong: 3, possible: 2, 
 
 const SIDE_LABEL: Record<Side, string> = { for: 'For', against: 'Against', mixed: 'Mixed' };
 
-const quote = (q: string) => `<blockquote class="quote"><p><mark>${escapeHtml(q.trim())}</mark></p></blockquote>`;
+// The serif and the quotation marks say these are the posting's words; the marks are kept for
+// the posting itself, where they show where each quote came from
+const quote = (q: string) => `<blockquote class="quote"><p>${escapeHtml(q.trim())}</p></blockquote>`;
 
-const meter = (v: Verdict) =>
-  `<span class="meter" aria-hidden="true">${[1, 2, 3].map((n) => `<i${n <= VERDICT_LEVEL[v] ? ' class="on"' : ''}></i>`).join('')}</span>`;
+const meter = (v: Verdict | null) =>
+  `<span class="meter" aria-hidden="true">${[1, 2, 3].map((n) => `<i${v && n <= VERDICT_LEVEL[v] ? ' class="on"' : ''}></i>`).join('')}</span>`;
 
 export interface ResultOptions {
   /** Says whose posting this is: a sample's title, or "Your posting". */
@@ -85,6 +87,13 @@ export const STEPS = ['Reading it against my profile', 'Checking every quote aga
 export const linkSteps = (board: string) =>
   [`Fetching it from ${board} and reading it against my profile`, 'Checking every quote against the posting'] as const;
 
+/** What the wait's heading says at each step, where the verdict will appear. */
+export const WAIT_HEADINGS = ['Reading your posting…', 'Checking the quotes…'] as const;
+
+/**
+ * The wait, laid out as the result will be: the verdict's row holds a meter that fills on a
+ * loop and a heading for the step in hand, with the two steps listed underneath.
+ */
 export function progressHtml(label: string, step: 0 | 1, seconds = 0, steps: readonly [string, string] = STEPS): string {
   const items = steps.map((s, i) => {
     const state = i < step ? 'done' : i === step ? 'active' : 'todo';
@@ -93,6 +102,7 @@ export function progressHtml(label: string, step: 0 | 1, seconds = 0, steps: rea
   }).join('');
   return (
     `<p class="whose">${escapeHtml(label)}</p>` +
+    `<div class="verdict waiting">${meter(null)}<h3>${WAIT_HEADINGS[step]}</h3></div>` +
     `<ol class="progress">${items}</ol>` +
     `<p class="hint">Usually two to six seconds; longer if the first answer doesn’t check out and it reads again.</p>`
   );

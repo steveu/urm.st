@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boardPostingHtml, errorHtml, escapeHtml, linkSteps, markedPostingHtml, progressHtml, quoteRanges, resultHtml } from '../src/components/fit/result.ts';
+import { boardPostingHtml, errorHtml, escapeHtml, linkSteps, markedPostingHtml, progressHtml, quoteRanges, resultHtml, WAIT_HEADINGS } from '../src/components/fit/result.ts';
 import { INJECTION_COPY, LOCATION_COPY, REASONS, VERDICT_COPY } from '../src/fit/copy.ts';
 import type { FitAssessment } from '../src/fit/schema.ts';
 import { POSTING, validAnswer } from './helpers.ts';
@@ -14,7 +14,8 @@ describe('resultHtml', () => {
     expect(html).toContain(escapeHtml(REASONS.owns_agent.copy));
     expect(html).toContain(escapeHtml(REASONS.typescript_react.copy));
     expect(html).toContain(escapeHtml(LOCATION_COPY.works));
-    expect(html).toContain('<mark>Build in TypeScript and React.</mark>');
+    expect(html).toContain('<p>Build in TypeScript and React.</p>');
+    expect(html).not.toContain('<mark>');
     expect(html).not.toContain('owns_agent');
     expect(html).not.toContain(INJECTION_COPY);
   });
@@ -59,6 +60,8 @@ describe('progress and errors', () => {
   it('marks the step in hand and those done', () => {
     expect(progressHtml('x', 0, 3)).toMatch(/data-state="active".*3s.*data-state="todo"/);
     expect(progressHtml('x', 1)).toMatch(/data-state="done".*data-state="active"/);
+    expect(progressHtml('x', 0)).toContain(WAIT_HEADINGS[0]);
+    expect(progressHtml('x', 1)).toContain(WAIT_HEADINGS[1]);
   });
 
   it('says what went wrong in site copy', () => {
