@@ -58,8 +58,19 @@ export interface HandlerDeps {
   fetch?: FetchFn;
 }
 
+/**
+ * JSON only. A cross-site form or text/plain POST needs no preflight, so another page could
+ * otherwise spend checks from its visitors' browsers; a JSON POST from another origin needs a
+ * preflight, which fails because the function answers POST alone.
+ */
+function isJson(req: Request): boolean {
+  const type = req.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
+  return type === 'application/json';
+}
+
 export async function handleFitCheck(req: Request, deps: HandlerDeps): Promise<Response> {
   if (req.method !== 'POST') return fail('method');
+  if (!isJson(req)) return fail('bad_request');
   if (Number(req.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) return fail('too_long');
 
   let body: unknown;

@@ -39,6 +39,20 @@ describe('handleFitCheck', () => {
     expect(res.status).toBe(405);
   });
 
+  it('takes JSON only, so another site can’t post from its visitors’ browsers without a preflight', async () => {
+    const { client, calls } = stubClient([]);
+    for (const type of ['text/plain', 'application/x-www-form-urlencoded', 'multipart/form-data; boundary=x', null]) {
+      const headers = type ? { 'content-type': type } : {};
+      const res = await handleFitCheck(post({ text: POSTING }, { headers }), deps(client));
+      expect(res.status, String(type)).toBe(400);
+      expect(await res.json()).toEqual({ status: 'error', error: 'bad_request' });
+    }
+    expect(calls).toHaveLength(0);
+    const { client: ok } = stubClient([message(validAnswer())]);
+    const res = await handleFitCheck(post({ text: POSTING }, { headers: { 'Content-Type': 'application/json; charset=utf-8' } }), deps(ok));
+    expect(res.status).toBe(200);
+  });
+
   it('turns away malformed bodies', async () => {
     for (const body of ['{', '"text"', JSON.stringify({ posting: POSTING }), 'null']) {
       const res = await handleFitCheck(post(body), deps(null));
