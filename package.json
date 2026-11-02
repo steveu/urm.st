@@ -13,7 +13,8 @@
     "cv:pdf": "node scripts/cv-pdf.mjs",
     "test": "vitest run",
     "preview:fit": "node scripts/preview-fit.ts",
-    "fit:try": "node scripts/fit-try.ts"
+    "fit:try": "node scripts/fit-try.ts",
+    "fit:samples": "node scripts/fit-samples.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0",
