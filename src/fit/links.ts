@@ -59,7 +59,8 @@ function boardLink(url: URL): BoardLink | null {
   const path = segments(url);
   if (!path) return null;
 
-  if (host === 'job-boards.greenhouse.io' || host === 'boards.greenhouse.io') {
+  // EU-hosted boards share the same job IDs and are read through the same API
+  if (host === 'job-boards.greenhouse.io' || host === 'job-boards.eu.greenhouse.io' || host === 'boards.greenhouse.io') {
     // /{token}/jobs/{id}
     if (path.length === 3 && path[1] === 'jobs' && TOKEN.test(path[0]) && NUMERIC_ID.test(path[2])) {
       return { kind: 'board', board: 'greenhouse', token: path[0], id: path[2] };

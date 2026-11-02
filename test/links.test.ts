@@ -12,6 +12,7 @@ describe('parseJobLink', () => {
     expect(parseJobLink('  https://boards.greenhouse.io/exampleltd/jobs/4012345/  ')).toEqual(want);
     expect(parseJobLink('https://boards.greenhouse.io/embed/job_app?for=exampleltd&token=4012345')).toEqual(want);
     expect(parseJobLink('job-boards.greenhouse.io/exampleltd/jobs/4012345')).toEqual(want);
+    expect(parseJobLink('https://job-boards.eu.greenhouse.io/exampleltd/jobs/4012345')).toEqual(want);
   });
 
   it('reads Lever job links, with the EU host and the apply page', () => {
@@ -52,7 +53,6 @@ describe('parseJobLink', () => {
       'https://example.com/careers/senior-engineer',
       'https://job-boards.greenhouse.io/exampleltd',
       'https://job-boards.greenhouse.io/exampleltd/jobs/not-a-number',
-      'https://job-boards.eu.greenhouse.io/exampleltd/jobs/4012345',
       'https://boards.greenhouse.io/embed/job_app?for=exampleltd',
       `https://jobs.lever.co/fictional-analytics/${UUID}/extra/bits`,
       'https://jobs.lever.co/fictional-analytics/1234',
