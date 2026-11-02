@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isVerbatimQuote, normaliseForQuote, validateAssessment } from '../src/fit/schema.ts';
+import { findQuote, isVerbatimQuote, normaliseForQuote, validateAssessment } from '../src/fit/schema.ts';
 import { POSTING, validAnswer } from './helpers.ts';
 
 describe('quote check', () => {
@@ -37,6 +37,22 @@ describe('quote check', () => {
   it('normalises without changing what is shown', () => {
     expect(normaliseForQuote('  A\u2019B \n\n C ')).toBe("a'b c");
   });
+
+  it('resolves a tolerant match to the exact passage of the source', () => {
+    const source = 'Intro.\nWe\u2019re hiring a \u201cdesign engineer\u201d \u2014 hands-on.\nNo  agencies.';
+    const [[from, to]] = findQuote(`we're hiring a "Design Engineer" - hands-on. no agencies.`, source);
+    expect(source.slice(from, to)).toBe('We\u2019re hiring a \u201cdesign engineer\u201d \u2014 hands-on.\nNo  agencies.');
+    const bullets = 'You will\n- Design the flows\n\u2022 Run research';
+    const [[a, b]] = findQuote('Design the flows Run research', bullets);
+    expect(bullets.slice(a, b)).toBe('Design the flows\n\u2022 Run research');
+  });
+
+  it('finds every occurrence of a quote', () => {
+    expect(findQuote('TypeScript', 'TypeScript first, then more typescript.')).toEqual([
+      [0, 10],
+      [28, 38],
+    ]);
+  });
 });
 
 describe('validateAssessment', () => {
@@ -72,6 +88,36 @@ describe('validateAssessment', () => {
     const a = validAnswer();
     a.reasons[1] = { code: 'ai_product_end_to_end', quote: '  "own the assistant end to end,   from the chat interface to the evals."' };
     expect(validateAssessment(a, POSTING)).toMatchObject({ ok: false, problems: [expect.stringContaining('the same passage')] });
+  });
+
+  it('returns the posting\'s own text, not the model\'s rendering of it', () => {
+    const a = validAnswer();
+    a.reasons[1].quote = 'BUILD IN TYPESCRIPT AND REACT.';
+    a.location.quote = '"york,   HYBRID (two days a week in the office)"';
+    const v = validateAssessment(a, POSTING);
+    expect(v).toEqual({ ok: true, value: validAnswer() });
+    // What the function returns passes the browser's own check unchanged
+    if (v.ok) expect(validateAssessment(v.value, POSTING)).toEqual(v);
+  });
+
+  it('rejects a reason quoting a passage inside another reason\'s', () => {
+    const a = validAnswer();
+    a.reasons[1] = { code: 'evals_in_scope', quote: 'from the chat interface to the evals.' };
+    expect(validateAssessment(a, POSTING)).toMatchObject({ ok: false, problems: [expect.stringContaining('the same passage')] });
+  });
+
+  it('rejects a reason whose passage runs into another reason\'s', () => {
+    const a = validAnswer();
+    a.reasons[1] = { code: 'typescript_react', quote: 'to the evals. Build in TypeScript' };
+    expect(validateAssessment(a, POSTING)).toMatchObject({ ok: false, problems: [expect.stringContaining('the same passage')] });
+  });
+
+  it('takes the same words from another place in the posting as a passage of its own', () => {
+    const source = `${POSTING}\nYou will work on the evals daily.`;
+    const a = validAnswer();
+    a.reasons[1] = { code: 'evals_in_scope', quote: 'the evals' };
+    const v = validateAssessment(a, source);
+    expect(v.ok).toBe(true);
   });
 
   it('rejects a reason quote that is not in the posting', () => {
