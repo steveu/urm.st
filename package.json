@@ -14,7 +14,9 @@
     "test": "vitest run",
     "preview:fit": "node scripts/preview-fit.ts",
     "fit:try": "node scripts/fit-try.ts",
-    "fit:samples": "node scripts/fit-samples.ts"
+    "fit:samples": "node scripts/fit-samples.ts",
+    "fit:redteam": "node scripts/fit-redteam.ts",
+    "fit:agreement": "node scripts/fit-agreement.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0",

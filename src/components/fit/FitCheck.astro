@@ -10,6 +10,7 @@ import { FIT_CHECK_PATH } from '../../fit/handler';
 import { BOARD_LIST } from '../../fit/links';
 import { SAMPLE_POSTINGS } from '../../fit/samples';
 import { SAMPLE_RESULTS } from '../../fit/sample-results';
+import { EVAL_FIGURES } from '../../fit/evals/figures';
 import { markedPostingHtml, resultHtml, VERDICT_LEVEL } from './result';
 
 const START = 'strong';
@@ -119,14 +120,6 @@ const LINES = [
           }
           <article class="result" data-for="live" data-live-result></article>
         </div>
-        <!--
-          EVAL FIGURES (#40): replace this paragraph with the scorer's measured agreement with my own
-          labels (with the sample size), the red-team figures (how often an injection changed the
-          verdict, how often it was flagged), and a link to how they were measured.
-        -->
-        <p class="measure" data-eval-figures>
-          How often this agrees with my own judgement is being measured; the figure and its sample size will go here.
-        </p>
       </div>
 
       <form class="paste" data-paste data-path={FIT_CHECK_PATH} data-min={LIMITS.minChars} data-max={LIMITS.maxChars}>
@@ -150,11 +143,18 @@ const LINES = [
     </div>
 
     <div class="close">
-      <p>
-        The judgement uses my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>,
-        published as is, and a public summary of where I’ll work. Claude Haiku reads the posting and picks from fixed
-        reasons; it never writes words for this page. Instructions hidden in a posting are treated as text, and flagged.
-      </p>
+      <div class="how">
+        <p>
+          The judgement uses my <a href="https://github.com/steveu/urm.st/blob/master/src/fit/profile.md">scoring profile</a>,
+          published as is, and a public summary of where I’ll work. Claude Haiku reads the posting and picks from fixed
+          reasons; it never writes words for this page. Instructions hidden in a posting are treated as text, and flagged.
+        </p>
+        <p class="figures" data-eval-figures>
+          {EVAL_FIGURES.agreement}
+          {EVAL_FIGURES.redTeam}
+        </p>
+        <a class="primary" href="/work/fit-check">How this was measured →</a>
+      </div>
       <div class="where-i-work">
         <p class="label">Where I’ll work</p>
         <ul>{LOCATION_SUMMARY.map((l) => <li>{l}</li>)}</ul>
@@ -844,14 +844,6 @@ const LINES = [
     color: var(--faint);
   }
 
-  .measure {
-    padding-top: 16px;
-    border-top: 1px solid var(--hair);
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--faint);
-  }
-
   /* ---- The box ---- */
   .paste {
     display: flex;
@@ -957,12 +949,29 @@ const LINES = [
     border-top: 1px solid var(--hair);
   }
 
-  .close > p {
+  .how p {
     max-width: 640px;
     font-size: 15px;
     line-height: 1.6;
     color: var(--soft);
     text-wrap: pretty;
+  }
+
+  .how .figures {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--faint);
+  }
+
+  .how .primary {
+    display: inline-block;
+    margin-top: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .how .primary:hover {
+    text-decoration: underline;
   }
 
   .label {

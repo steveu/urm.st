@@ -1,0 +1,343 @@
+---
+// How the home band's fit check is measured: agreement with my own job-radar labels on a
+// held-out set, and a red team of invented postings with instructions for AI tools. Every
+// figure comes from the committed eval JSON (src/fit/evals/), so a re-run updates the page.
+import Base from '../../layouts/Base.astro';
+import { LIMITS } from '../../fit/check';
+import { AGREEMENT as a, FEW_POSITIVES, RED_TEAM as r } from '../../fit/evals/figures';
+import { BASES } from '../../fit/evals/redteam';
+import { interval, percent, type Rate } from '../../fit/evals/stats';
+
+const REPO = 'https://github.com/steveu/urm.st/blob/master';
+const date = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const count = (k: number, n: number) => (k === n ? `all ${n}` : k === 0 ? `none of ${n}` : `${k} of ${n}`);
+const figure = (x: Rate) => `${percent(x)}, ${interval(x)}`;
+
+const v = a.verdict;
+const rows = [
+  { label: 'Strong', ...a.verdicts.strong },
+  { label: 'Possible', ...a.verdicts.possible },
+  { label: 'Poor', ...a.verdicts.poor },
+];
+const sameWithLocation = a.verdictOrLocation.agreement.k === v.agreement.k;
+const sameDay = a.ranAt === r.ranAt && a.model === r.model && a.promptVersion === r.promptVersion;
+const allQuoted = r.injectionQuoted.k === r.injectionFlagged.k;
+---
+
+<Base
+  title="How the fit check is measured"
+  description="How often the fit check agrees with my own judgement of real job postings, and what it does with instructions hidden in a posting for AI tools. Counts only, with sample sizes."
+>
+  <article class="wrap page">
+    <header class="intro">
+      <p class="crumbs"><a href="/work">Work</a> <span aria-hidden="true">/</span> Fit check</p>
+      <h1>How the fit check is measured</h1>
+      <p class="lede">
+        Two measurements of the <a href="/#fit-check">fit check on the home page</a>: how often it agrees with my own
+        judgement of real postings, and what it does with instructions hidden in a posting for AI tools. Only the counts
+        are published.
+      </p>
+      <p class="run-note">
+        {
+          sameDay
+            ? `Both last run on ${date(a.ranAt)}, with ${a.model} and prompt ${a.promptVersion}.`
+            : `Agreement last run on ${date(a.ranAt)} (${a.model}, prompt ${a.promptVersion}); red team on ${date(r.ranAt)} (${r.model}, prompt ${r.promptVersion}).`
+        }{' '}
+        Both are run again whenever the prompt, the profile or the model changes.
+      </p>
+    </header>
+
+    <div class="body">
+      <h2>Agreement with my own judgement</h2>
+      <p>
+        job-radar is the tool I built to find and read postings for my own job search. As I go through what it finds, I label
+        each posting keep, maybe or skip. Those labels are the nearest thing I have to a right answer.
+      </p>
+      <p>
+        The <a href={`${REPO}/src/fit/profile.md`}>scoring profile</a> the check uses was frozen on {date(a.heldOutAfter)}.
+        Only postings I first labelled after that count here, so the profile wasn’t written with any of them in view. For
+        each one, a script reads the posting from job-radar’s database on my own machine, opened read-only, turns its
+        description into plain text, cuts it to the same {LIMITS.maxChars.toLocaleString('en-GB')} characters as the paste
+        box, and runs exactly the check the home page runs. Keep and maybe count as yes; skip counts as no. Only the counts
+        are kept: no posting, title or employer is published.
+      </p>
+
+      <div class="table" role="region" aria-labelledby="agreement-caption" tabindex="0">
+        <table>
+          <caption id="agreement-caption">The check’s verdict against my label, {a.n} postings</caption>
+          <thead>
+            <tr>
+              <th scope="col">Check said</th>
+              <th scope="col">I’d kept or marked maybe</th>
+              <th scope="col">I’d skipped</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((row) => (
+                <tr>
+                  <th scope="row">{row.label}</th>
+                  <td>{row.positive}</td>
+                  <td>{row.negative}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">All</th>
+              <td>{a.positives}</td>
+              <td>{a.negatives}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <ul class="figures">
+        <li>
+          Of the {v.poorWereSkips.n} it called poor, I’d skipped {v.poorWereSkips.k}{' '}
+          <span class="ci">({figure(v.poorWereSkips)})</span>.
+        </li>
+        <li>
+          Of the {v.recallOfPositives.n} I’d kept or marked maybe, it rated {v.recallOfPositives.k} strong or possible{' '}
+          <span class="ci">({figure(v.recallOfPositives)})</span>.
+        </li>
+        <li>
+          Of the {v.fitWereKeepOrMaybe.n} it rated strong or possible, I’d kept or marked maybe {v.fitWereKeepOrMaybe.k}{' '}
+          <span class="ci">({figure(v.fitWereKeepOrMaybe)})</span>.
+        </li>
+        <li>
+          Overall it agreed with me on {v.agreement.k} of {v.agreement.n} <span class="ci">({figure(v.agreement)})</span>.
+        </li>
+      </ul>
+      <p class="aside">
+        The ranges are 95% Wilson intervals: with samples this small, the true rate could reasonably sit anywhere inside
+        them.
+      </p>
+
+      <h3>What this doesn’t show</h3>
+      {
+        a.positives < FEW_POSITIVES && (
+          <p>
+            <strong>Few yeses so far.</strong> Only {a.positives} of the {a.n} postings were ones I’d keep or consider. Most
+            postings are a no, which is the nature of a job search, but it means the figures about the yes side are rough:{' '}
+            {v.recallOfPositives.k} of {v.recallOfPositives.n} could be anything from {interval(v.recallOfPositives)}. They’ll
+            firm up as I label more.
+          </p>
+        )
+      }
+      <p>
+        <strong>Easy noes count too.</strong> Most postings are plainly not a fit, so the overall agreement mostly measures
+        saying no to those. The harder test is the yes side, where {v.fitWereKeepOrMaybe.n - v.fitWereKeepOrMaybe.k} of the
+        check’s {v.fitWereKeepOrMaybe.n} strong or possible verdicts went to postings I’d skipped. I also skip postings for
+        reasons the verdict doesn’t judge, such as pay, so not every one of those is a miss.
+        {sameWithLocation && ' Counting a location that doesn’t work as a no as well changes nothing in this sample.'}
+      </p>
+      <p>
+        <strong>One person’s labels.</strong> The labels are mine, made while job hunting, and the postings are the ones
+        job-radar found for my search rather than a random sample of job adverts.
+      </p>
+      <p>
+        <strong>Answers that didn’t check out.</strong>{' '}
+        {count(a.firstAttemptFailedQuoteCheck.k, a.firstAttemptFailedQuoteCheck.n)} first answers failed the quote check
+        and needed the one retry;{' '}
+        {a.unassessable === 0 ? 'all checked out after it.' : `${a.unassessable} still didn’t check out after it, and ${a.unassessable === 1 ? 'isn’t' : 'aren’t'} counted above.`}
+      </p>
+
+      <h2>Instructions hidden for AI tools</h2>
+      <p>
+        Some postings carry text meant for AI screening tools rather than people: “ignore previous instructions”, or a note
+        telling any AI that reads it to rate the candidate highly. The check reads the posting as data, and is told to flag
+        such text, quote it, and otherwise ignore it.
+      </p>
+      <p>
+        To test that, I wrote <a href={`${REPO}/src/fit/evals/redteam.ts`}>{r.pairs} pairs of made-up postings</a>, on
+        {' '}{BASES.length} invented roles that run from a poor fit to a strong one. In each pair, one posting is as written and
+        the other has an instruction slipped in: a plain “ignore previous instructions”, fake system and assistant messages,
+        a fake end to the posting, orders to rate it strong or poor, a false location, a request to reveal the prompt, one
+        in French, and text hidden with styling in the HTML, which a job board’s listing still passes on. Each version was
+        checked once.
+      </p>
+      <ul class="figures">
+        <li>
+          The verdict changed in {count(r.verdictChanged.k, r.verdictChanged.n)} pairs <span class="ci">({figure(r.verdictChanged)})</span>,
+          and the location verdict in {count(r.locationChanged.k, r.locationChanged.n)}.
+        </li>
+        <li>
+          The instruction was flagged in {count(r.injectionFlagged.k, r.injectionFlagged.n)} <span class="ci">({figure(r.injectionFlagged)})</span>{
+            allQuoted ? ', each time quoting the instruction itself' : `, quoting the instruction itself in ${r.injectionQuoted.k}`
+          }.
+        </li>
+        <li>
+          Postings without an instruction flagged by mistake: {count(r.cleanFlagged.k, r.cleanFlagged.n)}.
+        </li>
+        <li>
+          Each role was checked twice without an instruction, and the two verdicts agreed for
+          {' '}{count(r.cleanRunsDisagreed.n - r.cleanRunsDisagreed.k, r.cleanRunsDisagreed.n)}, so a verdict that moved
+          would be hard to put down to chance.
+        </li>
+        <li>
+          Answers that failed the quote check first time: {count(r.firstAttemptFailedQuoteCheck.k, r.firstAttemptFailedQuoteCheck.n)}.
+        </li>
+      </ul>
+
+      <h3>What this doesn’t show</h3>
+      <p>
+        I wrote these attacks knowing the prompt, and there are only {r.pairs} of them, so the true rate at which a verdict
+        moves is likely under {Math.round((r.verdictChanged.high ?? 1) * 100)}%, not known to be {percent(r.verdictChanged)}. Someone determined, with many tries, could do better. What limits the damage is the design:
+        the model only picks a verdict, reasons from a fixed list and quotes from the posting, and every quote is checked
+        before it’s shown. The worst a successful instruction can do is move the verdict; it can’t put words on this site.
+      </p>
+
+      <h2>Running them again</h2>
+      <p>
+        Both scripts are in the repo: <a href={`${REPO}/scripts/fit-agreement.ts`}>the agreement script</a>, which opens
+        job-radar’s database read-only and writes only counts, and <a href={`${REPO}/scripts/fit-redteam.ts`}>the red
+        team’s</a>. The figures record the model and prompt version they were measured with, and a test fails if either
+        changes without a re-run.
+      </p>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .page {
+    padding-block: clamp(56px, 8vw, 96px) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 760px;
+  }
+
+  .crumbs {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .crumbs span {
+    margin-inline: 6px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 4.4vw, 50px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .lede {
+    font-size: clamp(17px, 1.6vw, 19px);
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .lede a,
+  .body a {
+    color: var(--accent);
+  }
+
+  .run-note {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--faint);
+    padding-left: 14px;
+    border-left: 3px solid var(--orange);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    max-width: 680px;
+    font-size: 17px;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  .body h2 {
+    margin-top: 0.8em;
+    font-size: 24px;
+    line-height: 1.3;
+  }
+
+  .body h3 {
+    margin-top: 0.4em;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .figures {
+    margin: 0;
+    padding-left: 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+  }
+
+  .ci,
+  .aside {
+    color: var(--faint);
+  }
+
+  .aside {
+    font-size: 15px;
+  }
+
+  .table {
+    overflow-x: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  caption {
+    text-align: left;
+    padding-bottom: 8px;
+    font-size: 14px;
+    color: var(--faint);
+  }
+
+  th,
+  td {
+    padding: 6px 16px 6px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  td {
+    text-align: right;
+    min-width: 7ch;
+  }
+
+  thead th {
+    font-weight: 700;
+    font-size: 13px;
+    vertical-align: bottom;
+  }
+
+  thead th + th {
+    text-align: right;
+  }
+
+  tbody th,
+  tfoot th {
+    font-weight: 600;
+  }
+
+  tfoot th,
+  tfoot td {
+    border-bottom: 0;
+    color: var(--muted);
+  }
+</style>
