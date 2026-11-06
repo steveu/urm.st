@@ -1,0 +1,657 @@
+{
+  "strong": {
+    "posting": {
+      "evals_in_scope": 0.99,
+      "works_with_design": 0.99,
+      "shapes_product": 0.98,
+      "senior_level": 0.99,
+      "frontend_craft": 0.32,
+      "ai_ux": 0.99,
+      "early_ownership": 0.06,
+      "typescript_react": 1
+    },
+    "sentences": {
+      "s1": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.02,
+        "shapes_product": 0.03,
+        "senior_level": 0.99,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.03,
+        "early_ownership": 0.02
+      },
+      "s2": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s3": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s4": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.04,
+        "senior_level": 0.02,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.09,
+        "early_ownership": 0.03
+      },
+      "s6": {
+        "evals_in_scope": 0.04,
+        "works_with_design": 0.02,
+        "shapes_product": 0.55,
+        "senior_level": 0.04,
+        "frontend_craft": 0.19,
+        "ai_ux": 0.89,
+        "early_ownership": 0.02
+      },
+      "s7": {
+        "evals_in_scope": 1,
+        "works_with_design": 0.01,
+        "shapes_product": 0.97,
+        "senior_level": 0.04,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.15,
+        "early_ownership": 0.01
+      },
+      "s8": {
+        "evals_in_scope": 0.08,
+        "works_with_design": 0.03,
+        "shapes_product": 0.45,
+        "senior_level": 0.03,
+        "frontend_craft": 0.44,
+        "ai_ux": 1,
+        "early_ownership": 0.01
+      },
+      "s9": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.03,
+        "senior_level": 0.02,
+        "frontend_craft": 0.18,
+        "ai_ux": 0.05,
+        "early_ownership": 0.01
+      },
+      "s10": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.99,
+        "shapes_product": 0.99,
+        "senior_level": 0.02,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.07,
+        "early_ownership": 0.02
+      },
+      "s12": {
+        "evals_in_scope": 0.06,
+        "works_with_design": 0.01,
+        "shapes_product": 0.03,
+        "senior_level": 0.21,
+        "frontend_craft": 0.4,
+        "ai_ux": 0.14,
+        "early_ownership": 0.01
+      },
+      "s13": {
+        "evals_in_scope": 0.04,
+        "works_with_design": 0.02,
+        "shapes_product": 0.05,
+        "senior_level": 0.03,
+        "frontend_craft": 0.68,
+        "ai_ux": 0.69,
+        "early_ownership": 0.01
+      },
+      "s14": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      }
+    }
+  },
+  "possible": {
+    "posting": {
+      "evals_in_scope": 0.01,
+      "works_with_design": 0.97,
+      "shapes_product": 0.96,
+      "senior_level": 0.99,
+      "frontend_craft": 0.99,
+      "ai_ux": 0.01,
+      "early_ownership": 0.03,
+      "typescript_react": 1
+    },
+    "sentences": {
+      "s1": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.04,
+        "senior_level": 0.99,
+        "frontend_craft": 0.91,
+        "ai_ux": 0.01,
+        "early_ownership": 0.02
+      },
+      "s3": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.01,
+        "frontend_craft": 0.03,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s4": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.05,
+        "senior_level": 0.03,
+        "frontend_craft": 0.31,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s6": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.03,
+        "shapes_product": 0.14,
+        "senior_level": 0.93,
+        "frontend_craft": 0.98,
+        "ai_ux": 0.01,
+        "early_ownership": 0.02
+      },
+      "s7": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.98,
+        "shapes_product": 0.2,
+        "senior_level": 0.04,
+        "frontend_craft": 0.97,
+        "ai_ux": 0.01,
+        "early_ownership": 0.02
+      },
+      "s8": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.02,
+        "senior_level": 0.2,
+        "frontend_craft": 0.32,
+        "ai_ux": 0.01,
+        "early_ownership": 0.02
+      },
+      "s9": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.03,
+        "shapes_product": 0.98,
+        "senior_level": 0.03,
+        "frontend_craft": 0.03,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s11": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.05,
+        "shapes_product": 0.02,
+        "senior_level": 0.03,
+        "frontend_craft": 0.99,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s12": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.05,
+        "senior_level": 0.47,
+        "frontend_craft": 0.78,
+        "ai_ux": 0.01,
+        "early_ownership": 0.02
+      },
+      "s13": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.89,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s14": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.03,
+        "senior_level": 0.02,
+        "frontend_craft": 0.13,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s15": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s16": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      }
+    }
+  },
+  "poor": {
+    "posting": {
+      "evals_in_scope": 0.03,
+      "works_with_design": 0.02,
+      "shapes_product": 0.15,
+      "senior_level": 0.99,
+      "frontend_craft": 0.01,
+      "ai_ux": 0.02,
+      "early_ownership": 0.03,
+      "typescript_react": 0
+    },
+    "sentences": {
+      "s1": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.03,
+        "senior_level": 0.99,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s2": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.04,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s3": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.05,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s4": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.02,
+        "shapes_product": 0.08,
+        "senior_level": 0.07,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.03,
+        "early_ownership": 0.02
+      },
+      "s6": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.1,
+        "senior_level": 0.07,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.02
+      },
+      "s7": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.04,
+        "senior_level": 0.07,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s8": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.01,
+        "shapes_product": 0.03,
+        "senior_level": 0.11,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s9": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.02,
+        "shapes_product": 0.05,
+        "senior_level": 0.06,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.02
+      },
+      "s11": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.93,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s12": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.11,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s13": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.09,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s14": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.07,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      }
+    }
+  },
+  "injection": {
+    "posting": {
+      "evals_in_scope": 0.1,
+      "works_with_design": 0.04,
+      "shapes_product": 0.76,
+      "senior_level": 0.02,
+      "frontend_craft": 0.01,
+      "ai_ux": 0.99,
+      "early_ownership": 0.02,
+      "typescript_react": 0
+    },
+    "sentences": {
+      "s1": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.03,
+        "shapes_product": 0.03,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.1,
+        "early_ownership": 0.02
+      },
+      "s2": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.01,
+        "frontend_craft": 0,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s3": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s4": {
+        "evals_in_scope": 0.04,
+        "works_with_design": 0.02,
+        "shapes_product": 0.23,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.52,
+        "early_ownership": 0.02
+      },
+      "s6": {
+        "evals_in_scope": 0.03,
+        "works_with_design": 0.03,
+        "shapes_product": 0.47,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.99,
+        "early_ownership": 0.01
+      },
+      "s7": {
+        "evals_in_scope": 0.05,
+        "works_with_design": 0.02,
+        "shapes_product": 0.61,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.1,
+        "early_ownership": 0.01
+      },
+      "s8": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.12,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.03,
+        "early_ownership": 0.01
+      },
+      "s9": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.03,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s11": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.04,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.03,
+        "early_ownership": 0.01
+      },
+      "s12": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.02,
+        "shapes_product": 0.05,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.22,
+        "early_ownership": 0.01
+      },
+      "s13": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s14": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.01,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s15": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.02,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      }
+    }
+  },
+  "halden": {
+    "posting": {
+      "evals_in_scope": 0.1,
+      "works_with_design": 0.99,
+      "shapes_product": 0.97,
+      "senior_level": 0.95,
+      "frontend_craft": 0.08,
+      "ai_ux": 0.94,
+      "early_ownership": 0.02,
+      "typescript_react": 1
+    },
+    "sentences": {
+      "s1": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.02,
+        "senior_level": 0.56,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s2": {
+        "evals_in_scope": 0,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.09,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s3": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.08,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s4": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.13,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s5": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.11,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.02,
+        "early_ownership": 0.01
+      },
+      "s7": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.02,
+        "shapes_product": 0.08,
+        "senior_level": 0.24,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.83,
+        "early_ownership": 0.01
+      },
+      "s8": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.02,
+        "shapes_product": 0.15,
+        "senior_level": 0.26,
+        "frontend_craft": 0.05,
+        "ai_ux": 0.53,
+        "early_ownership": 0.01
+      },
+      "s9": {
+        "evals_in_scope": 0.03,
+        "works_with_design": 1,
+        "shapes_product": 0.99,
+        "senior_level": 0.15,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.06,
+        "early_ownership": 0.01
+      },
+      "s11": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.02,
+        "senior_level": 0.92,
+        "frontend_craft": 0.08,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s12": {
+        "evals_in_scope": 0.04,
+        "works_with_design": 0.01,
+        "shapes_product": 0.04,
+        "senior_level": 0.18,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.07,
+        "early_ownership": 0.01
+      },
+      "s13": {
+        "evals_in_scope": 0.02,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.15,
+        "frontend_craft": 0.02,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s15": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.08,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s17": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.08,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s18": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.06,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      },
+      "s19": {
+        "evals_in_scope": 0.01,
+        "works_with_design": 0.01,
+        "shapes_product": 0.01,
+        "senior_level": 0.07,
+        "frontend_craft": 0.01,
+        "ai_ux": 0.01,
+        "early_ownership": 0.01
+      }
+    }
+  }
+}

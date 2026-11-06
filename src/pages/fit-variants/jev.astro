@@ -9,7 +9,7 @@ const POSTINGS: Array<{ id: PostingId; name: string }> = [
   { id: 'halden', name: 'Product Engineer, AI (invented, from the real-role mock-ups)' },
   { id: 'poor', name: 'Senior Backend Engineer, AI Platform (the made-up “poor” sample)' },
 ];
-const runs = POSTINGS.map((p) => ({ ...p, ...jevSheets(p.id) }));
+const runs = POSTINGS.map((p) => ({ ...p, ...jevSheets(p.id), extra: jevSheets(p.id, true) }));
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 ---
 
@@ -41,6 +41,13 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
           <p class="facts">
             {r.facts.finalVerdict}, fit {r.facts.finalFit} of 5 · today’s band said {r.facts.todayVerdict}
           </p>
+        </JevBand>
+        <JevBand kicker="Trial · criteria for a role" title="With the “for” criteria" sheet={r.extra.joined} crit={r.extra.critJoined}>
+          <p>
+            Seven more questions that count for a role, and TypeScript and React found in code. They only mark sentences: the fit and
+            the verdict are unchanged.
+          </p>
+          <p class="facts">{r.extra.facts.marked} of {r.extra.facts.sentences} sentences marked, from {r.facts.marked} without them</p>
         </JevBand>
       </>
     ))

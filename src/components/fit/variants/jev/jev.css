@@ -144,3 +144,8 @@
 .fit .crit-bar .rest {
   padding-left: 0;
 }
+
+.fit .crit-bar li.break {
+  flex-basis: 100%;
+  height: 0;
+}

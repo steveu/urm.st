@@ -9,6 +9,8 @@ import { LOCATION_COPY, VERDICT_COPY, type Verdict } from '../../../../fit/copy'
 import type { FitAssessment } from '../../../../fit/schema';
 import { escapeHtml, LOCATION_TONE, PIN, placedSheetHtml, resultSheetHtml, SIDE_LABEL, VERDICT_TONE, type PlacedMark, type Tone } from '../../result';
 import data from './answers.json';
+import extraData from './extra-answers.json';
+import { EXTRA_COPY, EXTRA_IDS, TS_REACT, type ExtraId } from './extra';
 import { CRITERION_IDS, type Answers, type CriterionId } from './criteria';
 import { CRITERION_COPY } from './copy';
 import { fitFromAnswers, fitFromNouls, fitRange } from './rule';
@@ -31,6 +33,19 @@ interface Posting {
 export type PostingId = keyof typeof data.postings;
 const postings = data.postings as unknown as Record<PostingId, Posting>;
 
+type ExtraKey = ExtraId | 'typescript_react';
+const EXTRA_KEYS: ExtraKey[] = ['typescript_react', ...EXTRA_IDS];
+const extras = extraData as unknown as Record<string, { posting: Record<ExtraKey, number>; sentences: Record<string, Partial<Record<ExtraId, number>>> }>;
+
+/** The "for" criteria a sentence backs, when the posting-level answer is yes too. */
+function extraHits(id: PostingId, s: Sentence): ExtraKey[] {
+  const e = extras[id];
+  if (!e) return [];
+  return EXTRA_KEYS.filter((k) =>
+    k === 'typescript_react' ? TS_REACT.test(s.text) : e.posting[k] >= YES && (e.sentences[s.id]?.[k] ?? 0) >= SENTENCE,
+  );
+}
+
 const verdictOf = (fit: number): Verdict => (fit >= 4 ? 'strong' : fit === 3 ? 'possible' : 'poor');
 
 const STATUS: Record<Verdict, string> = {
@@ -47,24 +62,27 @@ function chip(v: Verdict, label = VERDICT_COPY[v].label) {
  * Each marked sentence, tinted by the way its criteria pull. The first sentence for a set of
  * criteria carries the note, with how many sentences share it; the rest are tint alone.
  */
-function sentenceMarks(p: Posting): PlacedMark[] {
-  const found: Array<{ s: Sentence; hits: CriterionId[] }> = [];
+function sentenceMarks(p: Posting, id: PostingId, withExtra: boolean): PlacedMark[] {
+  type Hit = CriterionId | ExtraKey;
+  const found: Array<{ s: Sentence; hits: Hit[] }> = [];
   for (const s of p.sentences) {
     if (s.heading) continue;
-    const hits = CRITERION_IDS.filter((c) => p.jev.posting[c] >= YES && (p.jev.sentences[s.id]?.[c] ?? 0) >= SENTENCE);
+    const hits: Hit[] = CRITERION_IDS.filter((c) => p.jev.posting[c] >= YES && (p.jev.sentences[s.id]?.[c] ?? 0) >= SENTENCE);
+    if (withExtra) hits.push(...extraHits(id, s));
     if (hits.length) found.push({ s, hits });
   }
-  const key = (h: CriterionId[]) => h.join('+');
+  const info = (h: Hit) => (h in CRITERION_COPY ? CRITERION_COPY[h as CriterionId] : EXTRA_COPY[h as ExtraKey]);
+  const key = (h: Hit[]) => h.join('+');
   const count = new Map<string, number>();
   for (const f of found) count.set(key(f.hits), (count.get(key(f.hits)) ?? 0) + 1);
   const noted = new Set<string>();
   return found.map(({ s, hits }) => {
-    const pulls = new Set(hits.map((c) => CRITERION_COPY[c].pull));
+    const pulls = new Set(hits.map((c) => info(c).pull));
     const tone: Tone = pulls.size === 1 ? [...pulls][0] : 'mixed';
     const n = count.get(key(hits))!;
     const quiet = noted.has(key(hits));
     noted.add(key(hits));
-    const names = hits.map((c) => CRITERION_COPY[c].short).join(' · ');
+    const names = hits.map((c) => info(c).short).join(' · ');
     return {
       from: s.from,
       to: s.to,
@@ -85,7 +103,7 @@ function locationMark(p: Posting, taken: PlacedMark[]): { mark?: PlacedMark; loo
 }
 
 /** The criteria as a list: the yeses, the unsettled, then how many noes. */
-function criteriaHtml(p: Posting, stage: 'jev' | 'joined'): string {
+function criteriaHtml(p: Posting, id: PostingId, stage: 'jev' | 'joined', withExtra: boolean): string {
   const rows: string[] = [];
   let no = 0;
   for (const c of CRITERION_IDS) {
@@ -102,10 +120,20 @@ function criteriaHtml(p: Posting, stage: 'jev' | 'joined'): string {
     } else no++;
   }
   if (no) rows.push(`<li class="rest">${no} more: no</li>`);
+  const e = extras[id];
+  if (withExtra && e) {
+    const yes = EXTRA_KEYS.filter((k) => e.posting[k] >= YES);
+    const rest = EXTRA_KEYS.length - yes.length;
+    rows.push(
+      `<li class="break"></li>` +
+        yes.map((k) => `<li data-tone="for"><span class="dot"></span>${escapeHtml(EXTRA_COPY[k].short)}<span class="p">${k === 'typescript_react' ? 'code' : e.posting[k].toFixed(2)}</span></li>`).join('') +
+        (rest ? `<li class="rest">${rest} more: no</li>` : ''),
+    );
+  }
   return `<div class="crit"><p class="crit-head">${CRITERION_IDS.length} questions on the posting</p><ul>${rows.join('')}</ul></div>`;
 }
 
-export function jevSheets(id: PostingId) {
+export function jevSheets(id: PostingId, withExtra = false) {
   const p = postings[id];
   const label = `${p.title}, ${p.company}`;
   const nouls = fitFromNouls(p.jev.posting, { yes: YES, no: NO });
@@ -115,7 +143,7 @@ export function jevSheets(id: PostingId) {
   const finalFit = fitFromAnswers(settledByHaiku);
   const range = fitRange(read, nouls.unsettled);
 
-  const marks = sentenceMarks(p);
+  const marks = sentenceMarks(p, id, withExtra);
   const loc = locationMark(p, marks);
 
   // Stage one: Jev's answers alone
@@ -142,8 +170,8 @@ export function jevSheets(id: PostingId) {
     today,
     jev,
     joined,
-    critJev: criteriaHtml(p, 'jev'),
-    critJoined: criteriaHtml(p, 'joined'),
+    critJev: criteriaHtml(p, id, 'jev', withExtra),
+    critJoined: criteriaHtml(p, id, 'joined', withExtra),
     facts: {
       sentences: p.sentences.filter((s) => !s.heading).length,
       marked: marks.length,
