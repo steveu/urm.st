@@ -15,8 +15,8 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import fitCheck from '../netlify/functions/fit-check.mts';
-import fitRole from '../netlify/functions/fit-role.mts';
-import { FIND_RATE_LIMIT, FIND_ROLE_PATH } from '../src/fit/finder/handler.ts';
+import fitRoles from '../netlify/functions/fit-roles.mts';
+import { FUNNEL_PATH, FUNNEL_RATE_LIMIT } from '../src/fit/finder/handler.ts';
 import { FIT_CHECK_PATH, RATE_LIMIT } from '../src/fit/handler.ts';
 
 const HOST = process.env.FIT_HOST || process.env.HOST || '127.0.0.1';
@@ -65,7 +65,7 @@ function allowed(windows: Windows, limit: Limit, ip: string): boolean {
 
 const ROUTES: Record<string, { fn: (req: Request) => Promise<Response>; method: string; limit: Limit; windows: Windows }> = {
   [FIT_CHECK_PATH]: { fn: fitCheck, method: 'POST', limit: RATE_LIMIT, windows: new Map() },
-  [FIND_ROLE_PATH]: { fn: fitRole, method: 'GET', limit: FIND_RATE_LIMIT, windows: new Map() },
+  [FUNNEL_PATH]: { fn: fitRoles, method: 'GET', limit: FUNNEL_RATE_LIMIT, windows: new Map() },
 };
 
 async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer>> {
@@ -144,5 +144,5 @@ createServer((req, res) => {
     fail(res);
   }
 }).listen(PORT, HOST, () => {
-  console.log(`Serving dist with the fit check at http://${HOST}:${PORT} (POST ${FIT_CHECK_PATH}, GET ${FIND_ROLE_PATH})`);
+  console.log(`Serving dist with the fit check at http://${HOST}:${PORT} (POST ${FIT_CHECK_PATH}, GET ${FUNNEL_PATH})`);
 });

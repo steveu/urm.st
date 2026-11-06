@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { listUrl, findRole, type Screening } from '../src/fit/finder/find.ts';
+import { listUrl, runFunnel } from '../src/fit/finder/funnel.ts';
+import { FUNNEL_CACHE, funnelHandler } from '../src/fit/finder/handler.ts';
 import type { FinderBoard } from '../src/fit/finder/boards.ts';
 import { JEV_MODEL, JEV_URL, jevScreener, RULE_OUT_AT, ruling, SCREEN_IDS, screenerFromEnv, screenRequest, type ScreenId, type Screener } from '../src/fit/finder/screen.ts';
-import { apiUrl } from '../src/fit/boards.ts';
 
 // Invented boards and postings throughout: no real listing.
 const UUID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -70,6 +70,15 @@ describe('jevScreener', () => {
     await expect(jevScreener({ apiKey: 'k', fetch: async () => ok({ ...none(), agency: 1.4, backend_or_data: 1.4 }) })('x')).rejects.toThrow('backend_or_data');
   });
 
+  it('tries once more after a short wait when over the rate limit', async () => {
+    let n = 0;
+    const screen = jevScreener({ apiKey: 'k', retryMs: 0, fetch: async () => (n++ ? ok(none()) : new Response('slow down', { status: 429 })) });
+    expect((await screen('x')).answers).toEqual(none());
+    expect(n).toBe(2);
+    const always = jevScreener({ apiKey: 'k', retryMs: 0, fetch: async () => new Response('slow down', { status: 429 }) });
+    await expect(always('x')).rejects.toThrow('Jev 429');
+  });
+
   it('comes from the environment only when a key is set', () => {
     expect(screenerFromEnv({})).toBeNull();
     expect(screenerFromEnv({ JEV_API_KEY: 'k' })).toBeTypeOf('function');
@@ -77,53 +86,57 @@ describe('jevScreener', () => {
   });
 });
 
-describe('findRole with screening', () => {
+describe('runFunnel with screening', () => {
   const boards = {
     [listUrl(AB).href]: { jobs: [abJob(1, 'Product Engineer', 'Build the backend services and data pipelines'), abJob(2, 'Design Engineer', 'Build the interface and design system')] },
     [listUrl(LV).href]: [
       { id: UUID(3), text: 'Product Engineer', categories: { allLocations: ['Leeds'] }, country: 'GB', description: DESC('Own the backend APIs and on-call'), lists: [] },
     ],
+    [listUrl(GH).href]: {
+      jobs: [{ id: 42, title: 'Founding Engineer', location: { name: 'York' }, content: '&lt;p&gt;Build the product with our founders, from the first sketch to the shipped feature.&lt;/p&gt;' }],
+    },
   };
 
-  it('puts candidates to Jev, rules out the clear noes, and picks from the rest', async () => {
+  it('puts every open role to Jev, and splits them into what it left and what it ruled out', async () => {
     const seen: string[] = [];
     const { fn } = stubFetch(boards);
-    const found = await findRole({ fetch: fn, boards: [AB, LV], screen: textScreener(seen), random: () => 0 });
-    expect(found.ok).toBe(true);
-    if (!found.ok) return;
-    expect(found.role.title).toBe('Design Engineer');
-    const s = found.screening as Screening;
-    expect(s.screened).toBe(3);
-    expect(s.allRuledOut).toBe(false);
-    expect(s.ruledOut.map((r) => `${r.company}: ${r.reason}`).sort()).toEqual(['Example Ashby: backend_or_data', 'Example Lever: backend_or_data']);
-    // Jev read the text the fit check reads: title and the board's fields first
+    const r = await runFunnel({ fetch: fn, boards: [AB, LV, GH], screen: textScreener(seen) });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const f = r.funnel;
+    expect(f.left.map((x) => x.title)).toEqual(['Design Engineer', 'Founding Engineer']);
+    expect(f.ruledOut.map((x) => `${x.company}: ${x.reason} ${x.p}`)).toEqual(['Example Ashby: backend_or_data 0.97', 'Example Lever: backend_or_data 0.97']);
+    expect(f.unscreened).toBe(0);
+    expect(f.screening).toMatchObject({ model: JEV_MODEL });
+    expect(f.screening!.costUsd).toBeGreaterThan(0);
+    // Jev read the text the fit check reads: title and the board's fields first, Greenhouse's
+    // from the list's own content
     expect(seen.some((t) => t.startsWith('Design Engineer\nLocation: London'))).toBe(true);
-    expect(s.costUsd).toBeGreaterThan(0);
+    expect(seen.some((t) => t.includes('Build the product with our founders'))).toBe(true);
   });
 
-  it('reads a Greenhouse candidate from its job, as the list has no description', async () => {
-    const link = { kind: 'board' as const, board: 'greenhouse' as const, token: GH.token, id: '42' };
-    const { fn, calls } = stubFetch({
-      [listUrl(GH).href]: { jobs: [{ id: 42, title: 'Founding Engineer', location: { name: 'York' } }] },
-      [apiUrl(link).href]: { id: 42, title: 'Founding Engineer', location: { name: 'York' }, content: '&lt;p&gt;Build the product with our founders.&lt;/p&gt;' },
-    });
-    const seen: string[] = [];
-    const found = await findRole({ fetch: fn, boards: [GH], screen: textScreener(seen), random: () => 0 });
-    expect(calls).toContain(apiUrl(link).href);
-    expect(seen[0]).toContain('Build the product with our founders.');
-    expect(found.ok && found.screening?.screened).toBe(1);
-  });
-
-  it('when Jev rules out every candidate, picks one of them and says so', async () => {
-    const { fn } = stubFetch({ [listUrl(LV).href]: boards[listUrl(LV).href] });
-    const found = await findRole({ fetch: fn, boards: [LV], screen: textScreener(), random: () => 0 });
-    expect(found.ok && found.screening?.allRuledOut).toBe(true);
-    expect(found.ok && found.role.company).toBe(LV.company);
-  });
-
-  it('when Jev fails, picks unscreened and says the screening failed: a failure is never a pass', async () => {
+  it('leaves out of both lists a role Jev could not answer for: a failure is never a pass', async () => {
     const { fn } = stubFetch(boards);
-    const found = await findRole({ fetch: fn, boards: [AB, LV], screen: async () => Promise.reject(new Error('down')), random: () => 0 });
-    expect(found).toMatchObject({ ok: true, screening: null, screenFailed: true });
+    const flaky: Screener = async (text) => {
+      if (text.startsWith('Founding Engineer')) throw new Error('timeout');
+      return textScreener()(text);
+    };
+    const r = await runFunnel({ fetch: fn, boards: [AB, LV, GH], screen: flaky });
+    expect(r.ok && r.funnel.unscreened).toBe(1);
+    expect(r.ok && r.funnel.left.map((x) => x.title)).toEqual(['Design Engineer']);
+  });
+
+  it('when Jev answers for none, lists every open role and says the screening failed', async () => {
+    const { fn } = stubFetch(boards);
+    const r = await runFunnel({ fetch: fn, boards: [AB, LV], screen: async () => Promise.reject(new Error('down')) });
+    expect(r).toMatchObject({ ok: true, funnel: { screening: null, screenFailed: true, ruledOut: [] } });
+    expect(r.ok && r.funnel.left.length).toBe(3);
+  });
+
+  it('is cached for hours once screened', async () => {
+    const { fn } = stubFetch(boards);
+    const res = await funnelHandler({ fetch: fn, boards: [AB], screen: textScreener() })(new Request('http://x/'));
+    expect(res.headers.get('netlify-cdn-cache-control')).toBe(`public, durable, s-maxage=${FUNNEL_CACHE.shared}, stale-while-revalidate=${FUNNEL_CACHE.stale}`);
+    expect(res.headers.get('cache-control')).toBe(`public, max-age=${FUNNEL_CACHE.browser}`);
   });
 });

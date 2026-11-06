@@ -1,167 +1,130 @@
 ---
-// Home band for job-radar's fit check, a demo on my own profile: a posting is set on a sheet,
-// each passage the answer rests on tinted in place in the colour of the side it pulls (sage
-// for, clay against, straw mixed), with the verdict and a note level with each passage in the
-// margin. Four made-up samples, answered ahead of time by the real check and committed
-// (src/fit/sample-results.json), are picked from thumbnails: radio buttons, so they switch
-// instantly and with scripts off, and CSS shows the checked sheet. "Paste your own" turns the
-// sheet into the paste area. Every word on a sheet is site copy or the posting's own text, and
-// one renderer (./result.ts) draws the samples here and a live answer in the browser.
+// Home band for job-radar's fit check, a demo on my own profile. Beside the sheet, the pool:
+// every role on a set of public job boards, narrowed by a title rule, a place rule and Jev,
+// which rules out the clear noes (src/fit/finder). The funnel draws each step narrowing from
+// the last. What's left is listed by company, never ranked. Opening a role sends its link to
+// the fit check, and Haiku's answer is set on the sheet: each passage it rests on tinted in
+// place in the colour of the side it pulls (sage for, clay against, straw mixed), with the
+// verdict and a note level with each passage in the margin. A visitor can paste their own
+// posting instead. Every word on a sheet is site copy or the posting's own text, and one
+// renderer (./result.ts) draws them.
 //
-// Motion, only when it's wanted: as a sheet is shown, its tints sweep in one after another,
-// then each note's leader draws and the note fades in; the verdict arrives last.
+// Motion, only when it's wanted: the funnel narrows step by step; as a sheet is shown, its
+// tints sweep in one after another, then each note's leader draws and the note fades in; the
+// verdict arrives last.
 import '@fontsource-variable/petrona/wght.css';
 import './fit.css';
 import { LIMITS } from '../../fit/check';
-import { VERDICT_COPY } from '../../fit/copy';
 import { FIT_CHECK_PATH } from '../../fit/handler';
-import { FIND_ROLE_PATH } from '../../fit/finder/handler';
+import { FINDER_BOARDS } from '../../fit/finder/boards';
+import { FUNNEL_PATH } from '../../fit/finder/handler';
 import { BOARD_LIST } from '../../fit/links';
-import { SAMPLE_POSTINGS, type SamplePosting } from '../../fit/samples';
-import { SAMPLE_RESULTS } from '../../fit/sample-results';
 import { EVAL_FIGURES } from '../../fit/evals/figures';
-import { miniHtml, PIN, resultSheetHtml, SHUFFLE } from './result';
+import { PIN } from './result';
 
-const START: SamplePosting['id'] = 'strong';
 const PROFILE = 'https://github.com/steveu/urm.st/blob/master/src/fit/profile.md';
-
-// Short names under the thumbnails; the full title is on the sheet
-const SHORT: Record<SamplePosting['id'], string> = {
-  strong: 'AI product engineer',
-  possible: 'Lead frontend',
-  poor: 'Backend engineer',
-  injection: 'Product designer',
-};
-
-const samples = SAMPLE_POSTINGS.map((s) => {
-  const result = SAMPLE_RESULTS.results[s.id];
-  if (!result) throw new Error(`No committed result for the ${s.id} sample: run scripts/fit-samples.ts`);
-  const label = `${s.title}, ${s.company}`;
-  return {
-    id: s.id,
-    label,
-    short: SHORT[s.id],
-    announce: `${s.title}: ${VERDICT_COPY[result.verdict].label}`,
-    sheet: resultSheetHtml(s.text, result, { label }),
-    mini: miniHtml(s.text, result),
-  };
-});
+const BOARDS = FINDER_BOARDS.length;
 ---
 
-<section id="fit-check" class="band fit" aria-labelledby="fit-check-title" data-fit>
+<section id="fit-check" class="band fit" aria-labelledby="fit-check-title" data-fit data-pane="role" data-boards={BOARDS}>
   <div class="wrap grid">
     <header class="head">
       <p class="kicker"><span>job-radar</span></p>
       <h2 id="fit-check-title">Every reason, in the posting’s own&nbsp;words.</h2>
       <p class="lede">
         job-radar is a matching tool I’m building. This demo runs on <a href={PROFILE}>my own profile</a>, the one I can
-        judge it against honestly. It can only choose from a fixed list of reasons, and each one has to quote the posting
-        word for word, or it isn’t shown. Here it is on a live role, picked at random from public job boards. Try another,
-        or paste your own.
+        judge it against honestly. It reads every role on {BOARDS} public job boards. Two plain rules keep the engineering,
+        design and product roles open to the UK, and Jev, a fast decision model, rules out the clear noes. Open any role
+        and Haiku checks it, choosing from a fixed list of reasons, each quoting the posting word for word.
       </p>
     </header>
 
+    <div class="pool" data-pool data-path={FUNNEL_PATH}>
+      <div class="funnel" data-funnel aria-live="polite">
+        <ol class="funnel-bars ghosted" aria-hidden="true">
+          {
+            [100, 72, 44, 18].map((w, i) => (
+              <li style={`--i:${i};--from:${w}%;--w:${w}%`}>
+                <span class="track"><span class="bar" /></span>
+                <span class="cap" />
+              </li>
+            ))
+          }
+        </ol>
+        <p class="funnel-note" data-funnel-note>The live list needs JavaScript.</p>
+      </div>
+      <div class="pool-list" data-pool-list hidden>
+        <div class="pool-tabs" role="group" aria-label="Which roles to list">
+          <button type="button" aria-pressed="true" data-view="left">Left <span data-count-left></span></button>
+          <button type="button" aria-pressed="false" data-view="out">Ruled out <span data-count-out></span></button>
+        </div>
+        <label class="visually-hidden" for="fit-filter">Filter by title or company</label>
+        <input id="fit-filter" class="pool-filter" type="search" placeholder="Filter by title or company" autocomplete="off" data-filter />
+        <div class="roles" data-roles tabindex="-1"></div>
+      </div>
+      <button type="button" class="own-btn" data-own aria-pressed="false">
+        <svg class="plus" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+        Paste a posting or job link of your own
+      </button>
+    </div>
+
     <div class="stage">
-      <fieldset class="thumbs">
-        <legend class="visually-hidden">Choose a posting</legend>
-        <div class="group">
-          <p class="group-label" aria-hidden="true">Live</p>
-          <div class="group-row">
-            <label class="thumb real">
-              <input class="visually-hidden" type="radio" name="fit-posting" value="real" />
-              <span class="mini blank" aria-hidden="true" data-real-mini set:html={SHUFFLE} />
-              <span class="cap" data-real-cap>A real role</span>
-            </label>
-            <label class="thumb own">
-              <input class="visually-hidden" type="radio" name="fit-posting" value="own" />
-              <span class="mini blank" aria-hidden="true" data-own-mini>
-                <svg class="plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"></path></svg>
-              </span>
-              <span class="cap" data-own-cap>Paste your own</span>
-            </label>
+      <div class="sheet" data-for="role">
+        <div class="live-real" data-real tabindex="-1">
+          <div class="page" data-state="message">
+            <p class="t">Checking a live role needs JavaScript.</p>
           </div>
         </div>
-        <div class="group">
-          <p class="group-label" aria-hidden="true">Made-up examples</p>
-          <div class="group-row">
-            {
-              samples.map((s) => (
-                <label class="thumb" title={`${s.label} (made up)`}>
-                  <input class="visually-hidden" type="radio" name="fit-posting" value={s.id} checked={s.id === START} />
-                  <span class="mini" aria-hidden="true" set:html={s.mini} />
-                  <span class="cap">{s.short}</span>
-                </label>
-              ))
-            }
+      </div>
+      <div class="sheet own" data-for="own">
+        <form
+          class="page paste"
+          id="fit-paste"
+          data-paste
+          data-path={FIT_CHECK_PATH}
+          data-min={LIMITS.minChars}
+          data-max={LIMITS.maxChars}>
+          <div class="t paste-area">
+            <label class="ask" for="fit-text">Your posting</label>
+            <textarea
+              id="fit-text"
+              name="text"
+              placeholder={`Paste the text of a job posting, or a ${BOARD_LIST.replace(' and ', ' or ')} job link.`}
+              aria-describedby="fit-need fit-privacy fit-count"
+              data-text></textarea>
+            <div class="paste-bar">
+              <button type="submit" disabled data-go>Check the fit</button>
+              <p class="small" id="fit-privacy">Not stored or logged.</p>
+              <p class="small count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
+            </div>
+            <p class="need" id="fit-need" data-need hidden></p>
+            <noscript><p class="need">Checking your own posting needs JavaScript.</p></noscript>
           </div>
-        </div>
-      </fieldset>
-
-      <p class="fallback" data-fallback hidden>
-        <span class="tag">Made-up example</span>
-        <span data-fallback-text></span>
-        <button type="button" class="again" data-retry>Try a real role again</button>
-      </p>
-
-      <div class="sheets" data-sheets>
-        <div class="sheet" data-for="real">
-          <div class="live-real" data-real data-path={FIND_ROLE_PATH} tabindex="-1">
-            <div class="page" data-state="message">
-              <p class="t">Checking a real role needs JavaScript. The made-up examples work without it.</p>
-            </div>
+          <div class="m key">
+            <p class="key-head">What comes back</p>
+            <p class="chip ghost">
+              <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.25"></circle></svg>
+              A verdict
+            </p>
+            <p class="key-line">A strong, partial or poor match, with a line on why.</p>
+            <ul class="legend">
+              <li data-tone="for"><span class="swatch"></span><b>For</b> lines up with the profile</li>
+              <li data-tone="against"><span class="swatch"></span><b>Against</b> pulls away from it</li>
+              <li data-tone="mixed"><span class="swatch"></span><b>Mixed</b> a bit of both</li>
+              <li data-tone="neutral" class="where"><span class="swatch"><Fragment set:html={PIN} /></span><b>Location</b> against the profile’s preferences</li>
+              <li data-tone="void"><span class="swatch"></span><b>Ignored</b> instructions aimed at AI tools</li>
+            </ul>
+            <p class="key-line">Every mark is the posting’s own words, checked against your text.</p>
           </div>
-        </div>
-        {samples.map((s) => <div class="sheet" data-for={s.id} data-announce={s.announce} set:html={s.sheet} />)}
-        <div class="sheet own" data-for="own">
-          <form
-            class="page paste"
-            id="fit-paste"
-            data-paste
-            data-path={FIT_CHECK_PATH}
-            data-min={LIMITS.minChars}
-            data-max={LIMITS.maxChars}>
-            <div class="t paste-area">
-              <label class="ask" for="fit-text">Your posting</label>
-              <textarea
-                id="fit-text"
-                name="text"
-                placeholder={`Paste the text of a job posting, or a ${BOARD_LIST.replace(' and ', ' or ')} job link.`}
-                aria-describedby="fit-need fit-privacy fit-count"
-                data-text></textarea>
-              <div class="paste-bar">
-                <button type="submit" disabled data-go>Check the fit</button>
-                <p class="small" id="fit-privacy">Not stored or logged.</p>
-                <p class="small count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
-              </div>
-              <p class="need" id="fit-need" data-need hidden></p>
-              <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
-            </div>
-            <div class="m key">
-              <p class="key-head">What comes back</p>
-              <p class="chip ghost">
-                <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.25"></circle></svg>
-                A verdict
-              </p>
-              <p class="key-line">A strong, partial or poor match, with a line on why.</p>
-              <ul class="legend">
-                <li data-tone="for"><span class="swatch"></span><b>For</b> lines up with the profile</li>
-                <li data-tone="against"><span class="swatch"></span><b>Against</b> pulls away from it</li>
-                <li data-tone="mixed"><span class="swatch"></span><b>Mixed</b> a bit of both</li>
-                <li data-tone="neutral" class="where"><span class="swatch"><Fragment set:html={PIN} /></span><b>Location</b> against the profile’s preferences</li>
-                <li data-tone="void"><span class="swatch"></span><b>Ignored</b> instructions aimed at AI tools</li>
-              </ul>
-              <p class="key-line">Every mark is the posting’s own words, checked against your text.</p>
-            </div>
-          </form>
-          <div class="live" data-live tabindex="-1"></div>
-        </div>
+        </form>
+        <div class="live" data-live tabindex="-1"></div>
       </div>
     </div>
 
     <footer class="close">
       <p>
-        Claude Haiku picks the verdict and the reasons and quotes the posting; it never writes a word that appears
-        here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
+        Jev only ever rules a role out. Claude Haiku picks the verdict and the reasons and quotes the posting; it never
+        writes a word that appears here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
       </p>
       <a class="more" href="/work/fit-check">How this was measured →</a>
     </footer>
@@ -173,13 +136,12 @@ const samples = SAMPLE_POSTINGS.map((s) => {
   import { VERDICT_COPY } from '../../fit/copy';
   import { BOARD_NAMES, parseJobLink, type ParsedLink } from '../../fit/links';
   import { validateAssessment } from '../../fit/schema';
+  import { funnelHtml, poolListHtml, readPool, type Pool, type PoolRole, type PoolView } from './pool';
   import {
     ERROR_COPY,
     errorSheetHtml,
     findingSheetHtml,
     linkSteps,
-    screeningLineHtml,
-    miniHtml,
     progressSheetHtml,
     resultSheetHtml,
     unassessableSheetHtml,
@@ -198,11 +160,7 @@ const samples = SAMPLE_POSTINGS.map((s) => {
     const go = band.querySelector<HTMLButtonElement>('[data-go]')!;
     const live = band.querySelector<HTMLElement>('[data-live]')!;
     const status = band.querySelector<HTMLElement>('[data-status]')!;
-    const sheets = band.querySelector<HTMLElement>('[data-sheets]')!;
-    const ownMini = band.querySelector<HTMLElement>('[data-own-mini]')!;
-    const ownCap = band.querySelector<HTMLElement>('[data-own-cap]')!;
-    const ownRadio = band.querySelector<HTMLInputElement>('input[name="fit-posting"][value="own"]')!;
-    const PLUS = ownMini.innerHTML;
+    const ownBtn = band.querySelector<HTMLButtonElement>('[data-own]')!;
     const min = Number(form.dataset.min);
     const max = Number(form.dataset.max);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -213,7 +171,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
     // same answer, so the button brings that answer back instead
     let answered: string | null = null;
     let answeredSay = '';
-    let answeredMini = '';
 
     // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
     const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
@@ -249,29 +206,10 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       go.setAttribute('aria-busy', String(running));
       go.textContent = running ? 'Checking…' : GO;
     }
-
-    // The paste thumbnail follows the text: grey lines as it's typed, its marks once answered
-    function ownThumb() {
-      const text = prepared();
-      const own = answered !== null && text === answered ? answeredMini : text && !linkIn() ? miniHtml(text) : '';
-      ownMini.classList.toggle('blank', !own);
-      ownMini.innerHTML = own || PLUS;
-      ownCap.textContent = own || answered !== null ? 'Your posting' : 'Paste your own';
-    }
-    let thumbQueued = false;
-    box.addEventListener('input', () => {
-      counter();
-      if (thumbQueued) return;
-      thumbQueued = true;
-      requestAnimationFrame(() => {
-        thumbQueued = false;
-        ownThumb();
-      });
-    });
+    box.addEventListener('input', counter);
     counter();
 
     const pageIn = (el: Element | null) => el?.querySelector<HTMLElement>('.page[data-state="result"]') ?? null;
-    const sheetFor = (id: string) => sheets.querySelector<HTMLElement>(`.sheet[data-for="${id}"]`);
 
     // A sheet that has just been chosen or has just come back is drawn in: its tints in reading
     // order, then the notes, the verdict last. Reduced motion: it's just there
@@ -282,32 +220,26 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       page.classList.add('play');
     }
 
-    // Picking a posting: CSS shows its sheet; this says what changed and draws it in
-    band.addEventListener('change', (e) => {
-      const input = e.target as HTMLInputElement;
-      if (input.name !== 'fit-posting') return;
-      fallback.hidden = true;
-      if (input.value === 'real') {
-        if (realRunning) status.textContent = 'Finding a real role';
-        else if (realSay) {
-          status.textContent = realSay;
-          play(pageIn(realBox));
-        } else void realRole();
-        return;
-      }
-      if (input.value === 'own') {
-        status.textContent = showingOwn() ? answeredSay : 'Paste a job posting or link to check it';
-        if (showingOwn()) play(pageIn(live));
-        return;
-      }
-      const sheet = sheetFor(input.value);
-      status.textContent = sheet?.dataset.announce ?? '';
-      play(pageIn(sheet));
-    });
+    // On a phone the sheet may be off screen; bring its top into view
+    function reveal(el: HTMLElement) {
+      const r = el.getBoundingClientRect();
+      if (r.top < 0 || r.top > innerHeight * 0.6) el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
 
-    // Choosing "Paste your own" with a pointer goes straight to the text; arrow keys stay in the row
-    ownRadio.closest('label')!.addEventListener('click', (e) => {
-      if (e.detail > 0 && !showingOwn()) requestAnimationFrame(() => box.focus({ preventScroll: true }));
+    // ---- Which pane the stage shows: a role from the pool, or the paste area ----
+    function pane(which: 'role' | 'own') {
+      band.dataset.pane = which;
+      ownBtn.setAttribute('aria-pressed', String(which === 'own'));
+      if (which === 'own') current = null;
+      drawList();
+    }
+
+    ownBtn.addEventListener('click', (e) => {
+      pane('own');
+      status.textContent = showingOwn() ? answeredSay : 'Paste a job posting or link to check it';
+      if (showingOwn()) play(pageIn(live));
+      else if (e.detail > 0) requestAnimationFrame(() => box.focus({ preventScroll: true }));
+      reveal(live.closest<HTMLElement>('.sheet')!);
     });
 
     // Back from an answer to the paste area, the text kept
@@ -318,12 +250,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       status.textContent = 'Paste area';
       box.focus();
     });
-
-    // On a phone the sheet may be off screen; bring its top into view
-    function reveal() {
-      const r = live.getBoundingClientRect();
-      if (r.top < 0 || r.top > innerHeight * 0.6) live.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
-    }
 
     function show(html: string, say: string) {
       live.innerHTML = html;
@@ -356,12 +282,31 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       return !!o && typeof o.text === 'string' && o.board in BOARD_NAMES && typeof o.truncated === 'boolean';
     };
 
+    // The wait's first step done and the second lit, in place, while the quotes are checked
+    function secondStep(sheet: HTMLElement) {
+      const [first, second] = sheet.querySelectorAll<HTMLElement>('.steps li');
+      if (!first || !second) return;
+      first.dataset.state = 'done';
+      first.querySelector('.secs')?.remove();
+      second.dataset.state = 'active';
+      const chip = sheet.querySelector('[data-wait]');
+      if (chip) chip.textContent = WAIT_HEADINGS[1];
+    }
+
+    function ticker(sheet: HTMLElement) {
+      const started = Date.now();
+      return setInterval(() => {
+        const secs = sheet.querySelector('.secs');
+        if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
+      }, 1000);
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = prepared();
       const link = linkIn();
       if (running || !ready(link, text.length)) return;
-      ownRadio.checked = true;
+      pane('own');
       band.dataset.own = 'result';
       live.focus({ preventScroll: true });
       // Back to a paste already answered: show that answer again, no new call
@@ -369,14 +314,13 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         counter();
         status.textContent = answeredSay;
         play(pageIn(live));
-        reveal();
+        reveal(live);
         return;
       }
       // The live sheet is about to hold this check, not the last answer
       answered = null;
       running = true;
       counter();
-      ownThumb();
 
       const boardName = link?.kind === 'board' ? BOARD_NAMES[link.board] : null;
       let label = boardName ? `Your ${boardName} link` : 'Your posting';
@@ -384,13 +328,9 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       // A pasted posting stays on the sheet while it's read; a link has no text yet
       const pasted = boardName ? null : text;
       const opts = (): SheetOptions => ({ label, edit: true, ...(boardName ? { link: text } : {}) });
-      const started = Date.now();
       show(progressSheetHtml(pasted, { ...opts(), step: 0, steps }), 'Checking your posting');
-      reveal();
-      const tick = setInterval(() => {
-        const secs = live.querySelector('.secs');
-        if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
-      }, 1000);
+      reveal(live);
+      const tick = ticker(live);
 
       try {
         const res = await fetch(form.dataset.path!, {
@@ -411,25 +351,16 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         } else if (body?.status === 'ok' && source !== null) {
           // The function checked every quote; check them again here, against exactly what the
           // model read, before any of it is shown. The second step lights in place
-          const [first, second] = live.querySelectorAll<HTMLElement>('.steps li');
-          if (first && second) {
-            first.dataset.state = 'done';
-            first.querySelector('.secs')?.remove();
-            second.dataset.state = 'active';
-            const chip = live.querySelector('[data-wait]');
-            if (chip) chip.textContent = WAIT_HEADINGS[1];
-          }
+          secondStep(live);
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, source);
           await wait(reduce ? 0 : 400);
           if (checked.ok) {
             const a = checked.value;
             show(resultSheetHtml(source, a, { ...opts(), ...from }), `${label}: ${VERDICT_COPY[a.verdict].label}`);
-            answeredMini = miniHtml(source, a);
             play(pageIn(live));
           } else {
             show(unassessableSheetHtml(source, { ...opts(), ...from }), 'Couldn’t assess this one');
-            answeredMini = miniHtml(source);
           }
           answered = text;
           answeredSay = status.textContent ?? '';
@@ -437,7 +368,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
           show(unassessableSheetHtml(source, { ...opts(), ...from }), 'Couldn’t assess this one');
           answered = text;
           answeredSay = status.textContent ?? '';
-          answeredMini = source ? miniHtml(source) : '';
         } else {
           const cause = (boardName && LINK_CAUSES[body?.error]) || CAUSES[body?.error] || 'unavailable';
           show(errorSheetHtml(pasted, cause, opts()), 'The check didn’t run');
@@ -448,106 +378,98 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       } finally {
         running = false;
         counter();
-        ownThumb();
       }
     });
 
-    // ---- A real role: picked by the finder, read and checked through its job link ----
-    const realRadio = band.querySelector<HTMLInputElement>('input[name="fit-posting"][value="real"]')!;
-    const realMini = band.querySelector<HTMLElement>('[data-real-mini]')!;
-    const realCap = band.querySelector<HTMLElement>('[data-real-cap]')!;
+    // ---- The pool: the funnel's counts, its roles, and a role opened on the sheet ----
+    const poolEl = band.querySelector<HTMLElement>('[data-pool]')!;
+    const funnelEl = band.querySelector<HTMLElement>('[data-funnel]')!;
+    const listWrap = band.querySelector<HTMLElement>('[data-pool-list]')!;
+    const rolesEl = band.querySelector<HTMLElement>('[data-roles]')!;
+    const filterEl = band.querySelector<HTMLInputElement>('[data-filter]')!;
+    const viewBtns = [...band.querySelectorAll<HTMLButtonElement>('[data-view]')];
     const realBox = band.querySelector<HTMLElement>('[data-real]')!;
-    const fallback = band.querySelector<HTMLElement>('[data-fallback]')!;
-    const fallbackText = band.querySelector<HTMLElement>('[data-fallback-text]')!;
-    const SHUFFLE_MINI = realMini.innerHTML;
-    const FALLBACK = {
-      boards: 'Couldn’t reach the job boards just now, so here’s a made-up posting instead.',
-      none: 'No live roles to pick just now, so here’s a made-up posting instead.',
-      limited: 'That’s a few checks in a row, so here’s a made-up posting. Try a real one again in three minutes.',
-      busy: 'The model is busy just now, so here’s a made-up posting. Try again in a minute.',
-      unavailable: 'The check isn’t available just now, so here’s a made-up posting instead.',
-    };
-    // Links already shown, sent back so "Another role" is another
-    const shown: string[] = [];
-    let realRunning = false;
-    // What the real sheet holds, for a screen reader, once it holds an answer or a message
-    let realSay = '';
+    const boards = Number(band.dataset.boards);
 
-    interface FoundRole {
-      company: string;
-      board: string;
-      title: string;
-      places: string[];
-      link: string;
-    }
-    const isFound = (r: unknown): r is FoundRole => {
-      const o = r as FoundRole | null;
-      return !!o && typeof o.link === 'string' && typeof o.title === 'string' && typeof o.company === 'string' && typeof o.board === 'string' && Array.isArray(o.places);
-    };
+    let pool: Pool | null = null;
+    let view: PoolView = 'left';
+    let current: string | null = null;
+    // Answers already had, by link, so opening a role again costs nothing
+    const done = new Map<string, { html: string; say: string }>();
+    const opened = new Set<string>();
 
-    function realThumb(html: string | null, cap: string, busy = false) {
-      realMini.classList.toggle('blank', !html);
-      realMini.classList.toggle('busy', busy);
-      realMini.innerHTML = html ?? SHUFFLE_MINI;
-      realCap.textContent = cap;
+    const rolesIn = (v: PoolView) => (pool ? (v === 'left' ? pool.left : pool.ruledOut) : []);
+
+    function drawList() {
+      if (!pool) return;
+      rolesEl.innerHTML = poolListHtml(rolesIn(view), { filter: filterEl.value, current });
     }
 
-    // Back to the first made-up example, saying why; only if the visitor is still on the real role
-    function fallBack(message: string) {
-      realSay = '';
-      realThumb(null, 'Try again');
-      if (!realRadio.checked) return;
-      fallbackText.textContent = message;
-      fallback.hidden = false;
-      const first = band.querySelector<HTMLInputElement>('input[name="fit-posting"]:not([value="real"]):not([value="own"])');
-      if (first) first.checked = true;
-      status.textContent = message;
-      play(pageIn(sheetFor(first?.value ?? '')));
+    function setView(v: PoolView) {
+      view = v;
+      for (const b of viewBtns) b.setAttribute('aria-pressed', String(b.dataset.view === v));
+      drawList();
+      rolesEl.scrollTop = 0;
     }
 
-    async function realRole() {
-      if (realRunning) return;
-      realRunning = true;
-      realSay = '';
-      fallback.hidden = true;
-      realRadio.checked = true;
-      realBox.innerHTML = findingSheetHtml();
-      realThumb(null, 'Finding one…', true);
-      status.textContent = 'Finding a real role';
-      let tick: ReturnType<typeof setInterval> | undefined;
+    viewBtns.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view as PoolView)));
+    filterEl.addEventListener('input', drawList);
+
+    rolesEl.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-link]');
+      if (!btn) return;
+      const role = rolesIn(view).find((r) => r.link === btn.dataset.link);
+      if (role) void openRole(role, true);
+    });
+
+    // The open role's row, scrolled into view inside the list without moving the page
+    function showCurrentRow() {
+      const row = rolesEl.querySelector<HTMLElement>('[aria-current]');
+      if (!row) return;
+      const top = row.getBoundingClientRect().top - rolesEl.getBoundingClientRect().top + rolesEl.scrollTop;
+      if (top < rolesEl.scrollTop || top > rolesEl.scrollTop + rolesEl.clientHeight - row.offsetHeight) rolesEl.scrollTop = top - 48;
+    }
+
+    // A role from what's left, not yet opened here, at random
+    function randomRole(): PoolRole | null {
+      const left = pool?.left ?? [];
+      const fresh = left.filter((r) => !opened.has(r.link) && r.link !== current);
+      const from = fresh.length ? fresh : left;
+      return from.length ? from[Math.floor(Math.random() * from.length)] : null;
+    }
+
+    async function openRole(role: PoolRole, byHand: boolean) {
+      pane('role');
+      current = role.link;
+      opened.add(role.link);
+      drawList();
+      if (!byHand) showCurrentRow();
+      else reveal(realBox);
+      const label = `${role.title}, ${role.company}`;
+      const had = done.get(role.link);
+      if (had) {
+        realBox.innerHTML = had.html;
+        status.textContent = had.say;
+        play(pageIn(realBox));
+        return;
+      }
+      const ruling = role.reason && typeof role.p === 'number' ? { reason: role.reason, p: role.p } : null;
+      const found = { link: role.link, ruling, screened: !!pool?.screening };
+      // Until the posting comes back with the answer: its title, and the company and places as listed
+      const head = `${role.title}\n${[role.company, ...role.places].join(' · ')}`;
+      realBox.innerHTML = progressSheetHtml(head, { label, step: 0, steps: linkSteps(role.board) });
+      status.textContent = `Checking ${label}`;
+      const tick = ticker(realBox);
+      const isCurrent = () => current === role.link && band.dataset.pane === 'role';
+      const put = (html: string, say: string, keep: boolean) => {
+        if (keep) done.set(role.link, { html, say });
+        if (!isCurrent()) return;
+        realBox.innerHTML = html;
+        status.textContent = say;
+        play(pageIn(realBox));
+      };
+
       try {
-        const query = shown.slice(-20).map((l) => `not=${encodeURIComponent(l)}`).join('&');
-        const found = await fetch(query ? `${realBox.dataset.path}?${query}` : realBox.dataset.path!, { headers: { accept: 'application/json' } });
-        const fbody = await found.json().catch(() => null);
-        if (found.status === 429) return fallBack(FALLBACK.limited);
-        if (fbody?.status !== 'ok' || !isFound(fbody.role)) return fallBack(fbody?.error === 'none_found' ? FALLBACK.none : FALLBACK.boards);
-        const role = fbody.role;
-        shown.push(role.link);
-        const label = `${role.title}, ${role.company}`;
-        // Until the posting comes back with the answer: its title, and the company and places as listed
-        const head = `${role.title}\n${[role.company, ...role.places].join(' · ')}`;
-        const considered = fbody.considered ?? {};
-        // What Jev's screening did: shown as sent, after a light check of its shape
-        const s = fbody.screening;
-        const screening =
-          s && typeof s.screened === 'number' && typeof s.ms === 'number' && Array.isArray(s.ruledOut) && typeof s.allRuledOut === 'boolean' ? s : null;
-        const foundOpts = {
-          link: role.link,
-          roles: Number(considered.roles) || 1,
-          companies: Number(considered.companies) || 1,
-          screening,
-          screenFailed: fbody.screenFailed === true,
-        };
-        realBox.innerHTML = progressSheetHtml(head, { label, step: 0, steps: linkSteps(role.board) });
-        if (screening) realBox.querySelector('.verdict.reading')?.insertAdjacentHTML('beforeend', `<p class="small screened-line">${screeningLineHtml(screening)}</p>`);
-        realThumb(miniHtml(head), role.title, true);
-        status.textContent = `Checking ${label}`;
-        const started = Date.now();
-        tick = setInterval(() => {
-          const secs = realBox.querySelector('.secs');
-          if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
-        }, 1000);
-
         const res = await fetch(form.dataset.path!, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -555,96 +477,93 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         });
         clearInterval(tick);
         const body = await res.json().catch(() => null);
-        if (res.status === 429) return fallBack(FALLBACK.limited);
         const linked = isLinkedPosting(body?.posting) ? body.posting : null;
-        const opts: SheetOptions = {
-          label,
-          found: foundOpts,
-          ...(linked ? { source: { board: role.board, truncated: linked.truncated } } : {}),
-        };
-
+        const opts: SheetOptions = { label, found, ...(linked ? { source: { board: role.board, truncated: linked.truncated } } : {}) };
+        if (res.status === 429) return put(errorSheetHtml(head, 'rate_limited', opts), 'Too many checks in a row', false);
         if (body?.status === 'ok' && linked) {
-          const [first, second] = realBox.querySelectorAll<HTMLElement>('.steps li');
-          if (first && second) {
-            first.dataset.state = 'done';
-            first.querySelector('.secs')?.remove();
-            second.dataset.state = 'active';
-            const chip = realBox.querySelector('[data-wait]');
-            if (chip) chip.textContent = WAIT_HEADINGS[1];
-          }
+          if (isCurrent()) secondStep(realBox);
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, linked.text);
           await wait(reduce ? 0 : 400);
-          if (checked.ok) {
-            realBox.innerHTML = resultSheetHtml(linked.text, checked.value, opts);
-            realThumb(miniHtml(linked.text, checked.value), role.title);
-            realSay = `${label}: ${VERDICT_COPY[checked.value.verdict].label}`;
-            play(pageIn(realBox));
-          } else {
-            realBox.innerHTML = unassessableSheetHtml(linked.text, opts);
-            realThumb(miniHtml(linked.text), role.title);
-            realSay = 'Couldn’t assess this one';
-          }
+          if (checked.ok) put(resultSheetHtml(linked.text, checked.value, opts), `${label}: ${VERDICT_COPY[checked.value.verdict].label}`, true);
+          else put(unassessableSheetHtml(linked.text, opts), 'Couldn’t assess this one', true);
         } else if (body?.status === 'unassessable') {
-          realBox.innerHTML = unassessableSheetHtml(linked?.text ?? head, opts);
-          realThumb(miniHtml(linked?.text ?? head), role.title);
-          realSay = 'Couldn’t assess this one';
-        } else if (body?.error === 'busy' || body?.error === 'unavailable') {
-          return fallBack(FALLBACK[body.error as 'busy' | 'unavailable']);
+          put(unassessableSheetHtml(linked?.text ?? head, opts), 'Couldn’t assess this one', true);
         } else {
-          // The board didn't give the job up after all: say so, with another one to hand
-          const cause = (LINK_CAUSES[body?.error] || CAUSES[body?.error] || 'link_failed') as ErrorCause;
-          realBox.innerHTML = errorSheetHtml(head, cause, opts);
-          realThumb(null, role.title);
-          realSay = 'The check didn’t run';
+          const cause = (LINK_CAUSES[body?.error] || CAUSES[body?.error] || 'unavailable') as ErrorCause;
+          put(errorSheetHtml(head, cause, opts), 'The check didn’t run', false);
         }
-        status.textContent = realSay;
       } catch {
-        fallBack(FALLBACK.boards);
-      } finally {
-        if (tick) clearInterval(tick);
-        realRunning = false;
+        clearInterval(tick);
+        put(errorSheetHtml(head, 'network', { label, found }), 'The check didn’t run', false);
       }
     }
 
     realBox.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('[data-another]')) void realRole();
-    });
-    fallback.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('[data-retry]')) void realRole();
+      if (!(e.target as HTMLElement).closest('[data-another]')) return;
+      const role = randomRole();
+      if (!role) return;
+      if (view !== 'left' || filterEl.value) {
+        filterEl.value = '';
+        setView('left');
+      }
+      void openRole(role, false);
     });
 
-    // With scripts on, the band opens on a real role: the live tile is chosen straight away, and
-    // the role is found as the band comes near, so a visitor who never scrolls to it costs nothing
-    realRadio.checked = true;
-    realBox.innerHTML = findingSheetHtml();
-    realThumb(null, 'Finding one…', true);
+    const FAILED = {
+      boards: 'Couldn’t reach the job boards just now. Paste a posting or job link of your own instead.',
+      none: 'No open roles on the boards just now. Paste a posting or job link of your own instead.',
+      limited: 'That’s a lot of requests in a row. Try again in three minutes, or paste a posting of your own.',
+    };
+
+    function poolFailed(message: string) {
+      funnelEl.querySelector('[data-funnel-note]')!.textContent = message;
+      funnelEl.querySelector('.funnel-bars')?.remove();
+      realBox.innerHTML = `<div class="page" data-state="message"><p class="plain">${message}</p></div>`;
+      status.textContent = message;
+    }
+
+    async function loadPool() {
+      realBox.innerHTML = findingSheetHtml(boards);
+      funnelEl.querySelector('[data-funnel-note]')!.textContent = `Reading ${boards} job boards…`;
+      status.textContent = 'Reading the job boards';
+      try {
+        const res = await fetch(poolEl.dataset.path!, { headers: { accept: 'application/json' } });
+        const body = await res.json().catch(() => null);
+        if (res.status === 429) return poolFailed(FAILED.limited);
+        const p = body?.status === 'ok' ? readPool(body) : null;
+        if (!p) return poolFailed(body?.error === 'none_found' ? FAILED.none : FAILED.boards);
+        pool = p;
+        // The funnel narrows step by step from the full width; reduced motion, it's just there
+        funnelEl.innerHTML = funnelHtml(p);
+        if (!reduce) {
+          const bars = funnelEl.querySelector<HTMLElement>('.funnel-bars')!;
+          void bars.offsetWidth;
+          bars.classList.add('narrow');
+        } else funnelEl.querySelector('.funnel-bars')!.classList.add('narrow', 'still');
+        band.querySelector('[data-count-left]')!.textContent = n(p.left.length);
+        band.querySelector('[data-count-out]')!.textContent = n(p.ruledOut.length);
+        viewBtns.find((b) => b.dataset.view === 'out')!.hidden = !p.ruledOut.length;
+        listWrap.hidden = false;
+        drawList();
+        // A role at random from what's left is open to begin with, unless the visitor has moved on
+        const first = randomRole();
+        if (first && band.dataset.pane === 'role' && !current) void openRole(first, false);
+      } catch {
+        poolFailed(FAILED.boards);
+      }
+    }
+
+    // The pool is read as the band comes near, so a visitor who never scrolls to it costs nothing
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(
         (entries, io) => {
           if (!entries[0].isIntersecting) return;
           io.disconnect();
-          void realRole();
+          void loadPool();
         },
         { rootMargin: '0px 0px 50% 0px' },
       ).observe(band);
-    } else void realRole();
-
-    // The first time the band is seen, the shown sample is drawn in. It's held at its start,
-    // marks unpainted, until then; scripts off or reduced motion, it's just there
-    if (!reduce && 'IntersectionObserver' in window) {
-      const first = pageIn(sheetFor(band.querySelector<HTMLInputElement>('input[name="fit-posting"]:checked')?.value ?? ''));
-      if (first) {
-        first.classList.add('play', 'held');
-        new IntersectionObserver(
-          (entries, io) => {
-            if (!entries[0].isIntersecting) return;
-            io.disconnect();
-            first.classList.remove('held');
-          },
-          { threshold: 0.35 },
-        ).observe(first);
-      }
-    }
+    } else void loadPool();
   }
 </script>

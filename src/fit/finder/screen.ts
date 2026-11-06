@@ -1,4 +1,4 @@
-// Jev screening for the role finder: five yes/no questions that each, on their own, make a
+// Jev screening for the funnel: five yes/no questions that each, on their own, make a
 // role a clear no for the profile. A candidate is ruled out when any answer is 0.9 or above;
 // anything else is left for Haiku to judge. Jev only ever rules a role out, never in.
 //
@@ -91,16 +91,24 @@ export function ruling(answers: Record<ScreenId, number>): { reason: ScreenId; p
 
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;
 
-export function jevScreener(opts: { apiKey: string; fetch?: Fetch; timeoutMs?: number }): Screener {
+export function jevScreener(opts: { apiKey: string; fetch?: Fetch; timeoutMs?: number; retryMs?: number }): Screener {
   const doFetch = opts.fetch ?? ((url, init) => fetch(url, init));
-  return async (text) => {
-    const res = await doFetch(JEV_URL, {
+  const send = (text: string) =>
+    doFetch(JEV_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${opts.apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify(screenRequest(text)),
       redirect: 'error',
       signal: AbortSignal.timeout(opts.timeoutMs ?? SCREEN_LIMITS.timeoutMs),
     });
+  return async (text) => {
+    let res = await send(text);
+    // Over the rate limit: one more try after a short wait, then it's a failure like any other
+    if (res.status === 429) {
+      await res.body?.cancel().catch(() => {});
+      await new Promise((r) => setTimeout(r, opts.retryMs ?? 600));
+      res = await send(text);
+    }
     if (!res.ok) {
       await res.body?.cancel().catch(() => {});
       throw new Error(`Jev ${res.status}`);
@@ -119,7 +127,7 @@ export function jevScreener(opts: { apiKey: string; fetch?: Fetch; timeoutMs?: n
   };
 }
 
-/** A screener from the environment, or null when no key is set: the finder then doesn't screen. */
+/** A screener from the environment, or null when no key is set: the funnel then doesn't screen. */
 export function screenerFromEnv(env: Record<string, string | undefined> = process.env): Screener | null {
   const apiKey = env.JEV_API_KEY ?? env.TYPESAFE_API_KEY;
   return apiKey ? jevScreener({ apiKey }) : null;

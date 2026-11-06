@@ -47,10 +47,11 @@
 
   .fit .grid {
     display: grid;
-    grid-template-columns: minmax(0, 284px) minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
     grid-template-areas:
       'head stage'
+      'pool stage'
       'close stage';
     column-gap: 64px;
   }
@@ -126,147 +127,186 @@
     text-decoration: none;
   }
 
-  /* ---- The stage: thumbnails and the sheet ---- */
-  .fit .stage {
-    grid-area: stage;
+  /* ---- The pool: the funnel, then the roles it left ---- */
+  .fit .pool {
+    grid-area: pool;
     min-width: 0;
+    margin-top: 28px;
   }
 
-  .fit .thumbs {
-    display: flex;
-    gap: 18px;
-    min-width: 0;
-    margin: 0 0 18px;
-    padding: 0;
-    border: 0;
-  }
-
-  .fit .thumb {
+  .fit .funnel-bars {
     display: grid;
-    justify-items: start;
-    gap: 7px;
-    cursor: pointer;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  /* A posting in miniature, the same card as the sheet below: landscape, at its proportions */
-  .fit .mini {
+  /* Each step a centred bar to scale, the width it came from faint behind it */
+  .fit .funnel-bars .track {
+    position: relative;
     display: block;
-    width: 104px;
-    aspect-ratio: 1.55;
-    overflow: hidden;
-    border-radius: 4px;
-    background: var(--paper);
-    box-shadow:
-      0 0 0 1px rgb(60 50 35 / 0.1),
-      0 1px 2px rgb(60 50 35 / 0.06);
-    transition:
-      transform 160ms var(--ease-out),
-      box-shadow 160ms var(--ease-out);
+    height: 16px;
   }
 
-  .fit .mini .body {
-    display: block;
-    padding: 8px 10px 0;
+  .fit .funnel-bars .was,
+  .fit .funnel-bars .bar {
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    border-radius: 2px;
+    transform: translateX(-50%);
   }
 
-  /* Only the evidence is drawn; the rest of the posting is a faint trace */
-  .fit .mini i {
-    display: block;
-    width: var(--w);
-    height: 1px;
-    margin: 2px 0 1px;
-    border-radius: 1px;
-    background: #ebe7e0;
+  .fit .funnel-bars .was {
+    width: var(--from);
+    background: repeating-linear-gradient(135deg, #e6e1d7 0 2px, transparent 2px 5px);
   }
 
-  .fit .mini i:first-child {
-    margin-top: 0;
-  }
-
-  .fit .mini i[data-type='title'] {
-    height: 3px;
-    margin-bottom: 0;
+  .fit .funnel-bars .bar {
+    width: var(--from);
     background: #8c867c;
   }
 
-  .fit .mini i[data-gap] {
+  .fit .funnel-bars.narrow .bar {
+    width: var(--w);
+  }
+
+  .fit .funnel-bars .jev .was {
+    background: repeating-linear-gradient(135deg, var(--job-radar-clay-tint) 0 2px, transparent 2px 5px);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--job-radar-clay) 35%, transparent);
+  }
+
+  .fit .funnel-bars .jev .bar {
+    background: var(--job-radar-sage);
+  }
+
+  .fit .funnel-bars .cap {
+    display: block;
     margin-top: 4px;
-  }
-
-  .fit .mini i[data-tone] {
-    height: 2px;
-    margin-bottom: 0;
-    background: var(--c);
-  }
-
-  .fit .mini i[data-tone='void'] {
-    background: repeating-linear-gradient(90deg, var(--job-radar-stone) 0 2px, transparent 2px 3px);
-  }
-
-  .fit .cap {
     font-size: 0.75rem;
-    line-height: 1.2;
-    font-weight: 600;
-    white-space: nowrap;
+    line-height: 1.35;
+    text-align: center;
     color: var(--muted);
   }
 
-  .fit .thumb:hover .mini {
-    transform: translateY(-1px);
-    box-shadow:
-      0 0 0 1px rgb(60 50 35 / 0.16),
-      0 4px 10px -4px rgb(60 50 35 / 0.25);
-  }
-
-  .fit .thumb:hover .cap,
-  .fit .thumb input:checked ~ .cap {
+  .fit .funnel-bars .cap b {
+    font-family: var(--font-mono);
+    font-weight: 700;
     color: var(--ink);
   }
 
-  /* The current one is raised and outlined in ink */
-  .fit .thumb input:checked ~ .mini {
-    transform: translateY(-3px);
-    box-shadow:
-      0 0 0 1.5px var(--ink),
-      0 8px 16px -8px rgb(60 50 35 / 0.45);
+  .fit .funnel-bars .jev .cap b {
+    color: var(--job-radar-sage-ink);
   }
 
-  .fit .thumb input:focus-visible ~ .mini {
-    outline: 2px solid var(--ink);
-    outline-offset: 3px;
+  .fit .by {
+    margin-left: 2px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--job-radar-stone-tint);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-style: normal;
+    letter-spacing: 0.03em;
+    color: var(--job-radar-stone-ink);
+    white-space: nowrap;
   }
 
-  .fit .mini.blank {
-    display: grid;
-    place-items: center;
-    background: transparent;
-    box-shadow: none;
-    outline: 1px dashed #b9b3a8;
-    outline-offset: -1px;
+  .fit .jev .by {
+    background: var(--job-radar-sage-tint);
+    color: var(--job-radar-sage-ink);
   }
 
-  .fit .thumb input:checked ~ .mini.blank {
-    background: var(--paper);
-    outline-color: transparent;
+  .fit .funnel-bars.ghosted .bar {
+    width: var(--w);
+    background: #ece8e0;
   }
 
-  .fit .mini .plus {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 1.5;
-    stroke-linecap: round;
+  .fit .funnel-bars.ghosted .cap {
+    height: 12px;
+    margin: 6px auto 0;
+    width: 60%;
+    border-radius: 3px;
+    background: #f1ede6;
   }
 
-  /* Two groups: the live ones, then the made-up examples, a hairline between */
-  .fit .group + .group {
-    padding-left: 24px;
-    border-left: 1px solid var(--line);
+  .fit .funnel-note {
+    margin-top: 14px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--muted);
+    text-wrap: pretty;
   }
 
-  .fit .group-label {
-    margin-bottom: 8px;
+  .fit .pool-list {
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .fit .pool-list[hidden] {
+    display: none;
+  }
+
+  .fit .pool-tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 12px;
+  }
+
+  .fit .pool-tabs button {
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    font: 700 0.8125rem var(--font-sans);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .fit .pool-tabs button span {
+    font-family: var(--font-mono);
+    font-weight: 400;
+  }
+
+  .fit .pool-tabs button[aria-pressed='true'] {
+    background: var(--job-radar-sage-tint);
+    color: var(--job-radar-sage-ink);
+  }
+
+  .fit .pool-tabs button[data-view='out'][aria-pressed='true'] {
+    background: var(--job-radar-clay-tint);
+    color: var(--job-radar-clay-ink);
+  }
+
+  .fit .pool-filter {
+    width: 100%;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: #fff;
+    font: 0.8125rem var(--font-sans);
+    color: var(--ink);
+  }
+
+  .fit .roles {
+    max-height: 420px;
+    margin-top: 8px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .fit .roles:focus {
+    outline: none;
+  }
+
+  .fit .roles .co {
+    position: sticky;
+    top: 0;
+    padding: 8px 0 3px;
+    background: var(--bg);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.04em;
@@ -274,22 +314,113 @@
     color: var(--muted);
   }
 
-  .fit .group-row {
-    display: flex;
-    gap: 18px;
+  .fit .roles ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  /* The live tile: sage, so it reads as the thing to press */
-  .fit .real .mini.blank {
+  .fit .roles li button {
     display: grid;
-    place-items: center;
-    color: var(--job-radar-sage-ink);
-    background: var(--job-radar-sage-tint);
-    outline: 0;
+    gap: 1px;
+    width: 100%;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font: 0.8125rem/1.35 var(--font-sans);
+    text-align: left;
+    color: var(--ink);
+    cursor: pointer;
   }
 
-  .fit .real input:checked ~ .mini.blank {
-    background: var(--job-radar-sage-tint);
+  .fit .roles li button:hover {
+    background: color-mix(in srgb, var(--paper) 70%, #e9e3d6);
+  }
+
+  .fit .roles li button[aria-current] {
+    background: var(--paper);
+    box-shadow: inset 2px 0 0 var(--ink);
+    font-weight: 700;
+  }
+
+  .fit .roles .rp,
+  .fit .roles .rw {
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .fit .roles .rw {
+    font-family: var(--font-mono);
+    color: var(--job-radar-clay-ink);
+  }
+
+  .fit .roles .none {
+    padding: 12px 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .fit .own-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    font: 700 0.8125rem var(--font-sans);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  .fit .own-btn:hover,
+  .fit .own-btn[aria-pressed='true'] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .fit .own-btn .plus {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fit .funnel-bars.narrow:not(.still) .bar {
+      transition: width 750ms cubic-bezier(0.22, 1, 0.36, 1) calc(150ms + var(--i) * 420ms);
+    }
+
+    .fit .funnel-bars.narrow:not(.still) .cap {
+      animation: fit-fade 400ms ease-out both calc(var(--i) * 420ms);
+    }
+
+    .fit .funnel-bars.ghosted .bar {
+      animation: fit-pulse-bar 1.4s ease-in-out infinite calc(var(--i) * 150ms);
+    }
+  }
+
+  @keyframes fit-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fit-pulse-bar {
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  /* ---- The stage: the sheet ---- */
+  .fit .stage {
+    grid-area: stage;
+    min-width: 0;
   }
 
   .fit .shuffle {
@@ -300,44 +431,6 @@
     stroke-width: 1.4;
     stroke-linecap: round;
     stroke-linejoin: round;
-  }
-
-  .fit .real .mini.blank .shuffle {
-    width: 22px;
-    height: 22px;
-  }
-
-  .fit .real .cap {
-    max-width: 104px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* When the real role couldn't be had: the example, and why */
-  .fit .fallback {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 10px;
-    margin: -4px 0 12px;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: var(--ink-2);
-  }
-
-  .fit .fallback[hidden] {
-    display: none;
-  }
-
-  .fit .tag {
-    padding: 2px 8px;
-    border-radius: 3px;
-    background: var(--job-radar-stone-tint);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--job-radar-stone-ink);
   }
 
   .fit .live-real {
@@ -379,44 +472,6 @@
     background: none;
   }
 
-  /* What Jev ruled out before Haiku read the one picked */
-  .fit .screened-line {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--rule);
-    color: var(--ink-2);
-  }
-
-  .fit .screened {
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: var(--muted);
-  }
-
-  .fit .screened summary {
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--ink-2);
-  }
-
-  .fit .screened ul {
-    margin: 6px 0 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 3px;
-  }
-
-  .fit .screened li b {
-    color: var(--ink-2);
-  }
-
-  .fit .screened li span {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    color: var(--job-radar-clay-ink);
-  }
-
   /* Under a found role: another one, and the posting itself */
   .fit .found-actions {
     display: flex;
@@ -451,10 +506,6 @@
       animation: fit-ghost 1.6s ease-in-out infinite;
     }
 
-    .fit .mini.busy .shuffle,
-    .fit .mini.busy:not(.blank) {
-      animation: fit-pulse 1.2s ease-in-out infinite;
-    }
   }
 
   @keyframes fit-ghost {
@@ -486,12 +537,8 @@
       0 20px 40px -28px rgb(60 50 35 / 0.35);
   }
 
-  .fit:has(input[value='real']:checked) .sheet[data-for='real'],
-  .fit:has(input[value='own']:checked) .sheet[data-for='own'],
-  .fit:has(input[value='strong']:checked) .sheet[data-for='strong'],
-  .fit:has(input[value='possible']:checked) .sheet[data-for='possible'],
-  .fit:has(input[value='poor']:checked) .sheet[data-for='poor'],
-  .fit:has(input[value='injection']:checked) .sheet[data-for='injection'] {
+  .fit[data-pane='role'] .sheet[data-for='role'],
+  .fit[data-pane='own'] .sheet[data-for='own'] {
     display: block;
   }
 
@@ -1173,7 +1220,7 @@
     .fit .grid {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: none;
-      grid-template-areas: 'head' 'stage' 'close';
+      grid-template-areas: 'head' 'pool' 'stage' 'close';
       row-gap: 32px;
     }
 
@@ -1195,32 +1242,6 @@
 
     .fit h2 {
       font-size: 1.625rem;
-    }
-
-    .fit .thumbs {
-      gap: 16px;
-      margin: 0 calc(var(--gutter) * -1) 14px;
-      padding: 6px var(--gutter) 4px;
-      overflow-x: auto;
-      scroll-padding-inline: var(--gutter);
-      scroll-snap-type: x proximity;
-      scrollbar-width: none;
-    }
-
-    .fit .thumbs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .fit .thumb {
-      scroll-snap-align: start;
-    }
-
-    .fit .group + .group {
-      padding-left: 16px;
-    }
-
-    .fit .group-row {
-      gap: 16px;
     }
 
     .fit .sheet {

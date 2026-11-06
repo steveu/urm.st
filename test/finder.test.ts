@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { config } from '../netlify/functions/fit-role.mts';
+import { config } from '../netlify/functions/fit-roles.mts';
 import { apiUrl, API_HOSTS } from '../src/fit/boards.ts';
 import { parseJobLink } from '../src/fit/links.ts';
 import { FINDER_BOARDS, type FinderBoard } from '../src/fit/finder/boards.ts';
-import { placeFits, titleFits } from '../src/fit/finder/filter.ts';
-import { findRole, jobLink, listedRoles, listUrl, FINDER_LIMITS } from '../src/fit/finder/find.ts';
-import { FIND_RATE_LIMIT, FIND_ROLE_PATH, handleFindRole } from '../src/fit/finder/handler.ts';
+import { inScope, placeFits } from '../src/fit/finder/filter.ts';
+import { jobLink, listedRoles, listUrl, runFunnel } from '../src/fit/finder/funnel.ts';
+import { FUNNEL_CACHE, FUNNEL_PATH, FUNNEL_RATE_LIMIT, funnelHandler } from '../src/fit/finder/handler.ts';
 
 // Invented boards and roles throughout: no real listing.
 const UUID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -35,39 +35,24 @@ function stubFetch(answers: Record<string, unknown>) {
   return { fn, calls };
 }
 
-/** Math.random's stand-in: these values in turn, then 0. */
-const seq = (...xs: number[]) => {
-  let i = 0;
-  return () => (i < xs.length ? xs[i++] : 0);
-};
-
-describe('titleFits', () => {
+describe('inScope', () => {
   it.each([
     'Senior Product Engineer',
+    'Senior Product Engineer [Backend]',
     'Design Engineer',
     'Full-Stack Engineer',
     'AI Engineer (Core Harness)',
     'Lead Front End Engineer',
-    'Founding Engineer',
-    'Software Engineer, AI Product',
-    'Staff Frontend Engineer',
-  ])('picks %s', (t) => expect(titleFits(t)).toBe(true));
-
-  it.each([
-    'Senior Product Engineer [Backend]',
-    'Full-Stack Engineer (Backend Leaning)',
-    'Mechanical Design Engineer',
-    'Applied AI Architect, Industries',
-    'GTM Engineer (Applied AI)',
-    'Data Scientist, Agent',
     'Engineering Manager, Frontend',
-    'Junior Frontend Developer',
-    'iOS Engineer',
-    'Forward Deployed Engineer, AI',
-    'Account Executive',
-    'AVP, Data, Analytics & AI Engineering',
-    'Chief AI Officer',
-  ])('leaves %s', (t) => expect(titleFits(t)).toBe(false));
+    'Product Designer',
+    'Senior Product Manager',
+    'Machine Learning Engineer',
+  ])('keeps %s, for Jev to judge', (t) => expect(inScope(t)).toBe(true));
+
+  it.each(['Account Executive', 'Sales Engineer', 'Technical Recruiter', 'Software Engineering Intern', 'Graduate Developer', 'Legal Counsel', 'Office Manager'])(
+    'drops %s',
+    (t) => expect(inScope(t)).toBe(false),
+  );
 });
 
 describe('placeFits', () => {
@@ -81,7 +66,7 @@ describe('placeFits', () => {
     [['Remote; Europe']],
     [['EMEA']],
     [['Remote - Anywhere']],
-  ])('picks %j', (places) => expect(placeFits(places)).toBe(true));
+  ])('keeps %j', (places) => expect(placeFits(places)).toBe(true));
 
   it.each([
     [['New York, NY']],
@@ -92,7 +77,7 @@ describe('placeFits', () => {
     [['Remote; United States']],
     [[]],
     [['  ', null]],
-  ])('leaves %j', (places) => expect(placeFits(places)).toBe(false));
+  ])('drops %j', (places) => expect(placeFits(places)).toBe(false));
 });
 
 describe('listedRoles', () => {
@@ -125,65 +110,45 @@ describe('listedRoles', () => {
   });
 });
 
-describe('findRole', () => {
-  it('picks a company first, then a role from it, from the roles the filters let through', async () => {
-    const { fn } = stubFetch({
+describe('runFunnel without Jev', () => {
+  it('reads every board, counts each step, and lists what is open by company then title', async () => {
+    const { fn, calls } = stubFetch({
       [listUrl(GH).href]: ghBody([
         [1, 'Product Engineer', 'London, UK'],
-        [2, 'Product Engineer', 'London, UK'],
-        [3, 'Product Engineer', 'London, UK'],
-        [4, 'Sales Engineer', 'London, UK'],
+        [2, 'Account Executive', 'London, UK'],
+        [3, 'Design Engineer', 'San Francisco'],
       ]),
       [listUrl(AB).href]: abBody([
-        [1, 'Design Engineer', 'Remote'],
-        [2, 'Design Engineer', 'San Francisco'],
+        [1, 'Product Designer', 'Remote'],
+        [2, 'Backend Engineer', 'London'],
       ]),
     });
-    // Draws: the shuffle (0 swaps the two, so Ashby is read first), the company (0.4 of two is
-    // the first, Ashby), then the role. Pooling all four roles instead, 0.4 would land on a
-    // Greenhouse one: the one Ashby role gets the same chance as the three Greenhouse roles together
-    const found = await findRole({ fetch: fn, boards: [GH, AB], random: seq(0, 0.4, 0) });
-    expect(found).toEqual({
-      ok: true,
-      role: { company: AB.company, board: 'ashby', title: 'Design Engineer', places: ['Remote'], link: `https://jobs.ashbyhq.com/exampleab/${UUID(1)}` },
-      considered: { boards: 2, companies: 2, roles: 4 },
-      screening: null,
-    });
+    const r = await runFunnel({ fetch: fn, boards: [GH, AB] });
+    expect(calls.sort()).toEqual([listUrl(AB).href, listUrl(GH).href].sort());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const f = r.funnel;
+    expect({ boards: f.boards, listed: f.listed, inScope: f.inScope, open: f.open }).toEqual({ boards: { tried: 2, read: 2 }, listed: 5, inScope: 4, open: 3 });
+    expect(f.left.map((x) => `${x.company}: ${x.title}`)).toEqual([
+      'Example Ashby: Backend Engineer',
+      'Example Ashby: Product Designer',
+      'Example Greenhouse: Product Engineer',
+    ]);
+    expect(f).toMatchObject({ ruledOut: [], unscreened: 0, screening: null, screenFailed: false });
   });
 
-  it('skips a board that fails or is slow, and still picks from the rest', async () => {
-    const { fn } = stubFetch({ [listUrl(GH).href]: new Error('network'), [listUrl(AB).href]: abBody([[1, 'Product Engineer', 'UK']]) });
-    const found = await findRole({ fetch: fn, boards: [GH, AB], random: seq() });
-    expect(found.ok && found.role.company).toBe(AB.company);
-    expect(found.ok && found.considered.boards).toBe(1);
+  it('asks Greenhouse for every description with the list', () => {
+    expect(listUrl(GH).searchParams.get('content')).toBe('true');
   });
 
-  it('reads a second handful of boards only when the first had nothing to pick', async () => {
-    const boards: FinderBoard[] = Array.from({ length: FINDER_LIMITS.perRound + 2 }, (_, i) => ({
-      company: `Example ${i}`,
-      board: 'greenhouse',
-      token: `example${i}`,
-    }));
-    const answers: Record<string, unknown> = {};
-    boards.forEach((b, i) => (answers[listUrl(b).href] = ghBody(i === boards.length - 1 ? [[9, 'Founding Engineer', 'York']] : [[1, 'Recruiter', 'York']])));
-    const { fn, calls } = stubFetch(answers);
-    // random() of 0 keeps the shuffle in order: the match is in the second round
-    const found = await findRole({ fetch: fn, boards, random: () => 0 });
-    expect(calls.length).toBe(boards.length);
-    expect(found.ok && found.role.title).toBe('Founding Engineer');
-  });
-
-  it('gives up after the rounds, telling an empty pick from boards that all failed', async () => {
+  it('skips a board that fails, and tells an empty funnel from boards that all failed', async () => {
+    const some = stubFetch({ [listUrl(GH).href]: new Error('network'), [listUrl(AB).href]: abBody([[1, 'Product Engineer', 'UK']]) });
+    const r = await runFunnel({ fetch: some.fn, boards: [GH, AB] });
+    expect(r.ok && r.funnel.boards).toEqual({ tried: 2, read: 1 });
     const quiet = stubFetch({ [listUrl(GH).href]: ghBody([[1, 'Recruiter', 'London']]) });
-    expect(await findRole({ fetch: quiet.fn, boards: [GH], random: seq() })).toEqual({ ok: false, error: 'none_found' });
+    expect(await runFunnel({ fetch: quiet.fn, boards: [GH] })).toEqual({ ok: false, error: 'none_found' });
     const down = stubFetch({ [listUrl(GH).href]: 503, [listUrl(AB).href]: new Error('timeout') });
-    expect(await findRole({ fetch: down.fn, boards: [GH, AB], random: seq() })).toEqual({ ok: false, error: 'boards_failed' });
-  });
-
-  it('never reads more than its rounds allow', async () => {
-    const { fn, calls } = stubFetch({});
-    await findRole({ fetch: fn, random: seq() });
-    expect(calls.length).toBe(Math.min(FINDER_BOARDS.length, FINDER_LIMITS.perRound * FINDER_LIMITS.rounds));
+    expect(await runFunnel({ fetch: down.fn, boards: [GH, AB] })).toEqual({ ok: false, error: 'boards_failed' });
   });
 });
 
@@ -204,57 +169,57 @@ describe('FINDER_BOARDS', () => {
   });
 });
 
-describe('handleFindRole', () => {
-  const get = () => new Request(`http://x${FIND_ROLE_PATH}`);
+describe('funnelHandler', () => {
+  const get = () => new Request(`http://x${FUNNEL_PATH}`);
+  const oneRole = () => stubFetch({ [listUrl(GH).href]: ghBody([[7, 'Product Engineer', 'Remote (UK)']]) });
 
-  it('answers a GET with the role, its board by name, never cached', async () => {
-    const { fn } = stubFetch({ [listUrl(GH).href]: ghBody([[7, 'Product Engineer', 'Remote (UK)']]) });
-    const res = await handleFindRole(get(), { fetch: fn, boards: [GH], random: seq() });
+  it('answers a GET with the funnel, boards by name; unscreened, it is cached only briefly', async () => {
+    const res = await funnelHandler({ fetch: oneRole().fn, boards: [GH] })(get());
     expect(res.status).toBe(200);
-    expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(await res.json()).toEqual({
-      status: 'ok',
-      role: { company: GH.company, board: 'Greenhouse', title: 'Product Engineer', places: ['Remote (UK)'], link: 'https://job-boards.greenhouse.io/examplegh/jobs/7' },
-      considered: { boards: 1, companies: 1, roles: 1 },
-      screening: null,
-    });
+    expect(res.headers.get('netlify-cdn-cache-control')).toBe(`public, durable, s-maxage=${FUNNEL_CACHE.unscreened}`);
+    const body = await res.json();
+    expect(body.status).toBe('ok');
+    expect(body.funnel.left).toEqual([
+      { company: GH.company, board: 'Greenhouse', title: 'Product Engineer', places: ['Remote (UK)'], link: 'https://job-boards.greenhouse.io/examplegh/jobs/7' },
+    ]);
   });
 
-  it('says when there was nothing to pick, or the boards could not be read', async () => {
+  it('runs once for requests that arrive together or soon after, and again once its time is up', async () => {
+    const { fn, calls } = oneRole();
+    let t = 0;
+    const handle = funnelHandler({ fetch: fn, boards: [GH], now: () => t });
+    await Promise.all([handle(get()), handle(get())]);
+    await handle(get());
+    expect(calls.length).toBe(1);
+    t += FUNNEL_CACHE.unscreened * 1000 + 1;
+    await handle(get());
+    expect(calls.length).toBe(2);
+  });
+
+  it('says when there was nothing open, or the boards could not be read, and keeps neither', async () => {
     const quiet = stubFetch({ [listUrl(GH).href]: ghBody([]) });
-    const none = await handleFindRole(get(), { fetch: quiet.fn, boards: [GH] });
+    const handle = funnelHandler({ fetch: quiet.fn, boards: [GH] });
+    const none = await handle(get());
     expect(none.status).toBe(404);
+    expect(none.headers.get('cache-control')).toBe('no-store');
     expect(await none.json()).toEqual({ status: 'error', error: 'none_found' });
-    const down = await handleFindRole(get(), { fetch: () => Promise.reject(new Error('down')), boards: [GH, AB] });
+    await handle(get());
+    expect(quiet.calls.length).toBe(2);
+    const down = await funnelHandler({ fetch: () => Promise.reject(new Error('down')), boards: [GH, AB] })(get());
     expect(down.status).toBe(502);
     expect(await down.json()).toEqual({ status: 'error', error: 'boards_failed' });
   });
 
-  it('skips the roles passed back as already shown', async () => {
-    const { fn } = stubFetch({
-      [listUrl(GH).href]: ghBody([
-        [1, 'Product Engineer', 'UK'],
-        [2, 'Design Engineer', 'UK'],
-      ]),
-    });
-    const shown = encodeURIComponent('https://job-boards.greenhouse.io/examplegh/jobs/1');
-    const res = await handleFindRole(new Request(`http://x${FIND_ROLE_PATH}?not=${shown}`), { fetch: fn, boards: [GH], random: seq() });
-    expect((await res.json()).role.title).toBe('Design Engineer');
-    const all = `not=${shown}&not=${encodeURIComponent('https://job-boards.greenhouse.io/examplegh/jobs/2')}`;
-    const none = await handleFindRole(new Request(`http://x${FIND_ROLE_PATH}?${all}`), { fetch: fn, boards: [GH] });
-    expect(none.status).toBe(404);
-  });
-
   it('turns away anything but GET', async () => {
-    const res = await handleFindRole(new Request(`http://x${FIND_ROLE_PATH}`, { method: 'POST', body: '{}' }));
+    const res = await funnelHandler()(new Request(`http://x${FUNNEL_PATH}`, { method: 'POST', body: '{}' }));
     expect(res.status).toBe(405);
   });
 });
 
 describe('function config', () => {
   it('matches the handler', () => {
-    expect(config.path).toBe(FIND_ROLE_PATH);
+    expect(config.path).toBe(FUNNEL_PATH);
     expect(config.method).toEqual(['GET']);
-    expect(config.rateLimit).toEqual({ ...FIND_RATE_LIMIT, aggregateBy: ['ip', 'domain'] });
+    expect(config.rateLimit).toEqual({ ...FUNNEL_RATE_LIMIT, aggregateBy: ['ip', 'domain'] });
   });
 });

@@ -1,17 +1,17 @@
-// Which listed roles the finder may pick: plain rules over a role's title and the board's own
-// location fields. Deliberately loose. They only narrow the pick towards roles the profile
-// could plausibly fit; the check itself decides, from the posting's text.
+// The funnel's two plain rules, before Jev: a role's title and the board's own location
+// fields. Deliberately wide. They only drop what a title or a place settles on its own; the
+// judging is Jev's, then Haiku's.
 
-/** The kinds of role the profile is about. */
-const TITLE_IN =
-  /(product engineer|product software engineer|ai engineer|applied ai|founding engineer|front[\s-]?end|full[\s-]?stack|design engineer|ux engineer|ui engineer|software engineer,? (?:product|ai|frontend|full)|ai product|\bllm|\bagent)/i;
+/** Engineering, design or product work, by title. */
+const IN = /(engineer|developer|design|product|front[\s-]?end|full[\s-]?stack|software|\bai\b|\bux\b|\bui\b)/i;
 
-/** Kinds it isn't, even when the words above appear: other disciplines, other levels, other jobs. */
-const TITLE_OUT =
-  /(backend|back[\s-]end|platform|infrastructure|mechanical|architect|gtm|data scien|data engineer|machine learning|\bml engineer|research|security|\bios\b|android|mobile|embedded|manager|director|head of|\b[aes]?vp\b|chief|intern|graduate|junior|sales|solutions|support|forward[\s-]deployed|recruit)/i;
+/** Jobs that aren't, whatever else the title says: selling, hiring, law, money, interns. */
+const OUT =
+  /(sales|account exec|account manag|recruit|talent|\bintern\b|internship|apprentic|graduate|counsel|legal|finance|accountant|payroll|business develop|\bsdr\b|\bbdr\b|people partner|executive assistant)/i;
 
-export function titleFits(title: string): boolean {
-  return TITLE_IN.test(title) && !TITLE_OUT.test(title);
+/** An engineering, design or product role by its title. Jev sorts out which kind. */
+export function inScope(title: string): boolean {
+  return IN.test(title) && !OUT.test(title);
 }
 
 /** A UK place or the UK itself (GB as Lever gives the country). "New York" is taken out first, so York means York; Cambridge is left out, as it is often Massachusetts. */
@@ -24,7 +24,7 @@ const ANYWHERE = /^(?:remote|fully remote|anywhere|worldwide|global|emea|europe|
 /**
  * Whether the board's location fields leave the UK open: a UK place among them, or nothing
  * narrower than "Remote", "EMEA" or "Europe". Anything else, a US-only remote role or an
- * office abroad, isn't picked.
+ * office abroad, is dropped.
  */
 export function placeFits(places: readonly (string | null | undefined)[]): boolean {
   const named = places.filter((p): p is string => !!p && !!p.trim()).map((p) => p.replace(/new york/gi, 'NYC'));

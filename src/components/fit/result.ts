@@ -16,7 +16,7 @@ import {
   type Verdict,
 } from '../../fit/copy.ts';
 import { BOARD_LIST } from '../../fit/links.ts';
-import type { Screening } from '../../fit/finder/find.ts';
+import type { ScreenId } from '../../fit/finder/screen.ts';
 import { SCREEN_SHORT } from '../../fit/finder/screen-copy.ts';
 import type { FitAssessment } from '../../fit/schema.ts';
 
@@ -401,8 +401,8 @@ export interface SheetOptions {
   edit?: boolean;
   /** For a job link with no text to show yet: the link stands in for the posting. */
   link?: string;
-  /** For a role the finder picked: its link, how many it was picked from, and Jev's screening. */
-  found?: { link: string; roles: number; companies: number; screening?: Screening | null; screenFailed?: boolean };
+  /** For a role opened from the pool: its link, and what Jev made of it (null: not ruled out). */
+  found?: { link: string; ruling: { reason: ScreenId; p: number } | null; screened: boolean };
 }
 
 const EDIT = '<button type="button" class="again" data-edit>Edit or paste another</button>';
@@ -410,50 +410,19 @@ const EDIT = '<button type="button" class="again" data-edit>Edit or paste anothe
 export const SHUFFLE =
   '<svg class="shuffle" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
 
-const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
-
-/** "mainly backend or data ×3, junior ×1", most first. */
-function ruledOutSummary(s: Screening): string {
-  const counts = new Map<string, number>();
-  for (const r of s.ruledOut) counts.set(SCREEN_SHORT[r.reason], (counts.get(SCREEN_SHORT[r.reason]) ?? 0) + 1);
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([what, n]) => `${what} ×${n}`)
-    .join(', ');
-}
-
-/** One line on what Jev's screening did, for the wait and for the foot. */
-export function screeningLineHtml(s: Screening): string {
-  const n = s.screened;
-  const k = s.ruledOut.length;
-  const head = `Jev screened ${plural(n, 'live role', 'live roles')} in ${secs(s.ms)}`;
-  if (s.allRuledOut) return `${head} and ruled out all of them, so this is one of them, checked anyway.`;
-  if (!k) return `${head} and ruled none out.`;
-  return `${head} and ruled out ${k}: ${escapeHtml(ruledOutSummary(s))}.`;
-}
-
-function ruledOutList(s: Screening): string {
-  if (!s.ruledOut.length) return '';
-  const items = s.ruledOut
-    .map((r) => `<li><b>${escapeHtml(r.title)}</b>, ${escapeHtml(r.company)} <span>${escapeHtml(SCREEN_SHORT[r.reason])} · ${r.p.toFixed(2)}</span></li>`)
-    .join('');
-  return `<details class="screened"><summary>The ${s.ruledOut.length === 1 ? 'one' : s.ruledOut.length} Jev ruled out</summary><ul>${items}</ul></details>`;
-}
-
-/** Under a found role: where it came from, what Jev ruled out, another one, and the posting. */
+/** Under a role from the pool: what Jev made of it, where Haiku read it, another, and the posting. */
 function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']> }): string {
-  const { link, roles, companies, screening, screenFailed } = o.found;
+  const { link, ruling, screened } = o.found;
   const board = o.source?.board;
   const cut = o.source?.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
-  const read = board ? `, and read from ${escapeHtml(board)} just now` : '';
-  const left = screening && !screening.allRuledOut ? screening.screened - screening.ruledOut.length : 0;
-  const where = screening
-    ? `${screeningLineHtml(screening)} ${screening.allRuledOut ? '' : `Haiku checked one of the ${left} left${read}.`}`
-    : `Picked at random from ${plural(roles, 'live role', 'live roles')} at ${plural(companies, 'company', 'companies')} on public job boards${read}.${screenFailed ? ' Jev’s screening didn’t run this time.' : ''}`;
+  const jev = ruling
+    ? `Jev ruled this one out: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}. Haiku checked it anyway`
+    : screened
+      ? 'Jev screened this one and didn’t rule it out. Haiku checked it'
+      : 'Jev didn’t screen this one. Haiku checked it';
   return (
-    `<p class="src">${where}${cut}</p>` +
-    (screening ? ruledOutList(screening) : '') +
-    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another role</button>` +
+    `<p class="src">${jev}${board ? `, reading it from ${escapeHtml(board)} just now` : ''}.${cut}</p>` +
+    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another at random</button>` +
     `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a></div>`
   );
 }
@@ -566,15 +535,18 @@ export function progressSheetHtml(text: string | null, o: ProgressOptions): stri
 /** A ghost of a posting, drawn like the thumbnails, while the finder picks a role. */
 const GHOST: Array<[number, string?]> = [[58, 'title'], [36, 'meta'], [30, 'meta'], [0, 'gap'], [94], [86], [0, 'gap'], [24, 'head'], [96], [90], [72], [0, 'gap'], [28, 'head'], [92], [64]];
 
-export const FIND_STEPS = ['Picking live roles from public job boards', 'Jev ruling out the clear noes', 'Haiku reading one of the rest'] as const;
+export const FIND_STEPS = (boards: number) =>
+  [`Reading every role on ${boards} public job boards`, 'Jev ruling out the clear noes', 'Haiku reading one of the rest'] as const;
 
 /** The wait before there's a role: a ghost posting, and the steps ahead in the margin. */
-export function findingSheetHtml(): string {
+export function findingSheetHtml(boards: number): string {
   const bars = GHOST.map(([w, k]) => `<i${k ? ` data-k="${k}"` : ''} style="--w:${w}%"></i>`).join('');
-  const steps = FIND_STEPS.map((s, i) => `<li data-state="${i ? 'todo' : 'active'}"><span class="dot" aria-hidden="true"></span>${escapeHtml(s)}</li>`).join('');
-  const top = `<div class="verdict reading"><p class="chip wait">${SPINNER}<span data-wait>Finding a role…</span></p><ol class="steps">${steps}</ol></div>`;
+  const steps = FIND_STEPS(boards).map((s, i) => `<li data-state="${i ? 'todo' : 'active'}"><span class="dot" aria-hidden="true"></span>${escapeHtml(s)}</li>`).join('');
+  const top =
+    `<div class="verdict reading"><p class="chip wait">${SPINNER}<span data-wait>Reading the boards…</span></p><ol class="steps">${steps}</ol>` +
+    `<p class="small">Usually instant. Every few hours it reads afresh, which takes about fifteen seconds.</p></div>`;
   return (
-    `<article class="page" data-state="progress" aria-label="Finding a real role">` +
+    `<article class="page" data-state="progress" aria-label="Reading the job boards">` +
     `<div class="t lead-in" style="grid-row:1"><div class="ghost" aria-hidden="true">${bars}</div></div>` +
     `<div class="m head-m" style="grid-row:1">${top}</div></article>`
   );
@@ -586,7 +558,7 @@ export const ERROR_COPY = {
   too_long: 'That’s more than 12,000 characters. Trim it to the job description itself.',
   rate_limited: 'That’s a few checks in a row. Try again in three minutes.',
   busy: 'The model is busy just now. Try again in a minute.',
-  unavailable: 'The check isn’t available just now. The samples still work.',
+  unavailable: 'The check isn’t available just now. Try again later.',
   network: 'Couldn’t reach the check. Try again in a moment.',
   linkedin: 'LinkedIn links can’t be read here. Copy the job description from LinkedIn and paste that instead.',
   other_link: `That link isn’t one the check can read. ${BOARD_LIST} job links work; for anything else, paste the job description.`,
