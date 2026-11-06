@@ -178,6 +178,7 @@ const samples = SAMPLE_POSTINGS.map((s) => {
     errorSheetHtml,
     findingSheetHtml,
     linkSteps,
+    screeningLineHtml,
     miniHtml,
     progressSheetHtml,
     resultSheetHtml,
@@ -526,8 +527,19 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         // Until the posting comes back with the answer: its title, and the company and places as listed
         const head = `${role.title}\n${[role.company, ...role.places].join(' · ')}`;
         const considered = fbody.considered ?? {};
-        const foundOpts = { link: role.link, roles: Number(considered.roles) || 1, companies: Number(considered.companies) || 1 };
+        // What Jev's screening did: shown as sent, after a light check of its shape
+        const s = fbody.screening;
+        const screening =
+          s && typeof s.screened === 'number' && typeof s.ms === 'number' && Array.isArray(s.ruledOut) && typeof s.allRuledOut === 'boolean' ? s : null;
+        const foundOpts = {
+          link: role.link,
+          roles: Number(considered.roles) || 1,
+          companies: Number(considered.companies) || 1,
+          screening,
+          screenFailed: fbody.screenFailed === true,
+        };
         realBox.innerHTML = progressSheetHtml(head, { label, step: 0, steps: linkSteps(role.board) });
+        if (screening) realBox.querySelector('.verdict.reading')?.insertAdjacentHTML('beforeend', `<p class="small screened-line">${screeningLineHtml(screening)}</p>`);
         realThumb(miniHtml(head), role.title, true);
         status.textContent = `Checking ${label}`;
         const started = Date.now();

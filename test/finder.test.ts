@@ -147,6 +147,7 @@ describe('findRole', () => {
       ok: true,
       role: { company: AB.company, board: 'ashby', title: 'Design Engineer', places: ['Remote'], link: `https://jobs.ashbyhq.com/exampleab/${UUID(1)}` },
       considered: { boards: 2, companies: 2, roles: 4 },
+      screening: null,
     });
   });
 
@@ -215,6 +216,7 @@ describe('handleFindRole', () => {
       status: 'ok',
       role: { company: GH.company, board: 'Greenhouse', title: 'Product Engineer', places: ['Remote (UK)'], link: 'https://job-boards.greenhouse.io/examplegh/jobs/7' },
       considered: { boards: 1, companies: 1, roles: 1 },
+      screening: null,
     });
   });
 

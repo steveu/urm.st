@@ -379,6 +379,44 @@
     background: none;
   }
 
+  /* What Jev ruled out before Haiku read the one picked */
+  .fit .screened-line {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .fit .screened {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  .fit .screened summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+
+  .fit .screened ul {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 3px;
+  }
+
+  .fit .screened li b {
+    color: var(--ink-2);
+  }
+
+  .fit .screened li span {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--job-radar-clay-ink);
+  }
+
   /* Under a found role: another one, and the posting itself */
   .fit .found-actions {
     display: flex;

@@ -1,11 +1,13 @@
 import type { FetchFn } from '../boards.ts';
 import { BOARD_NAMES } from '../links.ts';
 import type { FinderBoard } from './boards.ts';
-import { findRole, type FindError, type FoundRole } from './find.ts';
+import { findRole, type FindError, type FoundRole, type Screening } from './find.ts';
+import type { Screener } from './screen.ts';
 
 // The HTTP side of the role finder, shared by the Netlify Function and the local preview
-// server. GET only, no input: it answers with one live role's link for the band to check.
-// No model is called here, and nothing is stored or logged.
+// server. GET only, no input: it answers with one live role's link for the band to check, and
+// what Jev's screening did, when a Jev key is set. Haiku isn't called here, and nothing is
+// stored or logged.
 
 export const FIND_ROLE_PATH = '/api/fit-role';
 
@@ -20,6 +22,8 @@ export type FindRoleResponse =
       status: 'ok';
       role: Omit<FoundRole, 'board'> & { board: string };
       considered: { boards: number; companies: number; roles: number };
+      screening: Screening | null;
+      screenFailed?: boolean;
     }
   | { status: 'error'; error: FindError | 'method' };
 
@@ -36,6 +40,8 @@ export interface FindRoleDeps {
   random?: () => number;
   /** Tests pass their own; otherwise the finder's list. */
   boards?: readonly FinderBoard[];
+  /** Jev, from the environment in production; null or absent to pick unscreened. */
+  screen?: Screener | null;
 }
 
 /** Links a visitor has already been shown, passed back as ?not=…, so "Another role" is another. */
@@ -53,11 +59,12 @@ function excluded(req: Request): Set<string> {
 
 export async function handleFindRole(req: Request, deps: FindRoleDeps = {}): Promise<Response> {
   if (req.method !== 'GET') return json({ status: 'error', error: 'method' }, STATUS.method);
-  const found = await findRole({ fetch: deps.fetch, random: deps.random, boards: deps.boards, exclude: excluded(req) });
+  const found = await findRole({ fetch: deps.fetch, random: deps.random, boards: deps.boards, screen: deps.screen, exclude: excluded(req) });
   if (!found.ok) {
     console.error(`fit-role: ${found.error}`);
     return json({ status: 'error', error: found.error }, STATUS[found.error]);
   }
-  const { role, considered } = found;
-  return json({ status: 'ok', role: { ...role, board: BOARD_NAMES[role.board] }, considered });
+  const { role, considered, screening, screenFailed } = found;
+  if (screenFailed) console.error('fit-role: Jev screening failed; picked unscreened');
+  return json({ status: 'ok', role: { ...role, board: BOARD_NAMES[role.board] }, considered, screening, ...(screenFailed ? { screenFailed } : {}) });
 }
