@@ -8,7 +8,7 @@ const TITLE_IN =
 
 /** Kinds it isn't, even when the words above appear: other disciplines, other levels, other jobs. */
 const TITLE_OUT =
-  /(backend|back[\s-]end|platform|infrastructure|mechanical|architect|gtm|data scien|data engineer|machine learning|\bml engineer|research|security|\bios\b|android|mobile|embedded|manager|director|head of|\bvp\b|intern|graduate|junior|sales|solutions|support|forward[\s-]deployed|recruit)/i;
+  /(backend|back[\s-]end|platform|infrastructure|mechanical|architect|gtm|data scien|data engineer|machine learning|\bml engineer|research|security|\bios\b|android|mobile|embedded|manager|director|head of|\b[aes]?vp\b|chief|intern|graduate|junior|sales|solutions|support|forward[\s-]deployed|recruit)/i;
 
 export function titleFits(title: string): boolean {
   return TITLE_IN.test(title) && !TITLE_OUT.test(title);

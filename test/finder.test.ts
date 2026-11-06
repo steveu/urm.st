@@ -65,6 +65,8 @@ describe('titleFits', () => {
     'iOS Engineer',
     'Forward Deployed Engineer, AI',
     'Account Executive',
+    'AVP, Data, Analytics & AI Engineering',
+    'Chief AI Officer',
   ])('leaves %s', (t) => expect(titleFits(t)).toBe(false));
 });
 
@@ -224,6 +226,21 @@ describe('handleFindRole', () => {
     const down = await handleFindRole(get(), { fetch: () => Promise.reject(new Error('down')), boards: [GH, AB] });
     expect(down.status).toBe(502);
     expect(await down.json()).toEqual({ status: 'error', error: 'boards_failed' });
+  });
+
+  it('skips the roles passed back as already shown', async () => {
+    const { fn } = stubFetch({
+      [listUrl(GH).href]: ghBody([
+        [1, 'Product Engineer', 'UK'],
+        [2, 'Design Engineer', 'UK'],
+      ]),
+    });
+    const shown = encodeURIComponent('https://job-boards.greenhouse.io/examplegh/jobs/1');
+    const res = await handleFindRole(new Request(`http://x${FIND_ROLE_PATH}?not=${shown}`), { fetch: fn, boards: [GH], random: seq() });
+    expect((await res.json()).role.title).toBe('Design Engineer');
+    const all = `not=${shown}&not=${encodeURIComponent('https://job-boards.greenhouse.io/examplegh/jobs/2')}`;
+    const none = await handleFindRole(new Request(`http://x${FIND_ROLE_PATH}?${all}`), { fetch: fn, boards: [GH] });
+    expect(none.status).toBe(404);
   });
 
   it('turns away anything but GET', async () => {

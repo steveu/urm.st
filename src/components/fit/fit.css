@@ -259,6 +259,181 @@
     stroke-linecap: round;
   }
 
+  /* Two groups: the live ones, then the made-up examples, a hairline between */
+  .fit .group + .group {
+    padding-left: 24px;
+    border-left: 1px solid var(--line);
+  }
+
+  .fit .group-label {
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .fit .group-row {
+    display: flex;
+    gap: 18px;
+  }
+
+  /* The live tile: sage, so it reads as the thing to press */
+  .fit .real .mini.blank {
+    display: grid;
+    place-items: center;
+    color: var(--job-radar-sage-ink);
+    background: var(--job-radar-sage-tint);
+    outline: 0;
+  }
+
+  .fit .real input:checked ~ .mini.blank {
+    background: var(--job-radar-sage-tint);
+  }
+
+  .fit .shuffle {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fit .real .mini.blank .shuffle {
+    width: 22px;
+    height: 22px;
+  }
+
+  .fit .real .cap {
+    max-width: 104px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* When the real role couldn't be had: the example, and why */
+  .fit .fallback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: -4px 0 12px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+
+  .fit .fallback[hidden] {
+    display: none;
+  }
+
+  .fit .tag {
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--job-radar-stone-tint);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--job-radar-stone-ink);
+  }
+
+  .fit .live-real {
+    scroll-margin-top: 16px;
+  }
+
+  .fit .live-real:focus {
+    outline: none;
+  }
+
+  /* A ghost of a posting while a role is found */
+  .fit .ghost i {
+    display: block;
+    width: var(--w);
+    height: 9px;
+    margin-top: 12px;
+    border-radius: 3px;
+    background: #ece8e0;
+  }
+
+  .fit .ghost i[data-k='title'] {
+    height: 16px;
+    margin-top: 4px;
+    background: #e1dcd2;
+  }
+
+  .fit .ghost i[data-k='meta'] {
+    height: 8px;
+    margin-top: 10px;
+  }
+
+  .fit .ghost i[data-k='head'] {
+    height: 11px;
+    background: #e4dfd6;
+  }
+
+  .fit .ghost i[data-k='gap'] {
+    height: 6px;
+    background: none;
+  }
+
+  /* Under a found role: another one, and the posting itself */
+  .fit .found-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+  }
+
+  .fit .another {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 6px 14px 6px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--job-radar-sage-tint);
+    font: 700 0.8125rem var(--font-sans);
+    color: var(--job-radar-sage-ink);
+    cursor: pointer;
+  }
+
+  .fit .another:hover {
+    background: color-mix(in srgb, var(--job-radar-sage-tint) 80%, var(--job-radar-sage));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fit .ghost i:not([data-k='gap']) {
+      background-image: linear-gradient(90deg, transparent 0, rgb(255 255 255 / 0.55) 50%, transparent 100%);
+      background-size: 200% 100%;
+      background-repeat: no-repeat;
+      animation: fit-ghost 1.6s ease-in-out infinite;
+    }
+
+    .fit .mini.busy .shuffle,
+    .fit .mini.busy:not(.blank) {
+      animation: fit-pulse 1.2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes fit-ghost {
+    from {
+      background-position: 150% 0;
+    }
+    to {
+      background-position: -50% 0;
+    }
+  }
+
+  @keyframes fit-pulse {
+    50% {
+      opacity: 0.45;
+    }
+  }
+
   /* ---- The sheets: only the chosen one takes up room. The band is the page's last, so a
      change in height moves only the footer ---- */
   .fit .sheet {
@@ -273,6 +448,7 @@
       0 20px 40px -28px rgb(60 50 35 / 0.35);
   }
 
+  .fit:has(input[value='real']:checked) .sheet[data-for='real'],
   .fit:has(input[value='own']:checked) .sheet[data-for='own'],
   .fit:has(input[value='strong']:checked) .sheet[data-for='strong'],
   .fit:has(input[value='possible']:checked) .sheet[data-for='possible'],
@@ -999,6 +1175,14 @@
 
     .fit .thumb {
       scroll-snap-align: start;
+    }
+
+    .fit .group + .group {
+      padding-left: 16px;
+    }
+
+    .fit .group-row {
+      gap: 16px;
     }
 
     .fit .sheet {

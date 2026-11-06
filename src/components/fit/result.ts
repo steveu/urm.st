@@ -388,11 +388,30 @@ export interface SheetOptions {
   edit?: boolean;
   /** For a job link with no text to show yet: the link stands in for the posting. */
   link?: string;
+  /** For a role the finder picked: its link, and how many it was picked from. */
+  found?: { link: string; roles: number; companies: number };
 }
 
 const EDIT = '<button type="button" class="again" data-edit>Edit or paste another</button>';
 
+export const SHUFFLE =
+  '<svg class="shuffle" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
+
+/** Under a found role: where it came from, another one, and the posting itself. */
+function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']> }): string {
+  const { link, roles, companies } = o.found;
+  const board = o.source?.board;
+  const cut = o.source?.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
+  const read = board ? `, and read from ${escapeHtml(board)} just now` : '';
+  return (
+    `<p class="src">Picked at random from ${plural(roles, 'live role', 'live roles')} at ${plural(companies, 'company', 'companies')} on public job boards${read}.${cut}</p>` +
+    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another role</button>` +
+    `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a></div>`
+  );
+}
+
 function foot(o: SheetOptions): string | undefined {
+  if (o.found) return foundFoot({ ...o, found: o.found });
   const parts: string[] = [];
   if (o.source) {
     const cut = o.source.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
@@ -464,6 +483,23 @@ export function progressSheetHtml(text: string | null, o: ProgressOptions): stri
     `<ol class="steps">${items}</ol>` +
     `<p class="small">Usually two to six seconds; longer if the first answer doesn’t check out and it reads again.</p></div>`;
   return pageHtml({ label: o.label, state: 'progress', sheet: unmarked(text, o), top, fold: more });
+}
+
+/** A ghost of a posting, drawn like the thumbnails, while the finder picks a role. */
+const GHOST: Array<[number, string?]> = [[58, 'title'], [36, 'meta'], [30, 'meta'], [0, 'gap'], [94], [86], [0, 'gap'], [24, 'head'], [96], [90], [72], [0, 'gap'], [28, 'head'], [92], [64]];
+
+export const FIND_STEPS = ['Picking a live role from public job boards', 'Reading it against the profile', 'Checking every quote against the posting'] as const;
+
+/** The wait before there's a role: a ghost posting, and the steps ahead in the margin. */
+export function findingSheetHtml(): string {
+  const bars = GHOST.map(([w, k]) => `<i${k ? ` data-k="${k}"` : ''} style="--w:${w}%"></i>`).join('');
+  const steps = FIND_STEPS.map((s, i) => `<li data-state="${i ? 'todo' : 'active'}"><span class="dot" aria-hidden="true"></span>${escapeHtml(s)}</li>`).join('');
+  const top = `<div class="verdict reading"><p class="chip wait">${SPINNER}<span data-wait>Finding a role…</span></p><ol class="steps">${steps}</ol></div>`;
+  return (
+    `<article class="page" data-state="progress" aria-label="Finding a real role">` +
+    `<div class="t lead-in" style="grid-row:1"><div class="ghost" aria-hidden="true">${bars}</div></div>` +
+    `<div class="m head-m" style="grid-row:1">${top}</div></article>`
+  );
 }
 
 /** What the visitor can be told when a check doesn't come back. Site copy, keyed by cause. */

@@ -38,9 +38,22 @@ export interface FindRoleDeps {
   boards?: readonly FinderBoard[];
 }
 
+/** Links a visitor has already been shown, passed back as ?not=…, so "Another role" is another. */
+export const MAX_EXCLUDED = 30;
+
+function excluded(req: Request): Set<string> {
+  let params: URLSearchParams;
+  try {
+    params = new URL(req.url).searchParams;
+  } catch {
+    return new Set();
+  }
+  return new Set(params.getAll('not').filter((l) => l.length <= 300).slice(0, MAX_EXCLUDED));
+}
+
 export async function handleFindRole(req: Request, deps: FindRoleDeps = {}): Promise<Response> {
   if (req.method !== 'GET') return json({ status: 'error', error: 'method' }, STATUS.method);
-  const found = await findRole({ fetch: deps.fetch, random: deps.random, boards: deps.boards });
+  const found = await findRole({ fetch: deps.fetch, random: deps.random, boards: deps.boards, exclude: excluded(req) });
   if (!found.ok) {
     console.error(`fit-role: ${found.error}`);
     return json({ status: 'error', error: found.error }, STATUS[found.error]);

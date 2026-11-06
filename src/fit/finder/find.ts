@@ -135,6 +135,8 @@ export interface FindOptions {
   random?: () => number;
   boards?: readonly FinderBoard[];
   timeoutMs?: number;
+  /** Links not to pick: the roles a visitor has already been shown. */
+  exclude?: ReadonlySet<string>;
 }
 
 /** A live role at random, or why there isn't one. Board failures are skipped, not thrown. */
@@ -153,7 +155,7 @@ export async function findRole(opts: FindOptions = {}): Promise<FindResult> {
     const lists = await Promise.all(
       batch.map((b) =>
         getJson(fetchFn, listUrl(b), FINDER_LIMITS.listBytes, timeoutMs).then(
-          (body) => ({ b, roles: pickable(listedRoles(b, body)) }),
+          (body) => ({ b, roles: pickable(listedRoles(b, body)).filter((r) => !opts.exclude?.has(r.link)) }),
           () => null,
         ),
       ),
