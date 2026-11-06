@@ -1,0 +1,110 @@
+{
+  "ranAt": "2026-11-02",
+  "model": "claude-haiku-5-5",
+  "promptVersion": "fit-v3",
+  "heldOutAfter": "2026-10-30T19:14:24Z",
+  "found": 106,
+  "tooShort": 0,
+  "summariesOnly": 0,
+  "callFailed": 0,
+  "n": 105,
+  "positives": 6,
+  "negatives": 99,
+  "unassessable": 1,
+  "verdicts": {
+    "strong": {
+      "positive": 2,
+      "negative": 1
+    },
+    "possible": {
+      "positive": 3,
+      "negative": 8
+    },
+    "poor": {
+      "positive": 1,
+      "negative": 90
+    }
+  },
+  "verdict": {
+    "poorWereSkips": {
+      "k": 90,
+      "n": 91,
+      "rate": 0.989,
+      "low": 0.94,
+      "high": 0.998
+    },
+    "fitWereKeepOrMaybe": {
+      "k": 5,
+      "n": 14,
+      "rate": 0.357,
+      "low": 0.163,
+      "high": 0.612
+    },
+    "recallOfPositives": {
+      "k": 5,
+      "n": 6,
+      "rate": 0.833,
+      "low": 0.436,
+      "high": 0.97
+    },
+    "skipsCalledPoor": {
+      "k": 90,
+      "n": 99,
+      "rate": 0.909,
+      "low": 0.836,
+      "high": 0.951
+    },
+    "agreement": {
+      "k": 95,
+      "n": 105,
+      "rate": 0.905,
+      "low": 0.834,
+      "high": 0.947
+    }
+  },
+  "verdictOrLocation": {
+    "poorWereSkips": {
+      "k": 90,
+      "n": 91,
+      "rate": 0.989,
+      "low": 0.94,
+      "high": 0.998
+    },
+    "fitWereKeepOrMaybe": {
+      "k": 5,
+      "n": 14,
+      "rate": 0.357,
+      "low": 0.163,
+      "high": 0.612
+    },
+    "recallOfPositives": {
+      "k": 5,
+      "n": 6,
+      "rate": 0.833,
+      "low": 0.436,
+      "high": 0.97
+    },
+    "skipsCalledPoor": {
+      "k": 90,
+      "n": 99,
+      "rate": 0.909,
+      "low": 0.836,
+      "high": 0.951
+    },
+    "agreement": {
+      "k": 95,
+      "n": 105,
+      "rate": 0.905,
+      "low": 0.834,
+      "high": 0.947
+    }
+  },
+  "firstAttemptFailedQuoteCheck": {
+    "k": 5,
+    "n": 106,
+    "rate": 0.047,
+    "low": 0.02,
+    "high": 0.106
+  },
+  "costUsd": 0.0837
+}
