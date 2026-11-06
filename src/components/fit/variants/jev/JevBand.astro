@@ -1,0 +1,33 @@
+---
+// One stage of the Jev mock-up, in the band's frame: notes on the stage in the left column,
+// the sheet on the right. Throwaway: not for merging.
+import '@fontsource-variable/petrona/wght.css';
+import '../../fit.css';
+import '../real-role/real-role.css';
+import './jev.css';
+
+interface Props {
+  kicker: string;
+  title: string;
+  sheet: string;
+  /** The criteria, as a strip above the sheet. */
+  crit?: string;
+}
+const { kicker, title, sheet, crit } = Astro.props;
+---
+
+<section class="band fit" data-mock aria-label={title}>
+  <div class="wrap grid">
+    <header class="head">
+      <p class="kicker"><span>{kicker}</span></p>
+      <h2>{title}</h2>
+      <div class="lede"><slot /></div>
+    </header>
+    <div class="stage">
+      {crit && <div class="crit-bar" set:html={crit} />}
+      <div class="sheets">
+        <div class="sheet" data-show set:html={sheet} />
+      </div>
+    </div>
+  </div>
+</section>

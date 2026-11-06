@@ -90,6 +90,8 @@ export interface Note {
   i: number;
   /** A quote that couldn't be placed on the sheet, shown with its note instead. */
   quote?: string;
+  /** A mark that repeats an earlier note: tinted, with no note of its own. */
+  quiet?: boolean;
 }
 
 interface Mark {
@@ -230,7 +232,10 @@ export interface Sheet {
  *   hasn't been marked, where there's nothing to keep open.
  */
 export function markUp(text: string, a?: FitAssessment, crop?: number): Sheet {
-  const { marks, loose } = marksFor(text, a);
+  return layout(text, marksFor(text, a), crop);
+}
+
+function layout(text: string, { marks, loose }: { marks: Mark[]; loose: Note[] }, crop?: number): Sheet {
   const rows = rowsOf(text, marks);
   const split = rows.findIndex((r) => r.type !== 'title' && r.type !== 'meta');
   const head = split === -1 ? rows : rows.slice(0, split);
@@ -319,6 +324,7 @@ const STATUS: Record<Verdict, string> = {
 const CHEVRON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 3 7.5 6l-3 3"/></svg>';
 
 function noteHtml(n: Note, lead: boolean): string {
+  if (n.quiet) return '';
   const words = n.kind === 'location' ? `${PIN}<p>${escapeHtml(n.copy)}</p>` : `<p><b>${escapeHtml(n.label)}</b> ${escapeHtml(n.copy)}</p>`;
   const quote = n.quote ? `<blockquote>${escapeHtml(n.quote)}</blockquote>` : '';
   return `<div class="note${lead ? ' lead' : ''}" data-kind="${n.kind}" data-tone="${n.tone}" style="--i:${n.i}">${words}${quote}</div>`;
@@ -419,6 +425,36 @@ function foot(o: SheetOptions): string | undefined {
   }
   if (o.edit) parts.push(EDIT);
   return parts.length ? parts.join('') : undefined;
+}
+
+/** A mark placed by the caller, by its place in the text, rather than found from a quote. */
+export interface PlacedMark {
+  from: number;
+  to: number;
+  note: Omit<Note, 'i'>;
+}
+
+/**
+ * The same sheet from marks the caller has placed, with its own top of the margin: for a judge
+ * that marks whole sentences rather than quoting. Overlapping marks keep the earlier one's span.
+ */
+export function placedSheetHtml(text: string, placed: PlacedMark[], top: string, o: SheetOptions & { loose?: Array<Omit<Note, 'i'>> }): string {
+  const marks: Mark[] = placed.map((p) => ({ from: p.from, to: p.to, start: p.from, note: { ...p.note, i: 0 } })).sort((x, y) => x.from - y.from);
+  let end = 0;
+  marks.forEach((m, i) => {
+    m.note.i = i;
+    if (m.from < end) m.from = Math.min(end, m.to);
+    end = Math.max(end, m.to);
+  });
+  const loose = (o.loose ?? []).map((n, k) => ({ ...n, i: marks.length + k }));
+  return pageHtml({
+    label: o.label,
+    state: 'result',
+    sheet: layout(text, { marks, loose }),
+    top,
+    foot: foot(o),
+    fold: (n) => `${plural(n, 'paragraph', 'paragraphs')}, nothing marked`,
+  });
 }
 
 /** A checked answer: the posting marked up, the verdict and a note for each mark. */
