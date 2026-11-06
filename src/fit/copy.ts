@@ -7,8 +7,8 @@ export const VERDICTS = ['strong', 'possible', 'poor'] as const;
 export type Verdict = (typeof VERDICTS)[number];
 
 export const VERDICT_COPY: Record<Verdict, { label: string; line: string }> = {
-  strong: { label: 'Strong match', line: 'The role and the profile line up closely.' },
-  possible: { label: 'Partial match', line: 'Some of the role lines up with the profile.' },
+  strong: { label: 'Strong match', line: 'The role and the profile line\u00a0up closely.' },
+  possible: { label: 'Partial match', line: 'Some of the role lines\u00a0up with the profile.' },
   poor: { label: 'Poor match', line: 'The role and the profile point different ways.' },
 };
 
