@@ -2,52 +2,61 @@
 // Index of the fit check band's mock-ups. Throwaway: not for merging.
 import Base from '../../layouts/Base.astro';
 
-const directions = [
-  { n: 'A', slug: 'tile', name: 'Tile', line: 'Smallest change. “A real role” joins the thumbnail row, beside “Paste your own”; the samples are labelled as made up.' },
-  { n: 'A2', slug: 'live', name: 'Tile, live by default', line: 'A, with a real role checked on arrival. A ghost posting while it’s found; the made-up example only as the fallback.' },
-  { n: 'B', slug: 'strip', name: 'Ask strip', line: 'Real roles lead. A question with kinds of role and one button; paste and the samples become links underneath.' },
-  { n: 'C', slug: 'list', name: 'Live list', line: 'Most real data on show. Five live roles, locations as the boards write them; pick one to check. Reads most like a shortlist.' },
+const current = [
+  {
+    href: '/#fit-check',
+    name: 'The band now',
+    line: 'Live: opens on a real role picked from public job boards and checked by Haiku. Needs the preview server for the check itself.',
+  },
+  {
+    href: '/fit-variants/jev-aligned',
+    name: 'Jev checks Haiku',
+    line: 'Latest Jev experiment, static: Jev reads every sentence first, then Haiku’s verdict arrives with Jev’s agreement on each reason.',
+  },
+];
+
+const earlier = [
+  { href: '/fit-variants/jev', name: 'Jev first', line: 'Jev’s criteria decide the verdict. Dropped: two verdicts on one page.' },
+  { href: '/fit-variants/real-role/live', name: 'Real role by default', line: 'Static states of what is now the live band.' },
+  { href: '/fit-variants/real-role/tile', name: 'Real-role tile', line: 'The first try at a real role, not the default.' },
+  { href: '/fit-variants/real-role/strip', name: 'Ask strip', line: 'Kinds of role and a button. Not chosen.' },
+  { href: '/fit-variants/real-role/list', name: 'Live list', line: 'Five live roles to pick from. Not chosen: reads like a shortlist.' },
 ];
 ---
 
 <Base title="Fit check mock-ups" noindex>
   <section class="wrap idx">
-    <h1>Fit check: checking a real role</h1>
-    <p class="sub">Static mock-ups, each page showing the band in its states. The role, company and counts are invented stand-ins.</p>
-    <ol>
+    <h1>Fit check mock-ups</h1>
+    <p class="sub">Look at these two.</p>
+    <ol class="current">
       {
-        directions.map((v) => (
+        current.map((v, i) => (
           <li>
-            <a href={`/fit-variants/real-role/${v.slug}`}>
-              <span class="n">{v.n}</span>
+            <a href={v.href}>
+              <span class="n">{i + 1}</span>
               <span class="name">{v.name}</span>
               <span class="line">{v.line}</span>
             </a>
           </li>
         ))
       }
-      <li>
-        <a href="/fit-variants/jev">
-          <span class="n">J</span>
-          <span class="name">Jev first</span>
-          <span class="line">Real Jev and Haiku answers on two invented postings: today’s band, Jev’s answers at half a second, then Haiku’s.</span>
-        </a>
-      </li>
-      <li>
-        <a href="/fit-variants/jev-aligned">
-          <span class="n">J2</span>
-          <span class="name">Haiku decides, Jev checks</span>
-          <span class="line">One verdict and one reason list: Jev tints every sentence first, then Haiku’s reasons arrive, each saying whether Jev agrees.</span>
-        </a>
-      </li>
-      <li>
-        <a href="/#fit-check">
-          <span class="n">·</span>
-          <span class="name">Current</span>
-          <span class="line">The band as it is on fit-check, for comparison.</span>
-        </a>
-      </li>
     </ol>
+    <details>
+      <summary>Earlier rounds, kept for the record</summary>
+      <ul>
+        {
+          earlier.map((v) => (
+            <li>
+              <a href={v.href}>
+                <span class="n">·</span>
+                <span class="name">{v.name}</span>
+                <span class="line">{v.line}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </details>
   </section>
 </Base>
 
@@ -62,8 +71,9 @@ const directions = [
     margin-top: 8px;
     color: var(--muted, #6b665e);
   }
-  ol {
-    margin-top: 32px;
+  ol,
+  ul {
+    margin-top: 24px;
     padding: 0;
     list-style: none;
     display: grid;
@@ -71,7 +81,7 @@ const directions = [
   }
   a {
     display: grid;
-    grid-template-columns: 32px 140px 1fr;
+    grid-template-columns: 32px 200px 1fr;
     gap: 16px;
     padding: 14px 0;
     border-top: 1px solid #e8e4dc;
@@ -81,11 +91,22 @@ const directions = [
   a:hover .name {
     text-decoration: underline;
   }
+  .current .name {
+    font-size: 1.125rem;
+  }
   .n {
     font-family: var(--font-mono);
     color: #8a8a86;
   }
   .name {
     font-weight: 700;
+  }
+  details {
+    margin-top: 48px;
+    color: var(--muted, #6b665e);
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
   }
 </style>

@@ -6,11 +6,11 @@ import JevBand from '../../components/fit/variants/jev/JevBand.astro';
 import { alignedSheets, type AlignedId } from '../../components/fit/variants/jev/aligned';
 import data from '../../components/fit/variants/jev/aligned-answers.json';
 
-const POSTINGS: Array<{ id: AlignedId; name: string }> = [
-  { id: 'halden', name: 'Product Engineer, AI (invented, from the real-role mock-ups)' },
-  { id: 'strong', name: 'Senior AI Product Engineer (the made-up “strong” sample)' },
-  { id: 'possible', name: 'Lead Frontend Engineer (the made-up “possible” sample)' },
-  { id: 'poor', name: 'Senior Backend Engineer, AI Platform (the made-up “poor” sample)' },
+const POSTINGS: Array<{ id: AlignedId; short: string; name: string }> = [
+  { id: 'halden', short: 'Product engineer', name: 'Product Engineer, AI (invented)' },
+  { id: 'strong', short: 'AI product engineer', name: 'Senior AI Product Engineer (the made-up “strong” sample)' },
+  { id: 'possible', short: 'Lead frontend', name: 'Lead Frontend Engineer (the made-up “possible” sample)' },
+  { id: 'poor', short: 'Backend, where Jev disagrees', name: 'Senior Backend Engineer, AI Platform (the made-up “poor” sample): Jev disagrees with one reason' },
 ];
 const runs = POSTINGS.map((p) => ({ ...p, ...alignedSheets(p.id) }));
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
@@ -18,28 +18,31 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 <Base title="Fit check: Haiku decides, Jev checks" noindex>
   <p class="label top">
-    <span class="wrap"><a href="/fit-variants">Mock-ups</a> / Haiku decides, Jev checks · {data.jev} and Haiku, run {data.ranAt.slice(0, 16).replace('T', ' ')}</span>
+    <span class="wrap"><a href="/fit-variants">Mock-ups</a> / Jev checks Haiku · real answers from {data.jev} and Haiku on invented postings</span>
   </p>
+  <nav class="label pick" aria-label="Postings">
+    <span class="wrap">
+      Each posting in two steps: what Jev shows first, then the finished sheet.
+      {runs.map((r) => <a href={`#${r.id}`}>{r.short}</a>)}
+    </span>
+  </nav>
   {
     runs.map((r) => (
       <>
-        <p class="label"><span class="wrap">{r.name}</span></p>
-        <JevBand kicker={`Jev · ${secs(r.facts!.jevMs)}`} title="Jev reads every sentence" sheet={r.read}>
+        <p class="label" id={r.id}><span class="wrap">{r.name}</span></p>
+        <JevBand kicker={`Step 1 · Jev · ${secs(r.facts!.jevMs)}`} title="Jev reads every sentence" sheet={r.read}>
           <p>
             Jev answers each of the site’s {20} reasons for the whole posting and for every sentence, while Haiku is still deciding. Each
             sentence that backs a reason gets a dotted underline in that reason’s colour. No words yet.
           </p>
           <p class="facts">{r.facts!.questions} questions in {secs(r.facts!.jevMs)} · {r.facts!.found} of {r.facts!.sentences} sentences underlined</p>
         </JevBand>
-        <JevBand kicker={`Haiku · ${secs(r.facts!.haikuMs)}`} title="Haiku decides, Jev checks" sheet={r.decided}>
+        <JevBand kicker={`Step 2 · Haiku · ${secs(r.facts!.haikuMs)}`} title="Haiku decides, Jev checks" sheet={r.decided}>
           <p>
             Haiku’s verdict and its reasons, exactly as today, at their quotes in full tint. Each reason says whether Jev agrees. Jev’s other
             sentences stay underlined, and reasons only Jev found are named once under the verdict.
           </p>
           <p class="facts">{r.facts!.verdict} · Jev agrees with {r.facts!.agreed} of {r.facts!.reasons} reasons</p>
-        </JevBand>
-        <JevBand kicker="Today" title="For comparison" sheet={r.today}>
-          <p>The band as it is now, from the same Haiku answer.</p>
         </JevBand>
       </>
     ))
@@ -60,5 +63,16 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
   }
   .label a {
     color: inherit;
+  }
+  .label.pick {
+    background: #e8e4dc;
+    color: #4a4a46;
+  }
+  .label.pick a {
+    margin-left: 14px;
+    font-weight: 700;
+  }
+  .label[id] {
+    scroll-margin-top: 8px;
   }
 </style>
