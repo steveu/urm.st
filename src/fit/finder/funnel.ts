@@ -1,18 +1,18 @@
 // The funnel: every role on a set of public job boards, narrowed in plain steps to the ones
 // worth a closer look. It reads each board's whole job list through its public API, keeps the
 // engineering, design and product roles by title, then those open to the UK by the board's own
-// location fields (./filter.ts). With a Jev screener, it puts every one of those to Jev, which
-// rules out the clear noes (./screen.ts). Jev only ever rules a role out, never in, and a role
-// Jev couldn't answer for is left out of both lists, never counted as passing.
+// location fields (./filter.ts). With a Jev screener, it puts every one of those to Jev, and
+// keeps the ones that clear its bar (./screen.ts). A role Jev couldn't answer for is left out
+// of both lists, never counted as passing.
 //
-// What's left is listed by company, not ranked: Haiku judges a role only when a visitor opens
-// it, through the fit check, which reads the posting again from its link. Only titles,
+// Nothing is ranked: the band shows one role at a time, at random, and Haiku judges it through
+// the fit check, which reads the posting again from its link. Only titles,
 // companies, places and links come back; no posting text. Nothing is stored here.
 import { BOARD_LIMITS, compose, getJson, readJob, type FetchFn } from '../boards.ts';
 import { parseJobLink, type Board } from '../links.ts';
 import { FINDER_BOARDS, type FinderBoard } from './boards.ts';
 import { inScope, placeFits } from './filter.ts';
-import { JEV_MODEL, JEV_USD_PER_MTOK, ruling, type Screener, type ScreenId } from './screen.ts';
+import { JEV_MODEL, JEV_USD_PER_MTOK, ruling, type Screener, type TurnDown } from './screen.ts';
 
 export const FUNNEL_LIMITS = {
   /** A board slower than this is skipped, not waited for. */
@@ -35,16 +35,9 @@ export interface FunnelRole {
   link: string;
 }
 
-export interface LeftRole extends FunnelRole {
-  /** Jev's strongest answer among the rule-out questions, below the line; absent when unscreened. */
-  p?: number;
-  /** Jev's answer on whether it's mainly hands-on building; absent when unscreened. */
-  handsOn?: number;
-}
-
 export interface RuledOutRole extends FunnelRole {
-  reason: ScreenId;
-  /** Jev's answer to that question, at or above the line. */
+  reason: TurnDown;
+  /** How sure Jev is of that no. */
   p: number;
 }
 
@@ -58,9 +51,9 @@ export interface Funnel {
   inScope: number;
   /** Of those, open to the UK. What Jev is asked about. */
   open: number;
-  /** What Jev left, or every open role when Jev didn't screen. By company, then title. */
-  left: LeftRole[];
-  /** What Jev ruled out, with the reason. By company, then title. */
+  /** What cleared Jev's bar, or every open role when Jev didn't screen. By company, then title. */
+  left: FunnelRole[];
+  /** What Jev turned down, with the reason. By company, then title. */
   ruledOut: RuledOutRole[];
   /** Open roles Jev couldn't answer for, or with too little text to ask about: in neither list. */
   unscreened: number;
@@ -179,7 +172,7 @@ async function pool<T, R>(items: readonly T[], n: number, stop: () => boolean, f
 
 export interface FunnelOptions {
   fetch?: FetchFn;
-  /** Jev, to rule out clear noes. Without one, every open role is left, unscreened. */
+  /** Jev, to keep the roles that clear its bar. Without one, every open role is left, unscreened. */
   screen?: Screener | null;
   boards?: readonly FinderBoard[];
   timeoutMs?: number;
@@ -261,9 +254,9 @@ export async function runFunnel(opts: FunnelOptions = {}): Promise<FunnelResult>
       return;
     }
     tokens += a.inputTokens;
-    const out = ruling(a.answers);
+    const out = ruling(a.answers, a.handsOn);
     if (out) funnel.ruledOut.push({ ...o.role, reason: out.reason, p: out.p });
-    else funnel.left.push({ ...o.role, p: Math.max(...Object.values(a.answers)), handsOn: a.handsOn });
+    else funnel.left.push(o.role);
   });
   funnel.left.sort(byCompany);
   funnel.ruledOut.sort(byCompany);

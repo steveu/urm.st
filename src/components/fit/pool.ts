@@ -1,9 +1,9 @@
 // The strip above the sheet: the funnel's counts drawn as one shape that narrows, step by
 // step, from every role on the boards to the one on the sheet. Its thickness at each step is
 // to scale; behind each narrowing, hatched, is what that step took away, in clay for what Jev
-// ruled out. Everything here is site copy or a number; the funnel's answer is read in the
+// turned down. Everything here is site copy or a number; the funnel's answer is read in the
 // browser (src/fit/finder/handler.ts).
-import type { ScreenId } from '../../fit/finder/screen.ts';
+import type { TurnDown } from '../../fit/finder/screen.ts';
 import { SCREEN_SHORT } from '../../fit/finder/screen-copy.ts';
 
 export interface PoolRole {
@@ -12,9 +12,8 @@ export interface PoolRole {
   title: string;
   places: string[];
   link: string;
-  reason?: ScreenId;
+  reason?: TurnDown;
   p?: number;
-  handsOn?: number;
 }
 
 export interface Pool {
@@ -73,7 +72,7 @@ export function stripSteps(f: Pool): Step[] {
     { count: f.inScope, words: 'engineering, design or product', by: 'title rule', cut: 'rule' },
     { count: f.open, words: 'open to the UK', by: 'place rule', cut: 'rule' },
   ];
-  if (f.screening) steps.push({ count: f.left.length, words: `left; ${n(f.ruledOut.length)} ruled out`, by: 'Jev', cut: 'jev' });
+  if (f.screening) steps.push({ count: f.left.length, words: `clear Jev’s bar; ${n(f.ruledOut.length)} don’t`, by: 'Jev', cut: 'jev' });
   steps.push({ count: 1, words: 'on the sheet', by: 'Haiku' });
   return steps;
 }
@@ -130,16 +129,3 @@ export function stripHtml(f: Pool, now = Date.now()): string {
   return `${shape}<ol class="steps-row" style="--k:${steps.length}">${caps}</ol><p class="strip-note">${note}</p>`;
 }
 
-/**
- * Which of the roles left a random pick comes from: those Jev read as mainly hands-on building
- * with little against them, then any with little against them, then all. Nothing on the page is
- * ranked; this only steers which role is shown.
- */
-export function pickable(left: PoolRole[], min = 12): PoolRole[] {
-  const scored = left.filter((r) => typeof r.p === 'number');
-  if (scored.length < left.length) return left;
-  const handsOn = scored.filter((r) => (r.handsOn ?? 0) >= 0.7 && r.p! < 0.5);
-  if (handsOn.length >= min) return handsOn;
-  const clear = scored.filter((r) => r.p! < 0.5);
-  return clear.length >= min ? clear : left;
-}

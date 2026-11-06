@@ -16,7 +16,7 @@ import {
   type Verdict,
 } from '../../fit/copy.ts';
 import { BOARD_LIST } from '../../fit/links.ts';
-import type { ScreenId } from '../../fit/finder/screen.ts';
+import type { TurnDown } from '../../fit/finder/screen.ts';
 import { SCREEN_SHORT } from '../../fit/finder/screen-copy.ts';
 import type { FitAssessment } from '../../fit/schema.ts';
 
@@ -401,8 +401,8 @@ export interface SheetOptions {
   edit?: boolean;
   /** For a job link with no text to show yet: the link stands in for the posting. */
   link?: string;
-  /** For a live role: its link, what Jev made of it (null: not ruled out), and whether there's a ruled-out one to offer. */
-  found?: { link: string; ruling: { reason: ScreenId; p: number } | null; screened: boolean; canRuled: boolean; checked?: boolean };
+  /** For a live role: its link, what Jev made of it (null: it passed), and whether there's a turned-down one to offer. */
+  found?: { link: string; ruling: { reason: TurnDown; p: number } | null; screened: boolean; canRuled: boolean; checked?: boolean };
 }
 
 const EDIT =
@@ -412,15 +412,15 @@ const EDIT =
 export const SHUFFLE =
   '<svg class="shuffle" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
 
-/** Under a live role: what Jev made of it, where Haiku read it, then another, one Jev ruled out, the posting, or your own. */
+/** Under a live role: what Jev made of it, where Haiku read it, then another, one Jev turned down, the posting, or your own. */
 function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']> }): string {
   const { link, ruling, screened, canRuled } = o.found;
   const board = o.source?.board;
   const cut = o.source?.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
   const jev = ruling
-    ? `Jev ruled this one out: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}.`
+    ? `Jev turned this one down: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}.`
     : screened
-      ? 'Jev screened this one and didn’t rule it out.'
+      ? 'It cleared Jev’s bar: hands-on building, little against it.'
       : 'Jev didn’t screen this one.';
   // Only when Haiku's answer is on the sheet: not on a check that didn't run
   const haiku = o.found.checked
@@ -429,7 +429,7 @@ function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']>
   return (
     `<p class="src">${jev}${haiku}</p>` +
     `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another role</button>` +
-    (canRuled ? `<button type="button" class="another ruled" data-ruled>One Jev ruled out</button>` : '') +
+    (canRuled ? `<button type="button" class="another ruled" data-ruled>One Jev turned down</button>` : '') +
     `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a>` +
     `<button type="button" class="again" data-own>Paste your own</button></div>`
   );
@@ -544,7 +544,7 @@ export function progressSheetHtml(text: string | null, o: ProgressOptions): stri
 const GHOST: Array<[number, string?]> = [[58, 'title'], [36, 'meta'], [30, 'meta'], [0, 'gap'], [94], [86], [0, 'gap'], [24, 'head'], [96], [90], [72], [0, 'gap'], [28, 'head'], [92], [64]];
 
 export const FIND_STEPS = (boards: number) =>
-  [`Reading every role on ${boards} public job boards`, 'Jev ruling out the clear noes', 'Haiku reading one of the rest'] as const;
+  [`Reading every role on ${boards} public job boards`, 'Jev picking out the few worth reading', 'Haiku reading one of them'] as const;
 
 /** The wait before there's a role: a ghost posting, and the steps ahead in the margin. */
 export function findingSheetHtml(boards: number): string {

@@ -1,12 +1,17 @@
-// Jev screening for the funnel: five yes/no questions that each, on their own, make a
-// role a clear no for the profile. A candidate is ruled out when any answer is 0.9 or above;
-// anything else is left for Haiku to judge. Jev only ever rules a role out, never in.
+// Jev screening for the funnel: a bar each role has to clear before Haiku might read it. Five
+// questions each ask about something that pulls a role away from the profile, and one asks
+// whether it's mainly hands-on building. A role passes when Jev reads it as hands-on building
+// (0.7 or above) with nothing much against it (every other answer under 0.3). 0.7 and 0.3 are
+// TypeSafe's suggested starting lines for yes and no, not lines fitted to the roles below.
 //
-// The wording is job-radar's (src/eval/criteria/criteria.ts on the jev-criteria branch). On
-// its 272 labelled postings, this rule ruled out 115 of 253 skips and none of the 19 keeps or
-// maybes. The threshold and the choice of questions were made looking at that same set, so
-// the figure is optimistic until it's checked on fresh labels. "Agency" is left out: it read
-// recruiters as agencies.
+// Why a bar and not just the clear noes: on 6 November, Haiku checked 76 roles from the live
+// pool. All 10 that Jev had ruled out at 0.9 came back Poor, but so did 33 of the 66 left, so
+// "left" meant little. Of those 66, the 22 that cleared this bar came back 7 Strong, 13
+// Partial and 2 Poor; the 44 that didn't, 2 Strong, 11 Partial and 31 Poor. The bar costs some
+// good roles to show mostly good ones. One day's sample, and Haiku isn't ground truth.
+//
+// The five questions' wording is job-radar's (src/eval/criteria/criteria.ts on the
+// jev-criteria branch); "Agency" is left out, as it read recruiters as agencies.
 //
 // Only public job board postings are sent to Jev, never a visitor's paste. Nothing is stored.
 
@@ -15,8 +20,8 @@ export const JEV_URL = 'https://api.typesafe.ai/v1/systemone';
 /** Input tokens only; output is free (docs.typesafe.ai/go/models, checked 2026-11-06). */
 export const JEV_USD_PER_MTOK = 0.042;
 
-/** At or above this, an answer rules the role out. */
-export const RULE_OUT_AT = 0.9;
+/** A role passes with hands-on building at or above `handsOn`, and every other answer below `against`. */
+export const PASS = { handsOn: 0.7, against: 0.3 } as const;
 
 export const SCREEN_LIMITS = { timeoutMs: 4_000, maxResponseBytes: 64 * 1024 } as const;
 
@@ -58,11 +63,10 @@ export type ScreenId = keyof typeof SCREEN_QUESTIONS;
 export const SCREEN_IDS = Object.keys(SCREEN_QUESTIONS) as ScreenId[];
 
 /**
- * Asked alongside, never used to rule a role out: the profile counts hands-on product and
- * design roles as possible fits too. It only steers which of the roles left is shown first,
- * towards the hands-on building the profile is mostly about. On the live pool it set apart the
- * product managers, product designers and programme managers, and none of the roles titled
- * product, frontend, full-stack, design or AI engineer.
+ * The one question a role has to answer yes to. On the live pool it set apart the product
+ * managers, product designers and programme managers, and none of the roles titled product,
+ * frontend, full-stack, design or AI engineer. The profile counts hands-on product and design
+ * roles as possible fits, but Haiku judged most of those Poor.
  */
 export const HANDS_ON: Question = {
   instructions: 'Is the role in the `posting` mainly hands-on building of software: writing the code for a product’s features, interface or AI behaviour?',
@@ -94,14 +98,20 @@ export function screenRequest(text: string) {
   };
 }
 
-/** The strongest answer at or above the line, or null when nothing rules the role out. */
-export function ruling(answers: Record<ScreenId, number>): { reason: ScreenId; p: number } | null {
-  let best: { reason: ScreenId; p: number } | null = null;
+/** Why Jev turns a role down: one of the five, or that it isn't mainly hands-on building. */
+export type TurnDown = ScreenId | 'not_hands_on';
+
+/**
+ * Null when the role passes; otherwise the strongest reason it doesn't, with how sure Jev is
+ * of that no (for hands-on building, one less its answer).
+ */
+export function ruling(answers: Record<ScreenId, number>, handsOn: number): { reason: TurnDown; p: number } | null {
+  let worst: { reason: TurnDown; p: number } | null = handsOn < PASS.handsOn ? { reason: 'not_hands_on', p: 1 - handsOn } : null;
   for (const id of SCREEN_IDS) {
     const p = answers[id];
-    if (p >= RULE_OUT_AT && (!best || p > best.p)) best = { reason: id, p };
+    if (p >= PASS.against && (!worst || p > worst.p)) worst = { reason: id, p };
   }
-  return best;
+  return worst;
 }
 
 type Fetch = (url: string, init: RequestInit) => Promise<Response>;

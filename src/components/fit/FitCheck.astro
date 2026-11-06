@@ -1,7 +1,7 @@
 ---
 // Home band for job-radar's fit check, a demo on my own profile. Above the sheet, the strip:
-// every role on a set of public job boards, narrowed by a title rule, a place rule and Jev,
-// which rules out the clear noes (src/fit/finder), down to the one on the sheet, picked at
+// every role on a set of public job boards, narrowed by a title rule, a place rule and Jev's
+// bar (src/fit/finder), down to the one on the sheet, picked at
 // random from what's left. Its link goes to the fit check, and Haiku's answer is set on the
 // sheet: each passage it rests on tinted in
 // place in the colour of the side it pulls (sage for, clay against, straw mixed), with the
@@ -36,8 +36,8 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
       <h2 id="fit-check-title">Every reason, in the posting’s own&nbsp;words.</h2>
       <p class="lede">
         job-radar is a matching tool I’m building, shown here on <a href={PROFILE}>my own profile</a>. Every few hours it
-        reads every role on {BOARDS} public job boards, and plain rules and Jev, a fast decision model, narrow them to the
-        plausible ones. Haiku then reads one against the profile, choosing from a fixed list of reasons, each quoting the
+        reads every role on {BOARDS} public job boards. Plain rules and then Jev, a fast decision model, narrow them to the
+        few that are hands-on building with little against them. Haiku then reads one against the profile, choosing from a fixed list of reasons, each quoting the
         posting word for word.
       </p>
     </header>
@@ -102,7 +102,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
 
     <footer class="close">
       <p>
-        Jev only ever rules a role out. Claude Haiku picks the verdict and the reasons and quotes the posting; it never
+        Jev only decides which roles Haiku sees. Claude Haiku picks the verdict and the reasons and quotes the posting; it never
         writes a word that appears here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
       </p>
       <a class="more" href="/work/fit-check">How this was measured →</a>
@@ -115,7 +115,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
   import { VERDICT_COPY } from '../../fit/copy';
   import { BOARD_NAMES, parseJobLink, type ParsedLink } from '../../fit/links';
   import { validateAssessment } from '../../fit/schema';
-  import { pickable, readPool, stripHtml, type Pool, type PoolRole } from './pool';
+  import { readPool, stripHtml, type Pool, type PoolRole } from './pool';
   import {
     ERROR_COPY,
     errorSheetHtml,
@@ -367,8 +367,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
     const done = new Map<string, { html: string; say: string }>();
     const opened = new Set<string>();
 
-    // A role at random, not yet shown here when there's one: one Jev ruled out, or one it left,
-    // steered towards hands-on building (pickable, in ./pool)
+    // A role at random, not yet shown here when there's one: one that cleared Jev's bar, or one it turned down
     function randomRole(from: PoolRole[]): PoolRole | null {
       const fresh = from.filter((r) => !opened.has(r.link) && r.link !== current);
       const pick = fresh.length ? fresh : from;
@@ -434,7 +433,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
       }
     }
 
-    // The buttons under a sheet: another role, one Jev ruled out, your own, or back to a live role
+    // The buttons under a sheet: another role, one Jev turned down, your own, or back to a live role
     band.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
       if (t.closest('[data-own]')) return toOwn((e as MouseEvent).detail > 0);
@@ -446,7 +445,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
       }
       const ruled = !!t.closest('[data-ruled]');
       if (!ruled && !t.closest('[data-another]')) return;
-      const role = randomRole(ruled ? (pool?.ruledOut ?? []) : pickable(pool?.left ?? []));
+      const role = randomRole(ruled ? (pool?.ruledOut ?? []) : pool?.left ?? []);
       if (role) void openRole(role);
     });
 
@@ -479,7 +478,7 @@ const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words
         if (!reduce) void strip.offsetWidth;
         strip.classList.add('drawn');
         // A role at random from what's left is on the sheet to begin with, unless the visitor has moved on
-        const first = randomRole(pickable(p.left));
+        const first = randomRole(p.left);
         if (first && band.dataset.pane === 'role' && !current) void openRole(first);
       } catch {
         poolFailed(FAILED.boards);

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { listUrl, runFunnel } from '../src/fit/finder/funnel.ts';
 import { FUNNEL_CACHE, funnelHandler } from '../src/fit/finder/handler.ts';
 import type { FinderBoard } from '../src/fit/finder/boards.ts';
-import { JEV_MODEL, JEV_URL, jevScreener, RULE_OUT_AT, ruling, SCREEN_IDS, screenerFromEnv, screenRequest, type ScreenId, type Screener } from '../src/fit/finder/screen.ts';
+import { JEV_MODEL, JEV_URL, jevScreener, PASS, ruling, SCREEN_IDS, screenerFromEnv, screenRequest, type ScreenId, type Screener } from '../src/fit/finder/screen.ts';
 
 // Invented boards and postings throughout: no real listing.
 const UUID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -36,11 +36,16 @@ function textScreener(seen: string[] = []): Screener {
 }
 
 describe('ruling', () => {
-  it('rules a role out at the line, naming the strongest answer', () => {
-    expect(ruling(none())).toBeNull();
-    expect(ruling(with_('people_management', RULE_OUT_AT - 0.01))).toBeNull();
-    expect(ruling(with_('people_management', RULE_OUT_AT))).toEqual({ reason: 'people_management', p: RULE_OUT_AT });
-    expect(ruling({ ...with_('backend_or_data', 0.92), explicitly_junior: 0.99 })).toEqual({ reason: 'explicitly_junior', p: 0.99 });
+  it('passes a role that is hands-on building with nothing much against it', () => {
+    expect(ruling(none(), PASS.handsOn)).toBeNull();
+    expect(ruling(with_('people_management', PASS.against - 0.01), 0.95)).toBeNull();
+  });
+
+  it('turns a role down for the strongest no: an answer against it, or not being hands-on', () => {
+    expect(ruling(with_('people_management', PASS.against), 0.95)).toEqual({ reason: 'people_management', p: PASS.against });
+    expect(ruling({ ...with_('backend_or_data', 0.42), explicitly_junior: 0.99 }, 0.95)).toEqual({ reason: 'explicitly_junior', p: 0.99 });
+    expect(ruling(none(), 0.2)).toEqual({ reason: 'not_hands_on', p: 0.8 });
+    expect(ruling(with_('backend_or_data', 0.5), 0.6)).toEqual({ reason: 'backend_or_data', p: 0.5 });
   });
 });
 
@@ -100,7 +105,7 @@ describe('runFunnel with screening', () => {
     },
   };
 
-  it('puts every open role to Jev, and splits them into what it left and what it ruled out', async () => {
+  it('puts every open role to Jev, and splits them into what clears its bar and what it turns down', async () => {
     const seen: string[] = [];
     const { fn } = stubFetch(boards);
     const r = await runFunnel({ fetch: fn, boards: [AB, LV, GH], screen: textScreener(seen) });
@@ -108,11 +113,6 @@ describe('runFunnel with screening', () => {
     if (!r.ok) return;
     const f = r.funnel;
     expect(f.left.map((x) => x.title)).toEqual(['Design Engineer', 'Founding Engineer']);
-    // Each role left carries Jev's strongest answer, below the line, to steer which is shown
-    expect(f.left.map((x) => [x.p, x.handsOn])).toEqual([
-      [0.05, 0.9],
-      [0.05, 0.9],
-    ]);
     expect(f.ruledOut.map((x) => `${x.company}: ${x.reason} ${x.p}`)).toEqual(['Example Ashby: backend_or_data 0.97', 'Example Lever: backend_or_data 0.97']);
     expect(f.unscreened).toBe(0);
     expect(f.screening).toMatchObject({ model: JEV_MODEL });

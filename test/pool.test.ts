@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ago, pickable, readPool, stripHtml, stripShape, stripSteps, type Pool, type PoolRole } from '../src/components/fit/pool.ts';
+import { ago, readPool, stripHtml, stripShape, stripSteps, type Pool, type PoolRole } from '../src/components/fit/pool.ts';
 
 // Invented roles throughout.
 const role = (company: string, title: string, extra: Partial<PoolRole> = {}): PoolRole => ({
@@ -51,24 +51,8 @@ describe('the strip', () => {
   it('says when it was read and what Jev cost', () => {
     const html = stripHtml(pool(), Date.parse('2026-11-06T12:00:00Z'));
     expect(html).toContain('Read 2 hours ago. Jev screened 2 roles in 6.2s, for $0.06.');
-    expect(html).toContain('<b>1</b> <span>left; 1 ruled out</span> <i class="by">Jev</i>');
+    expect(html).toContain('<b>1</b> <span>clear Jev’s bar; 1 don’t</span> <i class="by">Jev</i>');
     expect(stripHtml(pool({ screening: null, screenFailed: true }))).toContain('Jev couldn’t screen them just now.');
-  });
-});
-
-describe('pickable', () => {
-  const r = (i: number, p: number, handsOn: number) => role('Example', `Role ${i}`, { p, handsOn });
-
-  it('steers towards hands-on building with little against it, and falls back when there are too few', () => {
-    const left = [r(1, 0.1, 0.95), r(2, 0.2, 0.9), r(3, 0.1, 0.05), r(4, 0.8, 0.95)];
-    expect(pickable(left, 2).map((x) => x.title)).toEqual(['Role 1', 'Role 2']);
-    expect(pickable(left, 3).map((x) => x.title)).toEqual(['Role 1', 'Role 2', 'Role 3']);
-    expect(pickable(left, 5)).toEqual(left);
-  });
-
-  it('picks from everything when Jev didn’t screen', () => {
-    const left = [role('Example', 'Unscreened')];
-    expect(pickable(left, 1)).toEqual(left);
   });
 });
 

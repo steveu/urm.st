@@ -1,7 +1,7 @@
 import type { FetchFn } from '../boards.ts';
 import { BOARD_NAMES } from '../links.ts';
 import type { FinderBoard } from './boards.ts';
-import { runFunnel, type Funnel, type FunnelError, type FunnelResult, type LeftRole, type RuledOutRole } from './funnel.ts';
+import { runFunnel, type Funnel, type FunnelError, type FunnelResult, type FunnelRole, type RuledOutRole } from './funnel.ts';
 import type { Screener } from './screen.ts';
 
 // The HTTP side of the funnel, shared by the Netlify Function and the local preview server.
@@ -33,7 +33,7 @@ export const FUNNEL_CACHE = {
 } as const;
 
 type Named<T> = Omit<T, 'board'> & { board: string };
-export type FunnelBody = Omit<Funnel, 'left' | 'ruledOut'> & { left: Named<LeftRole>[]; ruledOut: Named<RuledOutRole>[] };
+export type FunnelBody = Omit<Funnel, 'left' | 'ruledOut'> & { left: Named<FunnelRole>[]; ruledOut: Named<RuledOutRole>[] };
 
 export type FunnelResponse = { status: 'ok'; funnel: FunnelBody } | { status: 'error'; error: FunnelError | 'method' };
 
