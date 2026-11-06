@@ -12,7 +12,7 @@ import type { FitAssessment } from './schema.ts';
 export const FIT_CHECK_PATH = '/api/fit-check';
 
 /** Requests per visitor (IP and domain) per window. Netlify enforces it; see the function config. */
-export const RATE_LIMIT = { windowLimit: 5, windowSize: 180 } as const;
+export const RATE_LIMIT = { windowLimit: 10, windowSize: 180 } as const;
 
 /** Well above 12,000 characters of JSON-escaped text, well below anything worth reading. */
 const MAX_BODY_BYTES = 64 * 1024;
