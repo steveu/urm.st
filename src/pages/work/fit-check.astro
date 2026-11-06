@@ -93,10 +93,10 @@ const moved = r.verdictChanged.k > 0;
 
       <h2>Job links</h2>
       <p>
-        A {BOARD_LIST} link is read through that board’s public API, never by opening the link itself. The link has to match
-        one of the boards’ own patterns exactly, and only {API_HOSTS.length} API hosts are ever called, over HTTPS, with no
-        redirects followed, a {BOARD_LIMITS.timeoutMs / 1000}-second timeout and a cap on how much is read: {mb(BOARD_LIMITS.jobBytes)}
-        for one job, {mb(BOARD_LIMITS.boardBytes)} for an Ashby board, which comes back whole. The text is cut to the same
+        A {BOARD_LIST.replace(' and ', ' or ')} job link is read through that board’s public API, never by opening the link
+        itself. The link has to match one of the boards’ own patterns exactly, and only {API_HOSTS.length} API hosts are
+        ever called, over HTTPS, with no redirects followed, a time limit of {BOARD_LIMITS.timeoutMs / 1000} seconds and a cap
+        on how much is read: {mb(BOARD_LIMITS.jobBytes)}{' '}for one job, {mb(BOARD_LIMITS.boardBytes)} for an Ashby board, which comes back whole. The text is cut to the same
         {' '}{n(LIMITS.maxChars)} characters as a paste, and the page shows it marked up, so the evidence is visible even
         though you never saw the posting. LinkedIn links are never fetched; the page asks for the pasted text instead.
       </p>
@@ -124,7 +124,7 @@ const moved = r.verdictChanged.k > 0;
         </li>
         <li>
           The verdict changed in {count(r.verdictChanged.k, r.verdictChanged.n)} pairs <span class="ci">({figure(r.verdictChanged)})</span>{
-            moved && `: raised in ${count(r.verdictRaised.k, r.verdictRaised.n)}, lowered in ${count(r.verdictLowered.k, r.verdictLowered.n)}`
+            moved && `: ${r.verdictRaised.k} raised, ${r.verdictLowered.k} lowered`
           }. The location verdict changed in {count(r.locationChanged.k, r.locationChanged.n)}.
         </li>
         <li>
