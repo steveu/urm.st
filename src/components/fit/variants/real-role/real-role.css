@@ -323,3 +323,76 @@
     grid-column: 1;
   }
 }
+
+/* ---- Live default: a ghost posting while a role is found ---- */
+.fit .rr-skel i {
+  display: block;
+  width: var(--w);
+  height: 9px;
+  margin-top: 12px;
+  border-radius: 3px;
+  background: #ece8e0;
+}
+
+.fit .rr-skel i[data-k='title'] {
+  height: 16px;
+  margin-top: 4px;
+  background: #e1dcd2;
+}
+
+.fit .rr-skel i[data-k='meta'] {
+  height: 8px;
+  margin-top: 10px;
+}
+
+.fit .rr-skel i[data-k='head'] {
+  height: 11px;
+  background: #e4dfd6;
+}
+
+.fit .rr-skel i[data-k='gap'] {
+  height: 6px;
+  background: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fit .rr-skel i:not([data-k='gap']) {
+    background-image: linear-gradient(90deg, transparent 0, rgb(255 255 255 / 0.55) 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: rr-shimmer 1.6s ease-in-out infinite;
+  }
+
+  .fit .rr-busy .rr-icon {
+    animation: rr-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes rr-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes rr-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.fit .rr-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 10px;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.fit .rr-fallback .rr-tag {
+  margin: 0;
+}

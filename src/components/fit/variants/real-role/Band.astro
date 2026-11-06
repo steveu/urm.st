@@ -12,8 +12,8 @@ import { EVAL_FIGURES } from '../../../../fit/evals/figures';
 import { ERROR_COPY, miniHtml, progressSheetHtml, resultSheetHtml, errorSheetHtml, VERDICT_TONE, WAIT_HEADINGS } from '../../result';
 import { KINDS, LIST, POOL, ROLE, ROLE_RESULT } from './mock';
 
-export type Direction = 'tile' | 'strip' | 'list';
-export type State = 'resting' | 'finding' | 'result' | 'error';
+export type Direction = 'tile' | 'strip' | 'list' | 'live';
+export type State = 'resting' | 'finding' | 'result' | 'error' | 'arriving' | 'reading' | 'fallback';
 
 interface Props {
   direction: Direction;
@@ -42,7 +42,8 @@ const strong = samples[0];
 const SHUFFLE =
   '<svg class="rr-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
 
-const kind = direction === 'tile' ? 'product and engineering' : 'product engineer';
+const tiles = direction === 'tile' || direction === 'live';
+const kind = tiles ? 'product and engineering' : 'product engineer';
 const steps = [`Picking a live role from ${POOL.boards} companies’ job boards`, 'Reading it, then checking every quote'] as const;
 const roleLabel = `${ROLE.title}, ${ROLE.company}`;
 
@@ -79,9 +80,18 @@ const error = errorSheetHtml(null, 'link_failed', {
   link: `${kind[0].toUpperCase()}${kind.slice(1)} roles, live on ${POOL.boards} companies’ public job boards`,
 }).replace(ERROR_COPY.link_failed, ERROR_TEXT);
 
-const live = direction === 'list' ? state !== 'resting' : state !== 'resting';
-const sheet = { resting: strong.sheet, finding: direction === 'list' ? reading : finding, result, error }[state];
+// The live default, before there's a posting: a ghost of one, drawn like the thumbnails
+const BARS: Array<[number, string?]> = [[58, 'title'], [36, 'meta'], [30, 'meta'], [0, 'gap'], [94], [86], [0, 'gap'], [24, 'head'], [96], [90], [72], [0, 'gap'], [28, 'head'], [92], [64]];
+const skel = `<div class="rr-skel" aria-hidden="true">${BARS.map(([w, k]) => `<i${k ? ` data-k="${k}"` : ''} style="--w:${w}%"></i>`).join('')}</div><p class="visually-hidden">Finding a real role</p>`;
+const arriving = finding.replace(/(<div class="t lead-in" style="grid-row:1">)[\s\S]*?(<\/div><div class="m head-m")/, `$1${skel}$2`);
+
+const live = state !== 'resting' && state !== 'fallback';
+const sheet = { resting: strong.sheet, finding: direction === 'list' ? reading : finding, result, error, arriving, reading, fallback: strong.sheet }[state];
 const made = !live;
+const realMini =
+  state === 'result' ? miniHtml(ROLE.text, ROLE_RESULT) : state === 'reading' ? miniHtml(ROLE.text) : null;
+const realCap =
+  state === 'result' || state === 'reading' ? ROLE.title : state === 'finding' || state === 'arriving' ? 'Finding one…' : state === 'fallback' ? 'Try again' : 'A real role';
 
 const verdict = VERDICT_COPY[ROLE_RESULT.verdict];
 const tone = VERDICT_TONE[ROLE_RESULT.verdict];
@@ -90,6 +100,7 @@ const lede = {
   tile: 'Try it on a real role, picked at random from public job boards, or paste your own.',
   strip: 'Pick a kind of role and it checks a live one from public job boards. Or paste your own.',
   list: 'Below are live roles from public job boards, as they list them. Pick one to check it.',
+  live: 'Here it is on a live role, picked at random from public job boards. Try another, or paste your own.',
 }[direction];
 ---
 
@@ -107,7 +118,7 @@ const lede = {
 
     <div class="stage">
       {
-        direction === 'tile' && (
+        tiles && (
           <fieldset class="thumbs rr-thumbs">
             <legend class="visually-hidden">Choose a posting</legend>
             <div class="rr-group">
@@ -115,12 +126,12 @@ const lede = {
               <div class="rr-row">
                 <label class="thumb rr-real">
                   <input class="visually-hidden" type="radio" {name} value="real" checked={live} />
-                  {state === 'result' ? (
-                    <span class="mini" aria-hidden="true" set:html={miniHtml(ROLE.text, ROLE_RESULT)} />
+                  {realMini ? (
+                    <span class="mini" aria-hidden="true" set:html={realMini} />
                   ) : (
-                    <span class="mini blank" aria-hidden="true" set:html={SHUFFLE} />
+                    <span class:list={['mini blank', { 'rr-busy': state === 'arriving' || state === 'finding' }]} aria-hidden="true" set:html={SHUFFLE} />
                   )}
-                  <span class="cap">{state === 'result' ? ROLE.title : state === 'finding' ? 'Finding one…' : 'A real role'}</span>
+                  <span class="cap">{realCap}</span>
                 </label>
                 <label class="thumb own">
                   <input class="visually-hidden" type="radio" {name} value="own" />
@@ -241,7 +252,13 @@ const lede = {
       }
 
       <div class="sheets">
-        {made && direction !== 'tile' && <p class="rr-tag">Made-up example</p>}
+        {made && direction !== 'tile' && direction !== 'live' && <p class="rr-tag">Made-up example</p>}
+        {state === 'fallback' && (
+          <p class="rr-fallback">
+            <span class="rr-tag">Made-up example</span> Couldn’t reach the job boards just now, so here’s a made-up posting instead.{' '}
+            <button type="button" class="again">Try a real role again</button>
+          </p>
+        )}
         <div class="sheet" data-show set:html={sheet} />
       </div>
     </div>
