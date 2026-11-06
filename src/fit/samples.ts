@@ -69,7 +69,7 @@ What we're looking for
 
 There is no AI work planned for this role in the next year.
 
-Salary up to £80,000, fully remote within the UK, with a team day each quarter.`,
+Fully remote within the UK, with a team day each quarter. Salary up to £80,000.`,
   },
   {
     id: 'poor',

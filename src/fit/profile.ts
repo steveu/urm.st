@@ -1,20 +1,20 @@
-// The scoring profile the fit check judges against: job-radar's profile, copied verbatim
+// The profile the fit check judges against, location preferences included: copied verbatim
 // from profile.md beside this file (a test keeps the two identical). It is written to be
 // public, and the system prompt is treated as extractable, so nothing private goes here.
 // A string rather than a file read, so the function bundles without included_files.
 export const PROFILE = `# Scoring profile
 
-Score fit only. Location and remote eligibility are decided elsewhere, so don't raise or lower the score for where the job is.
+Score fit only. Where the job is done is judged separately, against the location preferences at the end, and never raises or lowers the score.
 
 ## Who I am
 
 AI product engineer. I build LLM products from interface to evals: agents, workflows, prompts, tools and the context they run on. Before that, designer, frontend engineer and product manager since 2003, often all at once. Currently building a multi-agent data exploration product in an enterprise analytics platform.
 
-## The one thing that matters most
+## What matters most in the work
 
 Ownership of something people use. Either the interface and design, or an AI agent or assistant built end to end, from prompts and tools to the evals that show it works. Judge where the work actually sits, not the title or the keywords. A role that adds AI to backend services, data pipelines or infrastructure, without owning an agent's behaviour or anyone's experience of it, is a poor fit however much AI it mentions.
 
-## Roles I want
+## Work I do best
 
 - AI product engineer or product engineer roles building LLM features that users see and touch, end to end: interface, prompts and tools, and the evals.
 - Applied AI roles that own agents end to end, with evals, even if the users are internal or the stack is partly Python or backend.
@@ -28,7 +28,7 @@ Ownership of something people use. Either the interface and design, or an AI age
 - LLM application work: agents, tool design, context engineering, structured output, evals.
 - UX and interaction design (MSc in human-centred interactive technologies), and product management experience.
 
-## Poor fits (score 2 or less, even with AI in the title)
+## Work outside my profile (score 2 or less, even with AI in the title)
 
 - Backend-leaning roles: services, APIs, microservices, cloud platforms, data pipelines, on-call. This includes "full stack (backend leaning)" and roles whose work is mainly Python, Go, Ruby, Java or .NET services with AI as one feature among many.
 - ML, MLOps, LLMOps, data science, data platform work.
@@ -57,4 +57,15 @@ A senior frontend or design engineering role with product input and no AI work; 
 ## What a 1 looks like
 
 An unrelated role (sales, marketing, support), an unrelated engineering discipline (embedded, hardware, mobile-native, DevOps), or a junior role.
+
+## Location preferences
+
+Judged on their own, never as part of the score: "works", "case_by_case", "doesnt_work", or "unclear" when the posting doesn't say where the job is done.
+
+- York, on-site, hybrid or remote: works.
+- Remote open to people in the UK: works. Remote that names no country restriction but describes a UK team or UK hours counts as open to the UK.
+- Leeds hybrid: works when the verdict is strong, case_by_case otherwise.
+- Leeds on-site: case_by_case.
+- London or Manchester hybrid: case_by_case.
+- Anywhere else: doesnt_work. That includes on-site five days a week anywhere but York or Leeds, London and Manchester among them, and remote restricted to another country or a region that excludes the UK.
 `;

@@ -1,18 +1,18 @@
 // Everything the fit check can say, written for the site. The model only ever picks from
 // these keys; it never writes words that reach the page. The band renders a verdict, two or
-// three reasons and a location from this copy, each reason beside a quote checked against
-// the visitor's own paste.
+// three reasons and a location from this copy, each beside a quote checked against the
+// visitor's own paste. Everything is said about the profile, not about me.
 
 export const VERDICTS = ['strong', 'possible', 'poor'] as const;
 export type Verdict = (typeof VERDICTS)[number];
 
 export const VERDICT_COPY: Record<Verdict, { label: string; line: string }> = {
-  strong: { label: 'Strong fit', line: 'This is the kind of role I’m looking for.' },
-  possible: { label: 'Possible fit', line: 'Some of it fits. Worth a conversation to find out how much.' },
-  poor: { label: 'Poor fit', line: 'Not a role I’d be right for, and better to say so.' },
+  strong: { label: 'Strong match', line: 'The role and the profile line up closely.' },
+  possible: { label: 'Partial match', line: 'Some of the role lines up with the profile.' },
+  poor: { label: 'Poor match', line: 'The role and the profile point different ways.' },
 };
 
-// `side` says which way a reason pulls: towards the role, away from it, or a bit of both
+// `side` says which way a reason pulls: towards the profile, away from it, or a bit of both
 export type Side = 'for' | 'against' | 'mixed';
 
 export const REASONS = {
@@ -22,7 +22,7 @@ export const REASONS = {
   frontend_design_systems: { side: 'for', copy: 'Senior frontend or design engineering: design systems, UI architecture, interaction quality.' },
   typescript_react: { side: 'for', copy: 'TypeScript and React, my main stack.' },
   hands_on_product: { side: 'for', copy: 'A hands-on product role, shaping what gets built with design and engineering.' },
-  early_ownership: { side: 'for', copy: 'Founding engineer or first AI hire: hands-on, with a say in the product.' },
+  early_ownership: { side: 'for', copy: 'Founding engineer or first AI engineer: hands-on, with a say in the product.' },
   senior_hands_on: { side: 'for', copy: 'Senior or lead by scope, and still hands-on.' },
   ai_leans_platform: { side: 'mixed', copy: 'User-facing AI work, but leaning towards platform rather than product.' },
   frontend_without_ai: { side: 'mixed', copy: 'Good frontend or design engineering work, with no AI in it.' },
@@ -44,22 +44,14 @@ export const REASON_CODES = Object.keys(REASONS) as ReasonCode[];
 export const LOCATIONS = ['works', 'case_by_case', 'doesnt_work', 'unclear'] as const;
 export type LocationVerdict = (typeof LOCATIONS)[number];
 
+// Judged against the profile's location preferences (profile.md), which the model is given
 export const LOCATION_COPY: Record<LocationVerdict, string> = {
-  works: 'The location works.',
-  case_by_case: 'The location is case by case.',
-  doesnt_work: 'The location doesn’t work for me.',
+  works: 'Location matches the profile.',
+  case_by_case: 'Location: case by case.',
+  doesnt_work: 'Location is outside the profile’s preferences.',
   unclear: 'The posting doesn’t say where the work is done.',
 };
 
-// The public summary of where I'll work, shown on the page and given to the model as is
-export const LOCATION_SUMMARY = [
-  'York, on-site, hybrid or remote, works.',
-  'Leeds hybrid works for strong fits. Leeds on-site is case by case.',
-  'Remote open to people in the UK works.',
-  'London or Manchester hybrid is case by case.',
-  'Anywhere else doesn’t work, including on-site anywhere but York or Leeds, and remote limited to another country.',
-];
-
-export const INJECTION_COPY = 'This posting contains instructions aimed at AI screening tools; they were ignored.';
+export const INJECTION_COPY = 'Instructions aimed at AI tools rather than people. The check ignored them.';
 
 export const UNASSESSABLE_COPY = 'Couldn’t assess this one: the answer didn’t check out against the posting, so it isn’t shown.';

@@ -1,12 +1,12 @@
 {
   "model": "claude-haiku-5-5",
-  "promptVersion": "fit-v3",
+  "promptVersion": "fit-v4",
   "results": {
     "strong": {
       "verdict": "strong",
       "reasons": [
         {
-          "code": "owns_agent",
+          "code": "ai_product_end_to_end",
           "quote": "Own the assistant end to end: the chat interface, and the prompts and tools behind it."
         },
         {
@@ -36,7 +36,7 @@
         },
         {
           "code": "typescript_react",
-          "quote": "Lead the frontend of our web app: React, TypeScript and our in-house component library."
+          "quote": "Strong React and TypeScript, and a track record of building and maintaining a design system."
         },
         {
           "code": "frontend_without_ai",
@@ -60,12 +60,12 @@
           "quote": "Design and run Python microservices that route, queue and cache model requests."
         },
         {
-          "code": "specialism_gap",
-          "quote": "Five or more years building backend services in Python or Go."
-        },
-        {
           "code": "ml_or_data_science",
           "quote": "Work with ML engineers to deploy and scale their models on Kubernetes."
+        },
+        {
+          "code": "specialism_gap",
+          "quote": "Five or more years building backend services in Python or Go."
         }
       ],
       "location": {

@@ -22,8 +22,23 @@
   --eddy-deep: #24403f;
   --eddy-gold: #e0b46a;
   --one-thought: #c7a14e;
-  /* job-radar: an ink indigo, deep for its band, light for marks and quotes on it */
-  --job-radar: #565ba3;
+  /* job-radar: a posting marked up on paper. Three tints from one family, each with a deeper
+     marker and an ink for words on it: sage for, clay against, straw mixed, stone neutral */
+  --job-radar: #6f8f69;
+  --job-radar-paper: #fdfcf9;
+  --job-radar-sage: #6f8f69;
+  --job-radar-sage-tint: #e1eadb;
+  --job-radar-sage-ink: #3e5a39;
+  --job-radar-clay: #b46b4f;
+  --job-radar-clay-tint: #f3e0d5;
+  --job-radar-clay-ink: #8a4530;
+  --job-radar-straw: #b6943a;
+  --job-radar-straw-tint: #f0e6c3;
+  --job-radar-straw-ink: #6d581b;
+  --job-radar-stone: #8b857b;
+  --job-radar-stone-tint: #ebe8e1;
+  --job-radar-stone-ink: #57524b;
+  /* The band's earlier indigo, until the band moves to the palette above */
   --job-radar-deep: #1d1f35;
   --job-radar-light: #b9bdf4;
   --live: #2e8a57;

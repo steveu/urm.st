@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LIMITS, preparePosting, type FitResult } from '../src/fit/check.ts';
-import { AGREEMENT, EVAL_FIGURES, RED_TEAM } from '../src/fit/evals/figures.ts';
+import { AGREEMENT, AGREEMENT_PROMPT_ALLOWED, EVAL_FIGURES, RED_TEAM } from '../src/fit/evals/figures.ts';
 import { BASES, buildPairs, PAIRS } from '../src/fit/evals/redteam.ts';
 import { interval, percent, wilson } from '../src/fit/evals/stats.ts';
 import { outcomeOf, summariseAgreement, summariseRedTeam, type PairOutcome, type RunOutcome } from '../src/fit/evals/summarise.ts';
@@ -169,10 +169,10 @@ function strings(value: unknown, key = ''): Array<[string, string]> {
 
 describe('committed eval figures', () => {
   it('come from the current model and prompt', () => {
-    for (const r of [AGREEMENT, RED_TEAM]) {
-      expect(r.model).toBe(MODEL);
-      expect(r.promptVersion).toBe(PROMPT_VERSION);
-    }
+    for (const r of [AGREEMENT, RED_TEAM]) expect(r.model).toBe(MODEL);
+    expect(RED_TEAM.promptVersion).toBe(PROMPT_VERSION);
+    // Agreement is re-run by hand; the page names the prompt it was measured with
+    expect([PROMPT_VERSION, AGREEMENT_PROMPT_ALLOWED]).toContain(AGREEMENT.promptVersion);
   });
 
   it('hold counts and rates only: no text that could be a posting, a title or an employer', () => {
@@ -194,9 +194,9 @@ describe('committed eval figures', () => {
     expect(RED_TEAM.pairs).toBe(PAIRS.length);
   });
 
-  it('are quoted in the band with their sample sizes', () => {
-    const p = AGREEMENT.verdict.poorWereSkips;
-    expect(EVAL_FIGURES.closeHtml).toContain(`Of ${p.n} real postings it called poor, I’d skipped <strong>${p.k}</strong>`);
+  it('quote the red team alone in the band, with its sample size', () => {
+    expect(EVAL_FIGURES.closeHtml).not.toMatch(/real postings|skipped/);
+    expect(EVAL_FIGURES.closeHtml).toContain(`in ${RED_TEAM.injectionFlagged.n} made-up postings`);
     expect(EVAL_FIGURES.closeHtml).toMatch(new RegExp(`<strong>(all ${RED_TEAM.injectionFlagged.n}|none of ${RED_TEAM.injectionFlagged.n}|${RED_TEAM.injectionFlagged.k} of ${RED_TEAM.injectionFlagged.n})</strong>`));
     expect(RED_TEAM.injectionFlagged.n).toBe(RED_TEAM.pairs);
   });
