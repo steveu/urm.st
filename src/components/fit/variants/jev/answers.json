@@ -1,0 +1,789 @@
+{
+  "model": "jev-1.14.0",
+  "haiku": "claude-haiku-5-5",
+  "ranAt": "2026-11-06T14:08:21.544Z",
+  "postings": {
+    "halden": {
+      "title": "Product Engineer, AI",
+      "company": "Halden",
+      "text": "Product Engineer, AI\nLocation: Remote - UK\nWorkplace: Remote\n\nHalden builds scheduling software for community health teams. Around 400 clinics use it to plan home visits.\n\nThe role\nWe're hiring a product engineer for the team building our visit assistant, which drafts each day's route and explains its choices to the nurse.\nYou'll ship features across the stack, from the React front end to the prompts and tools the assistant calls.\nYou'll work closely with our designer and two clinicians on what we build next.\n\nWhat we're looking for\n- 5+ years building web products in TypeScript and React.\n- Experience shipping LLM features to real users.\n- Comfortable with Python for data work; we're a mixed TypeScript and Python shop.\n\nHow we work\nWe're remote-first within the UK, and the team meets in our London office on Tuesdays and Thursdays.\n\nBenefits\n- 30 days' holiday plus bank holidays\n- Private health insurance\n- A learning budget of £1,500 a year",
+      "sentences": [
+        {
+          "id": "s1",
+          "text": "Product Engineer, AI",
+          "from": 0,
+          "to": 20,
+          "heading": false
+        },
+        {
+          "id": "s2",
+          "text": "Location: Remote - UK",
+          "from": 21,
+          "to": 42,
+          "heading": false
+        },
+        {
+          "id": "s3",
+          "text": "Workplace: Remote",
+          "from": 43,
+          "to": 60,
+          "heading": false
+        },
+        {
+          "id": "s4",
+          "text": "Halden builds scheduling software for community health teams.",
+          "from": 62,
+          "to": 123,
+          "heading": false
+        },
+        {
+          "id": "s5",
+          "text": "Around 400 clinics use it to plan home visits.",
+          "from": 124,
+          "to": 170,
+          "heading": false
+        },
+        {
+          "id": "s6",
+          "text": "The role",
+          "from": 172,
+          "to": 180,
+          "heading": true
+        },
+        {
+          "id": "s7",
+          "text": "We're hiring a product engineer for the team building our visit assistant, which drafts each day's route and explains its choices to the nurse.",
+          "from": 181,
+          "to": 324,
+          "heading": false
+        },
+        {
+          "id": "s8",
+          "text": "You'll ship features across the stack, from the React front end to the prompts and tools the assistant calls.",
+          "from": 325,
+          "to": 434,
+          "heading": false
+        },
+        {
+          "id": "s9",
+          "text": "You'll work closely with our designer and two clinicians on what we build next.",
+          "from": 435,
+          "to": 514,
+          "heading": false
+        },
+        {
+          "id": "s10",
+          "text": "What we're looking for",
+          "from": 516,
+          "to": 538,
+          "heading": true
+        },
+        {
+          "id": "s11",
+          "text": "5+ years building web products in TypeScript and React.",
+          "from": 541,
+          "to": 596,
+          "heading": false
+        },
+        {
+          "id": "s12",
+          "text": "Experience shipping LLM features to real users.",
+          "from": 599,
+          "to": 646,
+          "heading": false
+        },
+        {
+          "id": "s13",
+          "text": "Comfortable with Python for data work; we're a mixed TypeScript and Python shop.",
+          "from": 649,
+          "to": 729,
+          "heading": false
+        },
+        {
+          "id": "s14",
+          "text": "How we work",
+          "from": 731,
+          "to": 742,
+          "heading": true
+        },
+        {
+          "id": "s15",
+          "text": "We're remote-first within the UK, and the team meets in our London office on Tuesdays and Thursdays.",
+          "from": 743,
+          "to": 843,
+          "heading": false
+        },
+        {
+          "id": "s16",
+          "text": "Benefits",
+          "from": 845,
+          "to": 853,
+          "heading": true
+        },
+        {
+          "id": "s17",
+          "text": "30 days' holiday plus bank holidays",
+          "from": 856,
+          "to": 891,
+          "heading": false
+        },
+        {
+          "id": "s18",
+          "text": "Private health insurance",
+          "from": 894,
+          "to": 918,
+          "heading": false
+        },
+        {
+          "id": "s19",
+          "text": "A learning budget of £1,500 a year",
+          "from": 921,
+          "to": 955,
+          "heading": false
+        }
+      ],
+      "jev": {
+        "posting": {
+          "product_is_ai": 0.98,
+          "role_ai_work": 0.99,
+          "owns_user_facing": 0.39,
+          "product_role": 0.03,
+          "explicitly_junior": 0.02,
+          "stated_mid_level": 0.04,
+          "junior_signals": 0.02,
+          "backend_or_data": 0.04,
+          "customer_delivery": 0.03,
+          "agency": 0.03,
+          "people_management": 0.01,
+          "internal_tooling": 0.02,
+          "off_discipline": 0.01
+        },
+        "sentences": {
+          "s1": {
+            "product_is_ai": 0.23,
+            "role_ai_work": 0.44,
+            "owns_user_facing": 0.05,
+            "product_role": 0.02,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.02,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s2": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s3": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s4": {
+            "product_is_ai": 0.02,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.02,
+            "customer_delivery": 0.02,
+            "agency": 0.03,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s5": {
+            "product_is_ai": 0.02,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s7": {
+            "product_is_ai": 0.64,
+            "role_ai_work": 0.61,
+            "owns_user_facing": 0.12,
+            "product_role": 0.02,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.02,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.03,
+            "off_discipline": 0.01
+          },
+          "s8": {
+            "product_is_ai": 0.94,
+            "role_ai_work": 0.99,
+            "owns_user_facing": 0.29,
+            "product_role": 0.02,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.03,
+            "backend_or_data": 0.03,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.01
+          },
+          "s9": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.07,
+            "product_role": 0.03,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.03,
+            "backend_or_data": 0.02,
+            "customer_delivery": 0.03,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.05,
+            "off_discipline": 0.01
+          },
+          "s11": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.02,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.03,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.02,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s12": {
+            "product_is_ai": 0.69,
+            "role_ai_work": 0.92,
+            "owns_user_facing": 0.05,
+            "product_role": 0.02,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.12,
+            "backend_or_data": 0.03,
+            "customer_delivery": 0.04,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.01
+          },
+          "s13": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.44,
+            "backend_or_data": 0.03,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s15": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s17": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s18": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          },
+          "s19": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.05,
+            "backend_or_data": 0.01,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.01
+          }
+        },
+        "questions": 208,
+        "requests": 3,
+        "ms": 394,
+        "costUsd": 0.001390872
+      },
+      "haiku": {
+        "criteria": {
+          "product_is_ai": true,
+          "role_ai_work": true,
+          "owns_user_facing": false,
+          "product_role": false,
+          "explicitly_junior": false,
+          "stated_mid_level": false,
+          "junior_signals": false,
+          "backend_or_data": false,
+          "customer_delivery": false,
+          "agency": false,
+          "people_management": false,
+          "internal_tooling": false,
+          "off_discipline": false
+        },
+        "check": {
+          "verdict": "strong",
+          "reasons": [
+            {
+              "code": "ai_product_end_to_end",
+              "quote": "You'll ship features across the stack, from the React front end to the prompts and tools the assistant calls."
+            },
+            {
+              "code": "typescript_react",
+              "quote": "5+ years building web products in TypeScript and React."
+            },
+            {
+              "code": "hands_on_product",
+              "quote": "You'll work closely with our designer and two clinicians on what we build next."
+            }
+          ],
+          "location": {
+            "verdict": "works",
+            "quote": "Location: Remote - UK"
+          },
+          "injection": {
+            "present": false,
+            "quote": null
+          }
+        },
+        "ms": 1911
+      }
+    },
+    "poor": {
+      "title": "Senior Backend Engineer (AI Platform)",
+      "company": "Sample Systems",
+      "text": "Senior Backend Engineer, AI Platform\nSample Systems · Manchester, on-site five days a week\n\nSample Systems runs payment reconciliation for mid-sized retailers. Our AI platform team builds the services that other teams use to call models at scale.\n\nResponsibilities\n- Design and run Python microservices that route, queue and cache model requests.\n- Build data pipelines that move transaction data into our feature store.\n- Own the platform's reliability: monitoring, alerting and an on-call rota shared across the team.\n- Work with ML engineers to deploy and scale their models on Kubernetes.\n\nRequirements\n- Five or more years building backend services in Python or Go.\n- Experience with Kafka, Postgres and AWS.\n- Comfortable on call.\n\nNice to have: some exposure to LLM APIs.",
+      "sentences": [
+        {
+          "id": "s1",
+          "text": "Senior Backend Engineer, AI Platform",
+          "from": 0,
+          "to": 36,
+          "heading": false
+        },
+        {
+          "id": "s2",
+          "text": "Sample Systems · Manchester, on-site five days a week",
+          "from": 37,
+          "to": 90,
+          "heading": false
+        },
+        {
+          "id": "s3",
+          "text": "Sample Systems runs payment reconciliation for mid-sized retailers.",
+          "from": 92,
+          "to": 159,
+          "heading": false
+        },
+        {
+          "id": "s4",
+          "text": "Our AI platform team builds the services that other teams use to call models at scale.",
+          "from": 160,
+          "to": 246,
+          "heading": false
+        },
+        {
+          "id": "s5",
+          "text": "Responsibilities",
+          "from": 248,
+          "to": 264,
+          "heading": true
+        },
+        {
+          "id": "s6",
+          "text": "Design and run Python microservices that route, queue and cache model requests.",
+          "from": 267,
+          "to": 346,
+          "heading": false
+        },
+        {
+          "id": "s7",
+          "text": "Build data pipelines that move transaction data into our feature store.",
+          "from": 349,
+          "to": 420,
+          "heading": false
+        },
+        {
+          "id": "s8",
+          "text": "Own the platform's reliability: monitoring, alerting and an on-call rota shared across the team.",
+          "from": 423,
+          "to": 519,
+          "heading": false
+        },
+        {
+          "id": "s9",
+          "text": "Work with ML engineers to deploy and scale their models on Kubernetes.",
+          "from": 522,
+          "to": 592,
+          "heading": false
+        },
+        {
+          "id": "s10",
+          "text": "Requirements",
+          "from": 594,
+          "to": 606,
+          "heading": true
+        },
+        {
+          "id": "s11",
+          "text": "Five or more years building backend services in Python or Go.",
+          "from": 609,
+          "to": 670,
+          "heading": false
+        },
+        {
+          "id": "s12",
+          "text": "Experience with Kafka, Postgres and AWS.",
+          "from": 673,
+          "to": 713,
+          "heading": false
+        },
+        {
+          "id": "s13",
+          "text": "Comfortable on call.",
+          "from": 716,
+          "to": 736,
+          "heading": false
+        },
+        {
+          "id": "s14",
+          "text": "Nice to have: some exposure to LLM APIs.",
+          "from": 738,
+          "to": 778,
+          "heading": false
+        }
+      ],
+      "jev": {
+        "posting": {
+          "product_is_ai": 0.26,
+          "role_ai_work": 0.05,
+          "owns_user_facing": 0.04,
+          "product_role": 0.02,
+          "explicitly_junior": 0.02,
+          "stated_mid_level": 0.02,
+          "junior_signals": 0.03,
+          "backend_or_data": 0.98,
+          "customer_delivery": 0.05,
+          "agency": 0.07,
+          "people_management": 0.02,
+          "internal_tooling": 0.77,
+          "off_discipline": 0.13
+        },
+        "sentences": {
+          "s1": {
+            "product_is_ai": 0.09,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.02,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.95,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.04,
+            "off_discipline": 0.04
+          },
+          "s2": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.04,
+            "customer_delivery": 0.02,
+            "agency": 0.02,
+            "people_management": 0.01,
+            "internal_tooling": 0.01,
+            "off_discipline": 0.03
+          },
+          "s3": {
+            "product_is_ai": 0.03,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.01,
+            "backend_or_data": 0.11,
+            "customer_delivery": 0.04,
+            "agency": 0.08,
+            "people_management": 0.01,
+            "internal_tooling": 0.04,
+            "off_discipline": 0.05
+          },
+          "s4": {
+            "product_is_ai": 0.12,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.03,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.02,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.97,
+            "customer_delivery": 0.03,
+            "agency": 0.03,
+            "people_management": 0.02,
+            "internal_tooling": 0.71,
+            "off_discipline": 0.05
+          },
+          "s6": {
+            "product_is_ai": 0.12,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.04,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.03,
+            "backend_or_data": 0.98,
+            "customer_delivery": 0.03,
+            "agency": 0.02,
+            "people_management": 0.01,
+            "internal_tooling": 0.14,
+            "off_discipline": 0.06
+          },
+          "s7": {
+            "product_is_ai": 0.04,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.02,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.03,
+            "backend_or_data": 0.98,
+            "customer_delivery": 0.03,
+            "agency": 0.02,
+            "people_management": 0.01,
+            "internal_tooling": 0.2,
+            "off_discipline": 0.08
+          },
+          "s8": {
+            "product_is_ai": 0.02,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.02,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.93,
+            "customer_delivery": 0.03,
+            "agency": 0.01,
+            "people_management": 0.02,
+            "internal_tooling": 0.18,
+            "off_discipline": 0.47
+          },
+          "s9": {
+            "product_is_ai": 0.11,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.02,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.04,
+            "backend_or_data": 0.94,
+            "customer_delivery": 0.02,
+            "agency": 0.02,
+            "people_management": 0.02,
+            "internal_tooling": 0.2,
+            "off_discipline": 0.2
+          },
+          "s11": {
+            "product_is_ai": 0.02,
+            "role_ai_work": 0.02,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.02,
+            "stated_mid_level": 0.03,
+            "junior_signals": 0.02,
+            "backend_or_data": 0.98,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.04
+          },
+          "s12": {
+            "product_is_ai": 0.02,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.24,
+            "backend_or_data": 0.88,
+            "customer_delivery": 0.01,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.07
+          },
+          "s13": {
+            "product_is_ai": 0.01,
+            "role_ai_work": 0.01,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.02,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.06,
+            "backend_or_data": 0.59,
+            "customer_delivery": 0.03,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.1
+          },
+          "s14": {
+            "product_is_ai": 0.07,
+            "role_ai_work": 0.03,
+            "owns_user_facing": 0.01,
+            "product_role": 0.01,
+            "explicitly_junior": 0.01,
+            "stated_mid_level": 0.01,
+            "junior_signals": 0.92,
+            "backend_or_data": 0.56,
+            "customer_delivery": 0.02,
+            "agency": 0.01,
+            "people_management": 0.01,
+            "internal_tooling": 0.02,
+            "off_discipline": 0.04
+          }
+        },
+        "questions": 169,
+        "requests": 2,
+        "ms": 510,
+        "costUsd": 0.001101828
+      },
+      "haiku": {
+        "criteria": {
+          "product_is_ai": false,
+          "role_ai_work": false,
+          "owns_user_facing": false,
+          "product_role": false,
+          "explicitly_junior": false,
+          "stated_mid_level": false,
+          "junior_signals": false,
+          "backend_or_data": true,
+          "customer_delivery": false,
+          "agency": false,
+          "people_management": false,
+          "internal_tooling": false,
+          "off_discipline": false
+        },
+        "check": {
+          "verdict": "poor",
+          "reasons": [
+            {
+              "code": "backend_leaning",
+              "quote": "Design and run Python microservices that route, queue and cache model requests."
+            },
+            {
+              "code": "ml_or_data_science",
+              "quote": "Work with ML engineers to deploy and scale their models on Kubernetes."
+            },
+            {
+              "code": "specialism_gap",
+              "quote": "Five or more years building backend services in Python or Go."
+            }
+          ],
+          "location": {
+            "verdict": "doesnt_work",
+            "quote": "Manchester, on-site five days a week"
+          },
+          "injection": {
+            "present": false,
+            "quote": null
+          }
+        },
+        "ms": 1292
+      }
+    }
+  }
+}

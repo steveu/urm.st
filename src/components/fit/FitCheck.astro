@@ -1,136 +1,109 @@
 ---
-// Home band for job-radar's fit check, a demo on my own profile: a posting is set on a sheet,
-// each passage the answer rests on tinted in place in the colour of the side it pulls (sage
-// for, clay against, straw mixed), with the verdict and a note level with each passage in the
-// margin. Four made-up samples, answered ahead of time by the real check and committed
-// (src/fit/sample-results.json), are picked from thumbnails: radio buttons, so they switch
-// instantly and with scripts off, and CSS shows the checked sheet. "Paste your own" turns the
-// sheet into the paste area. Every word on a sheet is site copy or the posting's own text, and
-// one renderer (./result.ts) draws the samples here and a live answer in the browser.
+// Home band for job-radar's fit check, a demo on my own profile. Above the sheet, the strip:
+// every role on a set of public job boards, narrowed by a title rule, a place rule and Jev's
+// bar (src/fit/finder), down to the one on the sheet, picked at
+// random from what's left. Its link goes to the fit check, and Haiku's answer is set on the
+// sheet: each passage it rests on tinted in
+// place in the colour of the side it pulls (sage for, clay against, straw mixed), with the
+// verdict and a note level with each passage in the margin. A visitor can paste their own
+// posting instead. Every word on a sheet is site copy or the posting's own text, and one
+// renderer (./result.ts) draws them.
 //
-// Motion, only when it's wanted: as a sheet is shown, its tints sweep in one after another,
-// then each note's leader draws and the note fades in; the verdict arrives last.
+// Motion, only when it's wanted: the strip flows in, narrowing step by step; as a sheet is shown, its
+// tints sweep in one after another, then each note's leader draws and the note fades in; the
+// verdict arrives last.
 import '@fontsource-variable/petrona/wght.css';
+import './fit.css';
 import { LIMITS } from '../../fit/check';
-import { VERDICT_COPY } from '../../fit/copy';
 import { FIT_CHECK_PATH } from '../../fit/handler';
+import { FINDER_BOARDS } from '../../fit/finder/boards';
+import { FUNNEL_PATH } from '../../fit/finder/handler';
 import { BOARD_LIST } from '../../fit/links';
-import { SAMPLE_POSTINGS, type SamplePosting } from '../../fit/samples';
-import { SAMPLE_RESULTS } from '../../fit/sample-results';
 import { EVAL_FIGURES } from '../../fit/evals/figures';
-import { miniHtml, PIN, resultSheetHtml } from './result';
+import { PIN } from './result';
+import { stripShape } from './pool';
 
-const START: SamplePosting['id'] = 'strong';
 const PROFILE = 'https://github.com/steveu/urm.st/blob/master/src/fit/profile.md';
-
-// Short names under the thumbnails; the full title is on the sheet
-const SHORT: Record<SamplePosting['id'], string> = {
-  strong: 'AI product engineer',
-  possible: 'Lead frontend',
-  poor: 'Backend engineer',
-  injection: 'Product designer',
-};
-
-const samples = SAMPLE_POSTINGS.map((s) => {
-  const result = SAMPLE_RESULTS.results[s.id];
-  if (!result) throw new Error(`No committed result for the ${s.id} sample: run scripts/fit-samples.ts`);
-  const label = `${s.title}, ${s.company}`;
-  return {
-    id: s.id,
-    label,
-    short: SHORT[s.id],
-    announce: `${s.title}: ${VERDICT_COPY[result.verdict].label}`,
-    sheet: resultSheetHtml(s.text, result, { label }),
-    mini: miniHtml(s.text, result),
-  };
-});
+const BOARDS = FINDER_BOARDS.length;
+// The strip's outline while the boards are read: the same shape, made-up proportions
+const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words: '', by: '' }))).polygon;
 ---
 
-<section id="fit-check" class="band fit" aria-labelledby="fit-check-title" data-fit>
+<section id="fit-check" class="band fit" aria-labelledby="fit-check-title" data-fit data-pane="role" data-boards={BOARDS}>
   <div class="wrap grid">
     <header class="head">
       <p class="kicker"><span>job-radar</span></p>
       <h2 id="fit-check-title">Every reason, in the posting’s own&nbsp;words.</h2>
       <p class="lede">
-        job-radar is a matching tool I’m building. This demo runs on <a href={PROFILE}>my own profile</a>, the one I can
-        judge it against honestly. It can only choose from a fixed list of reasons, and each one has to quote the posting
-        word for word, or it isn’t shown. Paste a posting and see.
+        job-radar is a matching tool I’m building, shown here on <a href={PROFILE}>my own profile</a>. Every few hours it
+        reads every role on {BOARDS} public job boards. Plain rules and then Jev, a fast decision model, narrow them to the
+        few that are hands-on building with little against them. Haiku then reads one against the profile, choosing from a fixed list of reasons, each quoting the
+        posting word for word.
       </p>
     </header>
 
     <div class="stage">
-      <fieldset class="thumbs">
-        <legend class="visually-hidden">Choose a posting</legend>
-        <label class="thumb own">
-          <input class="visually-hidden" type="radio" name="fit-posting" value="own" />
-          <span class="mini blank" aria-hidden="true" data-own-mini>
-            <svg class="plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"></path></svg>
-          </span>
-          <span class="cap" data-own-cap>Paste your own</span>
-        </label>
-        {
-          samples.map((s) => (
-            <label class="thumb" title={s.label}>
-              <input class="visually-hidden" type="radio" name="fit-posting" value={s.id} checked={s.id === START} />
-              <span class="mini" aria-hidden="true" set:html={s.mini} />
-              <span class="cap">{s.short}</span>
-            </label>
-          ))
-        }
-      </fieldset>
-
-      <div class="sheets" data-sheets>
-        {samples.map((s) => <div class="sheet" data-for={s.id} data-announce={s.announce} set:html={s.sheet} />)}
-        <div class="sheet own" data-for="own">
-          <form
-            class="page paste"
-            id="fit-paste"
-            data-paste
-            data-path={FIT_CHECK_PATH}
-            data-min={LIMITS.minChars}
-            data-max={LIMITS.maxChars}>
-            <div class="t paste-area">
-              <label class="ask" for="fit-text">Your posting</label>
-              <textarea
-                id="fit-text"
-                name="text"
-                placeholder={`Paste the text of a job posting, or a ${BOARD_LIST.replace(' and ', ' or ')} job link.`}
-                aria-describedby="fit-need fit-privacy fit-count"
-                data-text></textarea>
-              <div class="paste-bar">
-                <button type="submit" disabled data-go>Check the fit</button>
-                <p class="small" id="fit-privacy">Not stored or logged.</p>
-                <p class="small count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
-              </div>
-              <p class="need" id="fit-need" data-need hidden></p>
-              <noscript><p class="need">Checking your own posting needs JavaScript. The samples work without it.</p></noscript>
-            </div>
-            <div class="m key">
-              <p class="key-head">What comes back</p>
-              <p class="chip ghost">
-                <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.25"></circle></svg>
-                A verdict
-              </p>
-              <p class="key-line">A strong, partial or poor match, with a line on why.</p>
-              <ul class="legend">
-                <li data-tone="for"><span class="swatch"></span><b>For</b> lines up with the profile</li>
-                <li data-tone="against"><span class="swatch"></span><b>Against</b> pulls away from it</li>
-                <li data-tone="mixed"><span class="swatch"></span><b>Mixed</b> a bit of both</li>
-                <li data-tone="neutral" class="where"><span class="swatch"><Fragment set:html={PIN} /></span><b>Location</b> against the profile’s preferences</li>
-                <li data-tone="void"><span class="swatch"></span><b>Ignored</b> instructions aimed at AI tools</li>
-              </ul>
-              <p class="key-line">Every mark is the posting’s own words, checked against your text.</p>
-            </div>
-          </form>
-          <div class="live" data-live tabindex="-1"></div>
+      <div class="strip" data-strip data-path={FUNNEL_PATH} aria-live="polite">
+        <div class="flow ghosted" aria-hidden="true"><i class="body" style={`clip-path:polygon(${GHOST})`}></i></div>
+        <p class="strip-note" data-strip-note>The live roles need JavaScript.</p>
+      </div>
+      <div class="sheet" data-for="role">
+        <div class="live-real" data-real tabindex="-1">
+          <div class="page" data-state="message">
+            <p class="t">Checking a live role needs JavaScript.</p>
+          </div>
         </div>
+      </div>
+      <div class="sheet own" data-for="own">
+        <form
+          class="page paste"
+          id="fit-paste"
+          data-paste
+          data-path={FIT_CHECK_PATH}
+          data-min={LIMITS.minChars}
+          data-max={LIMITS.maxChars}>
+          <div class="t paste-area">
+            <label class="ask" for="fit-text">Your posting</label>
+            <textarea
+              id="fit-text"
+              name="text"
+              placeholder={`Paste the text of a job posting, or a ${BOARD_LIST.replace(' and ', ' or ')} job link.`}
+              aria-describedby="fit-need fit-privacy fit-count"
+              data-text></textarea>
+            <div class="paste-bar">
+              <button type="submit" disabled data-go>Check the fit</button>
+              <p class="small" id="fit-privacy">Not stored or logged.</p>
+              <p class="small count" id="fit-count" data-count>0 / {LIMITS.maxChars.toLocaleString('en-GB')}</p>
+            </div>
+            <p class="need" id="fit-need" data-need hidden></p>
+            <noscript><p class="need">Checking your own posting needs JavaScript.</p></noscript>
+          </div>
+          <div class="m key">
+            <p class="key-head">What comes back</p>
+            <p class="chip ghost">
+              <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.25"></circle></svg>
+              A verdict
+            </p>
+            <p class="key-line">A strong, partial or poor match, with a line on why.</p>
+            <ul class="legend">
+              <li data-tone="for"><span class="swatch"></span><b>For</b> lines up with the profile</li>
+              <li data-tone="against"><span class="swatch"></span><b>Against</b> pulls away from it</li>
+              <li data-tone="mixed"><span class="swatch"></span><b>Mixed</b> a bit of both</li>
+              <li data-tone="neutral" class="where"><span class="swatch"><Fragment set:html={PIN} /></span><b>Location</b> against the profile’s preferences</li>
+              <li data-tone="void"><span class="swatch"></span><b>Ignored</b> instructions aimed at AI tools</li>
+            </ul>
+            <p class="key-line">Every mark is the posting’s own words, checked against your text.</p>
+            <button type="button" class="again back" data-back>Back to a live role</button>
+          </div>
+        </form>
+        <div class="live" data-live tabindex="-1"></div>
       </div>
     </div>
 
     <footer class="close">
       <p>
-        Claude Haiku picks the verdict and the reasons and quotes the posting; it never writes a word that appears
-        here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
+        Jev only decides which roles Haiku sees. Claude Haiku picks the verdict and the reasons and quotes the posting; it never
+        writes a word that appears here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
       </p>
       <a class="more" href="/work/fit-check">How this was measured →</a>
     </footer>
@@ -142,11 +115,12 @@ const samples = SAMPLE_POSTINGS.map((s) => {
   import { VERDICT_COPY } from '../../fit/copy';
   import { BOARD_NAMES, parseJobLink, type ParsedLink } from '../../fit/links';
   import { validateAssessment } from '../../fit/schema';
+  import { readPool, stripHtml, type Pool, type PoolRole } from './pool';
   import {
     ERROR_COPY,
     errorSheetHtml,
+    findingSheetHtml,
     linkSteps,
-    miniHtml,
     progressSheetHtml,
     resultSheetHtml,
     unassessableSheetHtml,
@@ -165,11 +139,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
     const go = band.querySelector<HTMLButtonElement>('[data-go]')!;
     const live = band.querySelector<HTMLElement>('[data-live]')!;
     const status = band.querySelector<HTMLElement>('[data-status]')!;
-    const sheets = band.querySelector<HTMLElement>('[data-sheets]')!;
-    const ownMini = band.querySelector<HTMLElement>('[data-own-mini]')!;
-    const ownCap = band.querySelector<HTMLElement>('[data-own-cap]')!;
-    const ownRadio = band.querySelector<HTMLInputElement>('input[name="fit-posting"][value="own"]')!;
-    const PLUS = ownMini.innerHTML;
     const min = Number(form.dataset.min);
     const max = Number(form.dataset.max);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -180,7 +149,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
     // same answer, so the button brings that answer back instead
     let answered: string | null = null;
     let answeredSay = '';
-    let answeredMini = '';
 
     // Exactly what the function checks the quotes against: line endings evened out, ends trimmed
     const prepared = () => box.value.replace(/\r\n?/g, '\n').trim();
@@ -216,29 +184,10 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       go.setAttribute('aria-busy', String(running));
       go.textContent = running ? 'Checking…' : GO;
     }
-
-    // The paste thumbnail follows the text: grey lines as it's typed, its marks once answered
-    function ownThumb() {
-      const text = prepared();
-      const own = answered !== null && text === answered ? answeredMini : text && !linkIn() ? miniHtml(text) : '';
-      ownMini.classList.toggle('blank', !own);
-      ownMini.innerHTML = own || PLUS;
-      ownCap.textContent = own || answered !== null ? 'Your posting' : 'Paste your own';
-    }
-    let thumbQueued = false;
-    box.addEventListener('input', () => {
-      counter();
-      if (thumbQueued) return;
-      thumbQueued = true;
-      requestAnimationFrame(() => {
-        thumbQueued = false;
-        ownThumb();
-      });
-    });
+    box.addEventListener('input', counter);
     counter();
 
     const pageIn = (el: Element | null) => el?.querySelector<HTMLElement>('.page[data-state="result"]') ?? null;
-    const sheetFor = (id: string) => sheets.querySelector<HTMLElement>(`.sheet[data-for="${id}"]`);
 
     // A sheet that has just been chosen or has just come back is drawn in: its tints in reading
     // order, then the notes, the verdict last. Reduced motion: it's just there
@@ -249,24 +198,24 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       page.classList.add('play');
     }
 
-    // Picking a posting: CSS shows its sheet; this says what changed and draws it in
-    band.addEventListener('change', (e) => {
-      const input = e.target as HTMLInputElement;
-      if (input.name !== 'fit-posting') return;
-      if (input.value === 'own') {
-        status.textContent = showingOwn() ? answeredSay : 'Paste a job posting or link to check it';
-        if (showingOwn()) play(pageIn(live));
-        return;
-      }
-      const sheet = sheetFor(input.value);
-      status.textContent = sheet?.dataset.announce ?? '';
-      play(pageIn(sheet));
-    });
+    // On a phone the sheet may be off screen; bring its top into view
+    function reveal(el: HTMLElement) {
+      const r = el.getBoundingClientRect();
+      if (r.top < 0 || r.top > innerHeight * 0.6) el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
 
-    // Choosing "Paste your own" with a pointer goes straight to the text; arrow keys stay in the row
-    ownRadio.closest('label')!.addEventListener('click', (e) => {
-      if (e.detail > 0 && !showingOwn()) requestAnimationFrame(() => box.focus({ preventScroll: true }));
-    });
+    // ---- Which pane the stage shows: a live role, or the paste area ----
+    function pane(which: 'role' | 'own') {
+      band.dataset.pane = which;
+    }
+
+    function toOwn(byPointer: boolean) {
+      pane('own');
+      status.textContent = showingOwn() ? answeredSay : 'Paste a job posting or link to check it';
+      if (showingOwn()) play(pageIn(live));
+      else if (byPointer) requestAnimationFrame(() => box.focus({ preventScroll: true }));
+      reveal(live.closest<HTMLElement>('.sheet')!);
+    }
 
     // Back from an answer to the paste area, the text kept
     live.addEventListener('click', (e) => {
@@ -276,12 +225,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       status.textContent = 'Paste area';
       box.focus();
     });
-
-    // On a phone the sheet may be off screen; bring its top into view
-    function reveal() {
-      const r = live.getBoundingClientRect();
-      if (r.top < 0 || r.top > innerHeight * 0.6) live.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
-    }
 
     function show(html: string, say: string) {
       live.innerHTML = html;
@@ -314,12 +257,31 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       return !!o && typeof o.text === 'string' && o.board in BOARD_NAMES && typeof o.truncated === 'boolean';
     };
 
+    // The wait's first step done and the second lit, in place, while the quotes are checked
+    function secondStep(sheet: HTMLElement) {
+      const [first, second] = sheet.querySelectorAll<HTMLElement>('.steps li');
+      if (!first || !second) return;
+      first.dataset.state = 'done';
+      first.querySelector('.secs')?.remove();
+      second.dataset.state = 'active';
+      const chip = sheet.querySelector('[data-wait]');
+      if (chip) chip.textContent = WAIT_HEADINGS[1];
+    }
+
+    function ticker(sheet: HTMLElement) {
+      const started = Date.now();
+      return setInterval(() => {
+        const secs = sheet.querySelector('.secs');
+        if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
+      }, 1000);
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = prepared();
       const link = linkIn();
       if (running || !ready(link, text.length)) return;
-      ownRadio.checked = true;
+      pane('own');
       band.dataset.own = 'result';
       live.focus({ preventScroll: true });
       // Back to a paste already answered: show that answer again, no new call
@@ -327,14 +289,13 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         counter();
         status.textContent = answeredSay;
         play(pageIn(live));
-        reveal();
+        reveal(live);
         return;
       }
       // The live sheet is about to hold this check, not the last answer
       answered = null;
       running = true;
       counter();
-      ownThumb();
 
       const boardName = link?.kind === 'board' ? BOARD_NAMES[link.board] : null;
       let label = boardName ? `Your ${boardName} link` : 'Your posting';
@@ -342,13 +303,9 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       // A pasted posting stays on the sheet while it's read; a link has no text yet
       const pasted = boardName ? null : text;
       const opts = (): SheetOptions => ({ label, edit: true, ...(boardName ? { link: text } : {}) });
-      const started = Date.now();
       show(progressSheetHtml(pasted, { ...opts(), step: 0, steps }), 'Checking your posting');
-      reveal();
-      const tick = setInterval(() => {
-        const secs = live.querySelector('.secs');
-        if (secs) secs.textContent = `${Math.round((Date.now() - started) / 1000)}s`;
-      }, 1000);
+      reveal(live);
+      const tick = ticker(live);
 
       try {
         const res = await fetch(form.dataset.path!, {
@@ -369,25 +326,16 @@ const samples = SAMPLE_POSTINGS.map((s) => {
         } else if (body?.status === 'ok' && source !== null) {
           // The function checked every quote; check them again here, against exactly what the
           // model read, before any of it is shown. The second step lights in place
-          const [first, second] = live.querySelectorAll<HTMLElement>('.steps li');
-          if (first && second) {
-            first.dataset.state = 'done';
-            first.querySelector('.secs')?.remove();
-            second.dataset.state = 'active';
-            const chip = live.querySelector('[data-wait]');
-            if (chip) chip.textContent = WAIT_HEADINGS[1];
-          }
+          secondStep(live);
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, source);
           await wait(reduce ? 0 : 400);
           if (checked.ok) {
             const a = checked.value;
             show(resultSheetHtml(source, a, { ...opts(), ...from }), `${label}: ${VERDICT_COPY[a.verdict].label}`);
-            answeredMini = miniHtml(source, a);
             play(pageIn(live));
           } else {
             show(unassessableSheetHtml(source, { ...opts(), ...from }), 'Couldn’t assess this one');
-            answeredMini = miniHtml(source);
           }
           answered = text;
           answeredSay = status.textContent ?? '';
@@ -395,7 +343,6 @@ const samples = SAMPLE_POSTINGS.map((s) => {
           show(unassessableSheetHtml(source, { ...opts(), ...from }), 'Couldn’t assess this one');
           answered = text;
           answeredSay = status.textContent ?? '';
-          answeredMini = source ? miniHtml(source) : '';
         } else {
           const cause = (boardName && LINK_CAUSES[body?.error]) || CAUSES[body?.error] || 'unavailable';
           show(errorSheetHtml(pasted, cause, opts()), 'The check didn’t run');
@@ -406,1092 +353,148 @@ const samples = SAMPLE_POSTINGS.map((s) => {
       } finally {
         running = false;
         counter();
-        ownThumb();
       }
     });
 
-    // The first time the band is seen, the shown sample is drawn in. It's held at its start,
-    // marks unpainted, until then; scripts off or reduced motion, it's just there
-    if (!reduce && 'IntersectionObserver' in window) {
-      const first = pageIn(sheetFor(band.querySelector<HTMLInputElement>('input[name="fit-posting"]:checked')?.value ?? ''));
-      if (first) {
-        first.classList.add('play', 'held');
-        new IntersectionObserver(
-          (entries, io) => {
-            if (!entries[0].isIntersecting) return;
-            io.disconnect();
-            first.classList.remove('held');
-          },
-          { threshold: 0.35 },
-        ).observe(first);
+    // ---- The live roles: the strip, and a role on the sheet ----
+    const strip = band.querySelector<HTMLElement>('[data-strip]')!;
+    const realBox = band.querySelector<HTMLElement>('[data-real]')!;
+    const boards = Number(band.dataset.boards);
+
+    let pool: Pool | null = null;
+    let current: string | null = null;
+    // Answers already had, by link, so a role shown again costs nothing
+    const done = new Map<string, { html: string; say: string }>();
+    const opened = new Set<string>();
+
+    // A role at random, not yet shown here when there's one: one that cleared Jev's bar, or one it turned down
+    function randomRole(from: PoolRole[]): PoolRole | null {
+      const fresh = from.filter((r) => !opened.has(r.link) && r.link !== current);
+      const pick = fresh.length ? fresh : from;
+      return pick.length ? pick[Math.floor(Math.random() * pick.length)] : null;
+    }
+
+    async function openRole(role: PoolRole) {
+      pane('role');
+      current = role.link;
+      opened.add(role.link);
+      const label = `${role.title}, ${role.company}`;
+      const had = done.get(role.link);
+      if (had) {
+        realBox.innerHTML = had.html;
+        status.textContent = had.say;
+        play(pageIn(realBox));
+        return;
+      }
+      const ruling = role.reason && typeof role.p === 'number' ? { reason: role.reason, p: role.p } : null;
+      const found = { link: role.link, ruling, screened: !!pool?.screening, canRuled: !!pool?.ruledOut.length };
+      // Until the posting comes back with the answer: its title, and the company and places as listed
+      const head = `${role.title}\n${[role.company, ...role.places].join(' · ')}`;
+      realBox.innerHTML = progressSheetHtml(head, { label, step: 0, steps: linkSteps(role.board) });
+      status.textContent = `Checking ${label}`;
+      const tick = ticker(realBox);
+      const isCurrent = () => current === role.link && band.dataset.pane === 'role';
+      const put = (html: string, say: string, keep: boolean) => {
+        if (keep) done.set(role.link, { html, say });
+        if (!isCurrent()) return;
+        realBox.innerHTML = html;
+        status.textContent = say;
+        play(pageIn(realBox));
+      };
+
+      try {
+        const res = await fetch(form.dataset.path!, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text: role.link }),
+        });
+        clearInterval(tick);
+        const body = await res.json().catch(() => null);
+        const linked = isLinkedPosting(body?.posting) ? body.posting : null;
+        const opts: SheetOptions = { label, found, ...(linked ? { source: { board: role.board, truncated: linked.truncated } } : {}) };
+        if (res.status === 429) return put(errorSheetHtml(head, 'rate_limited', opts), 'Too many checks in a row', false);
+        if (body?.status === 'ok' && linked) {
+          if (isCurrent()) secondStep(realBox);
+          const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
+          const checked = validateAssessment(answer, linked.text);
+          await wait(reduce ? 0 : 400);
+          const read = { ...opts, found: { ...found, checked: true } };
+          if (checked.ok) put(resultSheetHtml(linked.text, checked.value, read), `${label}: ${VERDICT_COPY[checked.value.verdict].label}`, true);
+          else put(unassessableSheetHtml(linked.text, read), 'Couldn’t assess this one', true);
+        } else if (body?.status === 'unassessable') {
+          put(unassessableSheetHtml(linked?.text ?? head, { ...opts, found: { ...found, checked: true } }), 'Couldn’t assess this one', true);
+        } else {
+          const cause = (LINK_CAUSES[body?.error] || CAUSES[body?.error] || 'unavailable') as ErrorCause;
+          put(errorSheetHtml(head, cause, opts), 'The check didn’t run', false);
+        }
+      } catch {
+        clearInterval(tick);
+        put(errorSheetHtml(head, 'network', { label, found }), 'The check didn’t run', false);
       }
     }
+
+    // The buttons under a sheet: another role, one Jev turned down, your own, or back to a live role
+    band.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('[data-own]')) return toOwn((e as MouseEvent).detail > 0);
+      if (t.closest('[data-back]')) {
+        pane('role');
+        status.textContent = done.get(current ?? '')?.say ?? '';
+        play(pageIn(realBox));
+        return reveal(realBox);
+      }
+      const ruled = !!t.closest('[data-ruled]');
+      if (!ruled && !t.closest('[data-another]')) return;
+      const role = randomRole(ruled ? (pool?.ruledOut ?? []) : pool?.left ?? []);
+      if (role) void openRole(role);
+    });
+
+    const FAILED = {
+      boards: 'Couldn’t reach the job boards just now. Paste a posting or job link of your own instead.',
+      none: 'No open roles on the boards just now. Paste a posting or job link of your own instead.',
+      limited: 'That’s a lot of requests in a row. Try again in three minutes, or paste a posting of your own.',
+    };
+
+    function poolFailed(message: string) {
+      strip.querySelector('[data-strip-note]')!.textContent = message;
+      strip.querySelector('.flow')?.remove();
+      realBox.innerHTML = `<div class="page" data-state="message"><p class="plain">${message}</p><p class="t"><button type="button" class="again" data-own>Paste your own</button></p></div>`;
+      status.textContent = message;
+    }
+
+    async function loadPool() {
+      realBox.innerHTML = findingSheetHtml(boards);
+      strip.querySelector('[data-strip-note]')!.textContent = `Reading ${boards} job boards…`;
+      status.textContent = 'Reading the job boards';
+      try {
+        const res = await fetch(strip.dataset.path!, { headers: { accept: 'application/json' } });
+        const body = await res.json().catch(() => null);
+        if (res.status === 429) return poolFailed(FAILED.limited);
+        const p = body?.status === 'ok' ? readPool(body) : null;
+        if (!p) return poolFailed(body?.error === 'none_found' ? FAILED.none : FAILED.boards);
+        pool = p;
+        // The shape flows in from the left, narrowing step by step; reduced motion, it's just there
+        strip.innerHTML = stripHtml(p);
+        if (!reduce) void strip.offsetWidth;
+        strip.classList.add('drawn');
+        // A role at random from what's left is on the sheet to begin with, unless the visitor has moved on
+        const first = randomRole(p.left);
+        if (first && band.dataset.pane === 'role' && !current) void openRole(first);
+      } catch {
+        poolFailed(FAILED.boards);
+      }
+    }
+
+    // The pool is read as the band comes near, so a visitor who never scrolls to it costs nothing
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        (entries, io) => {
+          if (!entries[0].isIntersecting) return;
+          io.disconnect();
+          void loadPool();
+        },
+        { rootMargin: '0px 0px 50% 0px' },
+      ).observe(band);
+    } else void loadPool();
   }
 </script>
-
-<style is:global>
-  .fit {
-    /* The band's palette: the posting on warm paper, near-black ink, and the three job-radar
-       tints, each with a deeper marker and an ink for words set on it */
-    --ink: var(--text);
-    --ink-2: #47433d;
-    --muted: #6b665e;
-    --rule: #e8e4dc;
-    --line: #dcd7cd;
-    --paper: var(--job-radar-paper);
-    --gap: 40px;
-    --margin-w: 236px;
-    --serif: 'Petrona Variable', Georgia, serif;
-
-    padding-block: clamp(44px, 5vw, 64px) 56px;
-    border-top: 1px solid #e9e3d6;
-    background: var(--bg);
-    color: var(--ink);
-  }
-
-  /* One tone, picked by data-tone, drives every coloured thing */
-  .fit [data-tone='for'] {
-    --c: var(--job-radar-sage);
-    --c-tint: var(--job-radar-sage-tint);
-    --c-ink: var(--job-radar-sage-ink);
-  }
-  .fit [data-tone='against'] {
-    --c: var(--job-radar-clay);
-    --c-tint: var(--job-radar-clay-tint);
-    --c-ink: var(--job-radar-clay-ink);
-  }
-  .fit [data-tone='mixed'] {
-    --c: var(--job-radar-straw);
-    --c-tint: var(--job-radar-straw-tint);
-    --c-ink: var(--job-radar-straw-ink);
-  }
-  .fit [data-tone='neutral'],
-  .fit [data-tone='void'] {
-    --c: var(--job-radar-stone);
-    --c-tint: var(--job-radar-stone-tint);
-    --c-ink: var(--job-radar-stone-ink);
-  }
-
-  .fit :focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 3px;
-  }
-
-  .fit .grid {
-    display: grid;
-    grid-template-columns: minmax(0, 284px) minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-      'head stage'
-      'close stage';
-    column-gap: 64px;
-  }
-
-  /* ---- Left column: the words about it ---- */
-  .fit .head {
-    grid-area: head;
-    padding-top: 2px;
-  }
-
-  .fit .kicker {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--job-radar-sage-ink);
-  }
-
-  .fit .kicker span {
-    margin-left: -6px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background: var(--job-radar-sage-tint);
-  }
-
-  .fit h2 {
-    margin-top: 14px;
-    font-size: 1.75rem;
-    line-height: 1.2;
-    letter-spacing: -0.012em;
-    text-wrap: balance;
-  }
-
-  .fit .lede {
-    margin-top: 18px;
-    font-size: 0.96875rem;
-    line-height: 1.6;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  .fit .lede a,
-  .fit .close a {
-    color: var(--ink);
-    text-decoration-color: color-mix(in srgb, var(--ink) 35%, transparent);
-    text-underline-offset: 2px;
-  }
-
-  .fit .lede a:hover,
-  .fit .close a:hover {
-    color: var(--accent-hover);
-  }
-
-  .fit .close {
-    grid-area: close;
-    align-self: end;
-    margin-top: 28px;
-    font-size: 0.8125rem;
-    line-height: 1.6;
-    color: var(--muted);
-    text-wrap: pretty;
-  }
-
-  .fit .close strong {
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  .fit .close .more {
-    display: inline-block;
-    margin-top: 12px;
-    border-bottom: 1px solid var(--ink);
-    font-size: 0.875rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  /* ---- The stage: thumbnails and the sheet ---- */
-  .fit .stage {
-    grid-area: stage;
-    min-width: 0;
-  }
-
-  .fit .thumbs {
-    display: flex;
-    gap: 18px;
-    min-width: 0;
-    margin: 0 0 18px;
-    padding: 0;
-    border: 0;
-  }
-
-  .fit .thumb {
-    display: grid;
-    justify-items: start;
-    gap: 7px;
-    cursor: pointer;
-  }
-
-  /* A posting in miniature, the same card as the sheet below: landscape, at its proportions */
-  .fit .mini {
-    display: block;
-    width: 104px;
-    aspect-ratio: 1.55;
-    overflow: hidden;
-    border-radius: 4px;
-    background: var(--paper);
-    box-shadow:
-      0 0 0 1px rgb(60 50 35 / 0.1),
-      0 1px 2px rgb(60 50 35 / 0.06);
-    transition:
-      transform 160ms var(--ease-out),
-      box-shadow 160ms var(--ease-out);
-  }
-
-  .fit .mini .body {
-    display: block;
-    padding: 8px 10px 0;
-  }
-
-  /* Only the evidence is drawn; the rest of the posting is a faint trace */
-  .fit .mini i {
-    display: block;
-    width: var(--w);
-    height: 1px;
-    margin: 2px 0 1px;
-    border-radius: 1px;
-    background: #ebe7e0;
-  }
-
-  .fit .mini i:first-child {
-    margin-top: 0;
-  }
-
-  .fit .mini i[data-type='title'] {
-    height: 3px;
-    margin-bottom: 0;
-    background: #8c867c;
-  }
-
-  .fit .mini i[data-gap] {
-    margin-top: 4px;
-  }
-
-  .fit .mini i[data-tone] {
-    height: 2px;
-    margin-bottom: 0;
-    background: var(--c);
-  }
-
-  .fit .mini i[data-tone='void'] {
-    background: repeating-linear-gradient(90deg, var(--job-radar-stone) 0 2px, transparent 2px 3px);
-  }
-
-  .fit .cap {
-    font-size: 0.75rem;
-    line-height: 1.2;
-    font-weight: 600;
-    white-space: nowrap;
-    color: var(--muted);
-  }
-
-  .fit .thumb:hover .mini {
-    transform: translateY(-1px);
-    box-shadow:
-      0 0 0 1px rgb(60 50 35 / 0.16),
-      0 4px 10px -4px rgb(60 50 35 / 0.25);
-  }
-
-  .fit .thumb:hover .cap,
-  .fit .thumb input:checked ~ .cap {
-    color: var(--ink);
-  }
-
-  /* The current one is raised and outlined in ink */
-  .fit .thumb input:checked ~ .mini {
-    transform: translateY(-3px);
-    box-shadow:
-      0 0 0 1.5px var(--ink),
-      0 8px 16px -8px rgb(60 50 35 / 0.45);
-  }
-
-  .fit .thumb input:focus-visible ~ .mini {
-    outline: 2px solid var(--ink);
-    outline-offset: 3px;
-  }
-
-  .fit .mini.blank {
-    display: grid;
-    place-items: center;
-    background: transparent;
-    box-shadow: none;
-    outline: 1px dashed #b9b3a8;
-    outline-offset: -1px;
-  }
-
-  .fit .thumb input:checked ~ .mini.blank {
-    background: var(--paper);
-    outline-color: transparent;
-  }
-
-  .fit .mini .plus {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-  }
-
-  /* ---- The sheets: only the chosen one takes up room. The band is the page's last, so a
-     change in height moves only the footer ---- */
-  .fit .sheet {
-    display: none;
-    position: relative;
-    min-width: 0;
-    border-radius: 6px;
-    background: var(--paper);
-    box-shadow:
-      0 0 0 1px rgb(60 50 35 / 0.07),
-      0 1px 2px rgb(60 50 35 / 0.05),
-      0 20px 40px -28px rgb(60 50 35 / 0.35);
-  }
-
-  .fit:has(input[value='own']:checked) .sheet[data-for='own'],
-  .fit:has(input[value='strong']:checked) .sheet[data-for='strong'],
-  .fit:has(input[value='possible']:checked) .sheet[data-for='possible'],
-  .fit:has(input[value='poor']:checked) .sheet[data-for='poor'],
-  .fit:has(input[value='injection']:checked) .sheet[data-for='injection'] {
-    display: block;
-  }
-
-  /* Your own: the paste area, or once checked, the answer */
-  .fit .live,
-  .fit[data-own='result'] .paste {
-    display: none;
-  }
-
-  .fit[data-own='result'] .live {
-    display: block;
-  }
-
-  .fit .live {
-    scroll-margin-top: 16px;
-  }
-
-  .fit .live:focus {
-    outline: none;
-  }
-
-  /* The margin's edge: a hairline down the sheet */
-  .fit .sheet::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: calc(28px + var(--margin-w) + var(--gap) / 2);
-    width: 1px;
-    background: var(--rule);
-  }
-
-  .fit .page {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--margin-w);
-    column-gap: var(--gap);
-    align-items: start;
-    padding: 30px 28px 28px 40px;
-  }
-
-  .fit .t {
-    grid-column: 1;
-    min-width: 0;
-    margin: 0;
-    font-family: var(--serif);
-    font-size: 1rem;
-    line-height: 1.625;
-    color: var(--ink);
-    overflow-wrap: anywhere;
-  }
-
-  .fit .m {
-    grid-column: 2;
-    min-width: 0;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: var(--ink-2);
-  }
-
-  /* Rows and their notes step down together, so each note stays level with its words */
-  .fit .t:not(.title, .meta, .foot, .fold, .lead-in),
-  .fit .m:not(.head-m, .key) {
-    margin-top: 6px;
-  }
-
-  .fit .t[data-gap],
-  .fit .m[data-gap] {
-    margin-top: 12px;
-  }
-
-  .fit .title {
-    font-family: var(--serif);
-    font-size: 1.375rem;
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: -0.005em;
-  }
-
-  .fit .meta {
-    margin-top: 4px;
-    font-size: 0.9375rem;
-    color: var(--muted);
-  }
-
-  .fit .heading {
-    font-weight: 600;
-  }
-
-  .fit .bullet {
-    position: relative;
-    padding-left: 18px;
-  }
-
-  .fit .bullet::before {
-    content: '–';
-    position: absolute;
-    left: 0;
-    color: var(--muted);
-  }
-
-  /* ---- The marks ---- */
-  .fit mark {
-    background: none;
-    color: inherit;
-  }
-
-  /* A tint set tight to each line of text, cloned across line breaks */
-  .fit .m-tint,
-  .fit .m-loc {
-    background: linear-gradient(var(--c-tint), var(--c-tint)) no-repeat 0 0 / 100% 100%;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-  }
-
-  .fit .m-tint {
-    margin: 0 -3px;
-    padding: 2px 3px;
-    border-radius: 3px;
-  }
-
-  /* The place: an inline token with a pin */
-  .fit .m-loc {
-    padding: 1px 6px 2px 5px;
-    border-radius: 4px;
-    color: var(--c-ink);
-  }
-
-  .fit .m-loc .pin {
-    display: inline-block;
-    width: 0.75em;
-    height: 0.75em;
-    margin-right: 0.3em;
-    vertical-align: -0.04em;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.3;
-  }
-
-  /* An instruction aimed at AI tools: hatched, struck and greyed */
-  .fit .m-void {
-    margin: 0 -3px;
-    padding: 2px 3px;
-    border-radius: 3px;
-    background:
-      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--job-radar-stone) 22%, transparent) 0 1px, transparent 1px 5px),
-      var(--job-radar-stone-tint);
-    color: var(--muted);
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-  }
-
-  .fit .m-void s {
-    text-decoration-color: color-mix(in srgb, var(--job-radar-stone-ink) 70%, transparent);
-    text-decoration-thickness: 1px;
-  }
-
-  /* ---- The margin: the verdict and a note for each mark ---- */
-  .fit .note {
-    position: relative;
-    padding: 3.5px 0 0 15px;
-  }
-
-  .fit .note + .note,
-  .fit .verdict + .note {
-    margin-top: 12px;
-  }
-
-  /* The side marker: a dot in the tone, the side named beside it in words */
-  .fit .note::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: calc(0.725em);
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--c);
-  }
-
-  .fit .note[data-kind='location']::before {
-    display: none;
-  }
-
-  .fit .note .pin {
-    position: absolute;
-    left: -1px;
-    top: calc(0.725em - 1.5px);
-    width: 10px;
-    height: 10px;
-    fill: none;
-    stroke: var(--c-ink);
-    stroke-width: 1.4;
-  }
-
-  .fit .note[data-tone='void']::before {
-    background: none;
-    box-shadow: inset 0 0 0 1.25px var(--job-radar-stone);
-  }
-
-  /* The leader: a hairline from the text's edge to the dot */
-  .fit .note.lead::after {
-    content: '';
-    position: absolute;
-    top: calc(3.5px + 0.725em);
-    left: calc(var(--gap) * -1 + 8px);
-    width: calc(var(--gap) - 14px);
-    height: 1px;
-    background: color-mix(in srgb, var(--c) 55%, transparent);
-    transform-origin: left center;
-  }
-
-  .fit .note b {
-    margin-right: 0.15em;
-    font-weight: 700;
-    color: var(--c-ink);
-  }
-
-  .fit .note blockquote {
-    margin: 4px 0 0;
-    font-family: var(--serif);
-    font-size: 0.875rem;
-    color: var(--ink);
-  }
-
-  .fit .verdict {
-    margin-bottom: 18px;
-  }
-
-  .fit .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 4px 11px 4px 8px;
-    border-radius: 6px;
-    background: var(--c-tint, var(--job-radar-stone-tint));
-    color: var(--c-ink, var(--job-radar-stone-ink));
-    font-size: 0.9375rem;
-    font-weight: 700;
-    line-height: 1.35;
-    letter-spacing: -0.003em;
-  }
-
-  .fit .chip svg {
-    flex: none;
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-  }
-
-  .fit .chip svg .fill {
-    fill: currentColor;
-  }
-
-  .fit .v-line {
-    margin-top: 10px;
-    font-family: var(--serif);
-    font-size: 0.9375rem;
-    line-height: 1.45;
-    color: var(--ink);
-    text-wrap: balance;
-  }
-
-  /* A message in place of an answer: plain, where the verdict would be */
-  .fit .plain {
-    font-family: var(--serif);
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    color: var(--ink);
-    text-wrap: pretty;
-  }
-
-  /* ---- Checking ---- */
-  .fit .chip.wait {
-    font-weight: 600;
-  }
-
-  .fit .chip.wait .track {
-    opacity: 0.3;
-  }
-
-  .fit .chip.wait path {
-    transform-origin: 7px 7px;
-  }
-
-  .fit .steps {
-    margin: 12px 0 8px;
-    padding: 0;
-    list-style: none;
-  }
-
-  .fit .steps li {
-    position: relative;
-    padding-left: 18px;
-    transition: color 0.3s var(--ease-out);
-  }
-
-  .fit .steps li + li {
-    margin-top: 6px;
-  }
-
-  .fit .steps li[data-state='todo'] {
-    color: var(--muted);
-  }
-
-  .fit .steps .dot {
-    position: absolute;
-    left: 1px;
-    top: 0.45em;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1.25px currentColor;
-  }
-
-  .fit .steps [data-state='active'] .dot,
-  .fit .steps [data-state='done'] .dot {
-    background: var(--ink-2);
-  }
-
-  .fit .secs {
-    margin-left: 4px;
-    color: var(--muted);
-  }
-
-  .fit .secs,
-  .fit .count {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .fit .small {
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: var(--muted);
-  }
-
-  /* ---- Folds: unmarked stretches, folded away ---- */
-  .fit .fold {
-    margin-top: 10px;
-  }
-
-  .fit .fold > summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    list-style: none;
-    font-family: var(--font-sans);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-  }
-
-  .fit .fold > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .fit .fold > summary svg {
-    flex: none;
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: transform 160ms var(--ease-out);
-  }
-
-  .fit .fold[open] > summary svg {
-    transform: rotate(90deg);
-  }
-
-  .fit .fold > summary::after {
-    content: '';
-    flex: 1;
-    margin-left: 6px;
-    border-top: 1px solid var(--rule);
-  }
-
-  .fit .fold > summary:hover {
-    color: var(--ink);
-  }
-
-  .fit .fold[open] > summary {
-    margin-bottom: 6px;
-  }
-
-  /* Under a visitor's own posting: where it came from, and the way back */
-  .fit .foot {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 22px;
-    font-family: var(--font-sans);
-  }
-
-  .fit .src {
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: var(--muted);
-  }
-
-  .fit .again {
-    padding: 0;
-    border: 0;
-    border-bottom: 1px solid var(--ink);
-    background: none;
-    font: 700 0.8125rem var(--font-sans);
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .fit .again:hover {
-    color: var(--accent-hover);
-    border-color: currentColor;
-  }
-
-  /* ---- Pasting: the sheet is the paste area ---- */
-  .fit .paste-area {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .fit .ask {
-    font-family: var(--serif);
-    font-size: 1.375rem;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-
-  /* The paper is the field: ruled like the page, the text set as the posting will be */
-  .fit .paste-area textarea {
-    display: block;
-    width: calc(100% + 24px);
-    min-height: 300px;
-    max-height: 640px;
-    margin: 10px -12px 0;
-    padding: 10px 12px;
-    border: 0;
-    border-radius: 4px;
-    background: repeating-linear-gradient(to bottom, transparent 0 25px, var(--rule) 25px 26px) 0 10px / 100% calc(100% - 10px) no-repeat;
-    background-attachment: local;
-    font-family: var(--serif);
-    font-size: 1rem;
-    line-height: 26px;
-    color: var(--ink);
-    resize: vertical;
-  }
-
-  .fit .paste-area textarea::placeholder {
-    color: #8f897f;
-    opacity: 1;
-  }
-
-  .fit .paste-area textarea:focus {
-    outline: none;
-    box-shadow: 0 0 0 1.5px var(--ink);
-  }
-
-  .fit .paste-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 16px;
-    margin-top: 16px;
-    font-family: var(--font-sans);
-  }
-
-  .fit .paste-bar .count {
-    margin-left: auto;
-  }
-
-  .fit .count.over {
-    color: var(--job-radar-clay-ink);
-  }
-
-  /* With nothing to check, the button is dimmed; it stays focusable with scripts on */
-  .fit .paste-bar button {
-    min-height: 36px;
-    padding: 8px 16px;
-    border: 0;
-    border-radius: 6px;
-    background: var(--ink);
-    font: 700 0.875rem var(--font-sans);
-    color: var(--paper);
-    cursor: pointer;
-    transition: opacity 0.2s var(--ease-out);
-  }
-
-  .fit .paste-bar button:disabled,
-  .fit .paste-bar button[aria-disabled='true'] {
-    opacity: 0.4;
-    cursor: default;
-  }
-
-  .fit .paste-bar button[aria-busy='true'] {
-    cursor: progress;
-  }
-
-  .fit .need {
-    margin-top: 12px;
-    font-family: var(--font-sans);
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--job-radar-clay-ink);
-  }
-
-  .fit .key-head {
-    margin-bottom: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--muted);
-  }
-
-  .fit .chip.ghost {
-    background: transparent;
-    box-shadow: inset 0 0 0 1px var(--line);
-    color: var(--muted);
-  }
-
-  .fit .key-line {
-    margin-top: 8px;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .fit .legend {
-    display: grid;
-    gap: 8px;
-    margin: 16px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .fit .legend li {
-    position: relative;
-    padding-left: 34px;
-  }
-
-  .fit .legend b {
-    color: var(--c-ink);
-  }
-
-  .fit .legend .swatch {
-    position: absolute;
-    left: 0;
-    top: 2px;
-    width: 24px;
-    height: 15px;
-    border-radius: 3px;
-    background: var(--c-tint);
-  }
-
-  .fit .legend .where .swatch {
-    display: grid;
-    place-items: center;
-    color: var(--c-ink);
-  }
-
-  .fit .legend .where .pin {
-    width: 10px;
-    height: 10px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.4;
-  }
-
-  .fit .legend [data-tone='void'] .swatch {
-    background:
-      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--job-radar-stone) 30%, transparent) 0 1px, transparent 1px 5px),
-      var(--job-radar-stone-tint);
-  }
-
-  /* ---- Motion: tints sweep in reading order, then leaders draw and notes fade in, the
-     verdict last. Held at the start until the band is first seen ---- */
-  @media (prefers-reduced-motion: no-preference) {
-    .fit .page.play {
-      --sweep: 90ms;
-      --notes: calc(var(--n) * var(--sweep) + 180ms);
-    }
-
-    .fit .page.play :is(.m-tint, .m-loc) {
-      animation: fit-sweep 280ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * var(--sweep));
-    }
-
-    .fit .page.play .m-void {
-      animation: fit-fade 320ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * var(--sweep));
-    }
-
-    .fit .page.play .note::before,
-    .fit .page.play .note .pin {
-      animation: fit-dot 200ms var(--ease-out) both;
-      animation-delay: calc(var(--notes) + var(--i) * 70ms);
-    }
-
-    .fit .page.play .note.lead::after {
-      animation: fit-draw 200ms var(--ease-out) both;
-      animation-delay: calc(var(--notes) + var(--i) * 70ms);
-    }
-
-    .fit .page.play .note > :not(.pin) {
-      animation: fit-fade 240ms var(--ease-out) both;
-      animation-delay: calc(var(--notes) + var(--i) * 70ms + 120ms);
-    }
-
-    .fit .page.play .verdict {
-      animation: fit-rise 320ms var(--ease-out) both;
-      animation-delay: calc(var(--notes) + var(--n) * 70ms + 80ms);
-    }
-
-    .fit .page.play.held,
-    .fit .page.play.held * {
-      animation-play-state: paused !important;
-    }
-
-    .fit .chip.wait path {
-      animation: fit-spin 900ms linear infinite;
-    }
-
-    .fit .steps [data-state='active'] .dot {
-      animation: fit-pulse 1.4s ease-in-out infinite;
-    }
-  }
-
-  @keyframes fit-sweep {
-    from {
-      background-size: 0% 100%;
-    }
-  }
-
-  @keyframes fit-fade {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @keyframes fit-rise {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-  }
-
-  @keyframes fit-draw {
-    from {
-      transform: scaleX(0);
-    }
-  }
-
-  @keyframes fit-dot {
-    from {
-      opacity: 0;
-      transform: scale(0.4);
-    }
-  }
-
-  @keyframes fit-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes fit-pulse {
-    50% {
-      background: transparent;
-    }
-  }
-
-  /* ---- Narrower: the words go on top ---- */
-  @media (max-width: 1100px) {
-    .fit .grid {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: none;
-      grid-template-areas: 'head' 'stage' 'close';
-      row-gap: 32px;
-    }
-
-    .fit .head,
-    .fit .close {
-      max-width: 40rem;
-    }
-
-    .fit .close {
-      margin-top: 0;
-    }
-  }
-
-  /* ---- Phone: the notes sit under each passage, and only the shown sheet takes up room ---- */
-  @media (max-width: 720px) {
-    .fit {
-      padding-block: 40px 44px;
-    }
-
-    .fit h2 {
-      font-size: 1.625rem;
-    }
-
-    .fit .thumbs {
-      gap: 16px;
-      margin: 0 calc(var(--gutter) * -1) 14px;
-      padding: 6px var(--gutter) 4px;
-      overflow-x: auto;
-      scroll-padding-inline: var(--gutter);
-      scroll-snap-type: x proximity;
-      scrollbar-width: none;
-    }
-
-    .fit .thumbs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .fit .thumb {
-      scroll-snap-align: start;
-    }
-
-    .fit .sheet {
-      margin-inline: calc(var(--gutter) * -0.5);
-    }
-
-    .fit .sheet::before {
-      display: none;
-    }
-
-    .fit .page {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      padding: 22px 18px 20px;
-    }
-
-    .fit .head-m,
-    .fit .lead-in {
-      display: contents;
-    }
-
-    /* The verdict first, then the title and meta, then the notes on them, then the posting */
-    .fit .title,
-    .fit .meta,
-    .fit .head-m > .note {
-      order: -1;
-    }
-
-    .fit .verdict,
-    .fit .plain {
-      order: -2;
-      margin-bottom: 18px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .fit .m:not(.head-m, .key) {
-      margin: 8px 0 4px;
-    }
-
-    .fit .head-m > .note {
-      margin-top: 10px;
-    }
-
-    .fit .note.lead::after {
-      display: none;
-    }
-
-    .fit .t.bullet + .m {
-      margin-left: 18px;
-    }
-
-    .fit .paste-area textarea {
-      min-height: 220px;
-    }
-
-    .fit .key {
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px solid var(--rule);
-    }
-  }
-</style>

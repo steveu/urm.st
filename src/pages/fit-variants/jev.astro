@@ -1,0 +1,72 @@
+---
+// Mock-up: the fit check with Jev first and Haiku alongside, on real answers for two invented
+// postings (scripts/jev-mock.ts). Throwaway: not for merging.
+import Base from '../../layouts/Base.astro';
+import JevBand from '../../components/fit/variants/jev/JevBand.astro';
+import { jevSheets, RAN, type PostingId } from '../../components/fit/variants/jev/build';
+
+const POSTINGS: Array<{ id: PostingId; name: string }> = [
+  { id: 'halden', name: 'Product Engineer, AI (invented, from the real-role mock-ups)' },
+  { id: 'poor', name: 'Senior Backend Engineer, AI Platform (the made-up “poor” sample)' },
+];
+const runs = POSTINGS.map((p) => ({ ...p, ...jevSheets(p.id), extra: jevSheets(p.id, true) }));
+const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
+---
+
+<Base title="Fit check: Jev first" noindex>
+  <p class="label top"><span class="wrap"><a href="/fit-variants">Mock-ups</a> / Jev first, Haiku alongside · {RAN.model} and {RAN.haiku}, run {RAN.at.slice(0, 16).replace('T', ' ')}</span></p>
+  {
+    runs.map((r) => (
+      <>
+        <p class="label"><span class="wrap">{r.name}</span></p>
+        <JevBand kicker="Today" title="Haiku alone" sheet={r.today}>
+          <p>The band as it is: Haiku picks a verdict and two or three reasons from a fixed list, each with a quote, and the location.</p>
+          <p class="facts">Answer after {secs(r.facts.haikuMs)} · {r.facts.todayVerdict}</p>
+        </JevBand>
+        <JevBand kicker={`Jev · ${secs(r.facts.jevMs)}`} title="Jev’s answers, first" sheet={r.jev} crit={r.critJev}>
+          <p>
+            Code cuts the posting into sentences. Jev answers 13 yes/no questions on the posting and, for every sentence, whether it
+            backs a yes to each. A sentence is marked only for a question the posting-level answer also says yes to.
+          </p>
+          <p>Code turns the answers into a fit of 1 to 5. An answer between 0.3 and 0.7 is left open, and the verdict shows the range.</p>
+          <p class="facts">
+            {r.facts.questions} questions, {secs(r.facts.jevMs)}, ${r.facts.costUsd.toFixed(4)} · {r.facts.marked} of {r.facts.sentences} sentences marked
+          </p>
+        </JevBand>
+        <JevBand kicker={`Haiku joins · ${secs(r.facts.haikuMs)}`} title="Haiku settles the rest" sheet={r.joined} crit={r.critJoined}>
+          <p>
+            Haiku was asked at the same time, not after: the same 13 questions, plus the location. Its answer is used only for a question Jev
+            left open, and for where the work is done.
+          </p>
+          <p class="facts">
+            {r.facts.finalVerdict}, fit {r.facts.finalFit} of 5 · today’s band said {r.facts.todayVerdict}
+          </p>
+        </JevBand>
+        <JevBand kicker="Trial · criteria for a role" title="With the “for” criteria" sheet={r.extra.joined} crit={r.extra.critJoined}>
+          <p>
+            Seven more questions that count for a role, and TypeScript and React found in code. They only mark sentences: the fit and
+            the verdict are unchanged.
+          </p>
+          <p class="facts">{r.extra.facts.marked} of {r.extra.facts.sentences} sentences marked, from {r.facts.marked} without them</p>
+        </JevBand>
+      </>
+    ))
+  }
+</Base>
+
+<style>
+  .label {
+    margin: 0;
+    padding: 14px 0;
+    background: #8a8a86;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .label.top {
+    background: #4a4a46;
+  }
+  .label a {
+    color: inherit;
+  }
+</style>

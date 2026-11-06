@@ -1,0 +1,225 @@
+/* The Jev mock-up's margin: the criteria list under the verdict. Throwaway. */
+.fit .crit {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.fit .crit-head {
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.fit .crit ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.fit .crit li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.fit .crit .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c, transparent);
+  box-shadow: inset 0 0 0 1px var(--c, #b9b3a8);
+  transform: translateY(-1px);
+}
+
+.fit .crit li[data-open]:not([data-tone]) .dot {
+  background: repeating-linear-gradient(-45deg, #b9b3a8 0 1px, transparent 1px 3px);
+}
+
+.fit .crit .p {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.fit .crit em {
+  flex-basis: 100%;
+  padding-left: 15px;
+  font-size: 0.75rem;
+  font-style: normal;
+  color: var(--muted);
+}
+
+.fit .crit em.asking {
+  color: var(--job-radar-straw-ink);
+}
+
+.fit .crit .rest {
+  padding-left: 15px;
+  color: var(--muted);
+}
+
+.fit .note.pending {
+  margin-top: 14px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.fit .note.pending::before {
+  display: none;
+}
+
+.fit .note.pending .pin {
+  width: 11px;
+  height: 11px;
+  margin-right: 4px;
+  vertical-align: -1px;
+  fill: none;
+  stroke: currentColor;
+}
+
+.fit .lede p + p {
+  margin-top: 10px;
+}
+
+.fit .lede .facts {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* The criteria as a strip above the sheet */
+.fit .crit-bar {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px rgb(60 50 35 / 0.08),
+    0 1px 2px rgb(60 50 35 / 0.05);
+}
+
+.fit .crit-bar .crit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fit .crit-bar .crit-head {
+  margin: 0;
+}
+
+.fit .crit-bar ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.fit .crit-bar li {
+  flex-wrap: nowrap;
+}
+
+.fit .crit-bar .p {
+  margin-left: 2px;
+}
+
+.fit .crit-bar em {
+  flex-basis: auto;
+  padding-left: 4px;
+}
+
+.fit .crit-bar .rest {
+  padding-left: 0;
+}
+
+.fit .crit-bar li.break {
+  flex-basis: 100%;
+  height: 0;
+}
+
+/* ---- Aligned: Haiku decides, Jev checks ---- */
+
+/* Found by Jev, not one of the verdict's reasons: a lighter wash, no note */
+.fit mark.m-tint.faint {
+  background: none;
+  text-decoration: underline dotted 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--c) 75%, transparent);
+  text-underline-offset: 4px;
+}
+
+/* Whether Jev agrees with a reason Haiku gave */
+.fit .note .aside {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
+.fit .note .aside::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.fit .note .aside[data-state='agree'] {
+  color: var(--job-radar-sage-ink);
+}
+
+.fit .note .aside[data-state='agree']::before {
+  background: currentColor;
+}
+
+.fit .note .aside[data-state='unsure'] {
+  color: var(--job-radar-straw-ink);
+}
+
+.fit .note .aside[data-state='unsure']::before {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.fit .note .aside[data-state='disagree'] {
+  color: var(--job-radar-clay-ink);
+}
+
+/* Reasons only Jev found, named once under the verdict */
+.fit .also {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.fit .also span {
+  flex-basis: 100%;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.fit .also i {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-style: normal;
+  background: color-mix(in srgb, var(--c-tint) 70%, transparent);
+  color: var(--c-ink);
+}

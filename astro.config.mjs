@@ -5,6 +5,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://urm.st',
   trailingSlash: 'never',
+  devToolbar: { enabled: false },
   build: { format: 'file' },
   integrations: [
     sitemap({

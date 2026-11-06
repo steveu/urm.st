@@ -16,6 +16,8 @@ import {
   type Verdict,
 } from '../../fit/copy.ts';
 import { BOARD_LIST } from '../../fit/links.ts';
+import type { TurnDown } from '../../fit/finder/screen.ts';
+import { SCREEN_SHORT } from '../../fit/finder/screen-copy.ts';
 import type { FitAssessment } from '../../fit/schema.ts';
 
 export const escapeHtml = (s: string) =>
@@ -90,6 +92,12 @@ export interface Note {
   i: number;
   /** A quote that couldn't be placed on the sheet, shown with its note instead. */
   quote?: string;
+  /** A mark that repeats an earlier note: tinted, with no note of its own. */
+  quiet?: boolean;
+  /** A lighter tint: found, but not one of the reasons the verdict rests on. */
+  faint?: boolean;
+  /** A short tag after the note, such as whether a second model agrees. */
+  aside?: { text: string; state: string };
 }
 
 interface Mark {
@@ -144,7 +152,7 @@ function markHtml(n: Note, inner: string, first: boolean) {
   const at = `data-tone="${n.tone}" style="--i:${n.i}"`;
   if (n.kind === 'injection') return `<mark class="m-void" ${at}><s>${inner}</s></mark>`;
   if (n.kind === 'location') return `<mark class="m-loc" ${at}>${first ? PIN : ''}${inner}</mark>`;
-  return `<mark class="m-tint" ${at}>${inner}</mark>`;
+  return `<mark class="m-tint${n.faint ? ' faint' : ''}" ${at}>${inner}</mark>`;
 }
 
 // ---- The posting as rows ----
@@ -230,7 +238,10 @@ export interface Sheet {
  *   hasn't been marked, where there's nothing to keep open.
  */
 export function markUp(text: string, a?: FitAssessment, crop?: number): Sheet {
-  const { marks, loose } = marksFor(text, a);
+  return layout(text, marksFor(text, a), crop);
+}
+
+function layout(text: string, { marks, loose }: { marks: Mark[]; loose: Note[] }, crop?: number): Sheet {
   const rows = rowsOf(text, marks);
   const split = rows.findIndex((r) => r.type !== 'title' && r.type !== 'meta');
   const head = split === -1 ? rows : rows.slice(0, split);
@@ -319,9 +330,11 @@ const STATUS: Record<Verdict, string> = {
 const CHEVRON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 3 7.5 6l-3 3"/></svg>';
 
 function noteHtml(n: Note, lead: boolean): string {
+  if (n.quiet) return '';
   const words = n.kind === 'location' ? `${PIN}<p>${escapeHtml(n.copy)}</p>` : `<p><b>${escapeHtml(n.label)}</b> ${escapeHtml(n.copy)}</p>`;
   const quote = n.quote ? `<blockquote>${escapeHtml(n.quote)}</blockquote>` : '';
-  return `<div class="note${lead ? ' lead' : ''}" data-kind="${n.kind}" data-tone="${n.tone}" style="--i:${n.i}">${words}${quote}</div>`;
+  const aside = n.aside ? `<p class="aside" data-state="${escapeHtml(n.aside.state)}">${escapeHtml(n.aside.text)}</p>` : '';
+  return `<div class="note${lead ? ' lead' : ''}" data-kind="${n.kind}" data-tone="${n.tone}" style="--i:${n.i}">${words}${aside}${quote}</div>`;
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -388,11 +401,42 @@ export interface SheetOptions {
   edit?: boolean;
   /** For a job link with no text to show yet: the link stands in for the posting. */
   link?: string;
+  /** For a live role: its link, what Jev made of it (null: it passed), and whether there's a turned-down one to offer. */
+  found?: { link: string; ruling: { reason: TurnDown; p: number } | null; screened: boolean; canRuled: boolean; checked?: boolean };
 }
 
-const EDIT = '<button type="button" class="again" data-edit>Edit or paste another</button>';
+const EDIT =
+  '<div class="found-actions"><button type="button" class="again" data-edit>Edit or paste another</button>' +
+  '<button type="button" class="again" data-back>Back to a live role</button></div>';
+
+export const SHUFFLE =
+  '<svg class="shuffle" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
+
+/** Under a live role: what Jev made of it, where Haiku read it, then another, one Jev turned down, the posting, or your own. */
+function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']> }): string {
+  const { link, ruling, screened, canRuled } = o.found;
+  const board = o.source?.board;
+  const cut = o.source?.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
+  const jev = ruling
+    ? `Jev turned this one down: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}.`
+    : screened
+      ? 'It cleared Jev’s bar: hands-on building, little against it.'
+      : 'Jev didn’t screen this one.';
+  // Only when Haiku's answer is on the sheet: not on a check that didn't run
+  const haiku = o.found.checked
+    ? ` Haiku checked it${ruling ? ' anyway' : ''}${board ? `, reading it from ${escapeHtml(board)} just now` : ''}.${cut}`
+    : '';
+  return (
+    `<p class="src">${jev}${haiku}</p>` +
+    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another role</button>` +
+    (canRuled ? `<button type="button" class="another ruled" data-ruled>One Jev turned down</button>` : '') +
+    `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a>` +
+    `<button type="button" class="again" data-own>Paste your own</button></div>`
+  );
+}
 
 function foot(o: SheetOptions): string | undefined {
+  if (o.found) return foundFoot({ ...o, found: o.found });
   const parts: string[] = [];
   if (o.source) {
     const cut = o.source.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
@@ -400,6 +444,36 @@ function foot(o: SheetOptions): string | undefined {
   }
   if (o.edit) parts.push(EDIT);
   return parts.length ? parts.join('') : undefined;
+}
+
+/** A mark placed by the caller, by its place in the text, rather than found from a quote. */
+export interface PlacedMark {
+  from: number;
+  to: number;
+  note: Omit<Note, 'i'>;
+}
+
+/**
+ * The same sheet from marks the caller has placed, with its own top of the margin: for a judge
+ * that marks whole sentences rather than quoting. Overlapping marks keep the earlier one's span.
+ */
+export function placedSheetHtml(text: string, placed: PlacedMark[], top: string, o: SheetOptions & { loose?: Array<Omit<Note, 'i'>> }): string {
+  const marks: Mark[] = placed.map((p) => ({ from: p.from, to: p.to, start: p.from, note: { ...p.note, i: 0 } })).sort((x, y) => x.from - y.from);
+  let end = 0;
+  marks.forEach((m, i) => {
+    m.note.i = i;
+    if (m.from < end) m.from = Math.min(end, m.to);
+    end = Math.max(end, m.to);
+  });
+  const loose = (o.loose ?? []).map((n, k) => ({ ...n, i: marks.length + k }));
+  return pageHtml({
+    label: o.label,
+    state: 'result',
+    sheet: layout(text, { marks, loose }),
+    top,
+    foot: foot(o),
+    fold: (n) => `${plural(n, 'paragraph', 'paragraphs')}, nothing marked`,
+  });
 }
 
 /** A checked answer: the posting marked up, the verdict and a note for each mark. */
@@ -466,13 +540,33 @@ export function progressSheetHtml(text: string | null, o: ProgressOptions): stri
   return pageHtml({ label: o.label, state: 'progress', sheet: unmarked(text, o), top, fold: more });
 }
 
+/** A ghost of a posting, drawn like the thumbnails, while the finder picks a role. */
+const GHOST: Array<[number, string?]> = [[58, 'title'], [36, 'meta'], [30, 'meta'], [0, 'gap'], [94], [86], [0, 'gap'], [24, 'head'], [96], [90], [72], [0, 'gap'], [28, 'head'], [92], [64]];
+
+export const FIND_STEPS = (boards: number) =>
+  [`Reading every role on ${boards} public job boards`, 'Jev picking out the few worth reading', 'Haiku reading one of them'] as const;
+
+/** The wait before there's a role: a ghost posting, and the steps ahead in the margin. */
+export function findingSheetHtml(boards: number): string {
+  const bars = GHOST.map(([w, k]) => `<i${k ? ` data-k="${k}"` : ''} style="--w:${w}%"></i>`).join('');
+  const steps = FIND_STEPS(boards).map((s, i) => `<li data-state="${i ? 'todo' : 'active'}"><span class="dot" aria-hidden="true"></span>${escapeHtml(s)}</li>`).join('');
+  const top =
+    `<div class="verdict reading"><p class="chip wait">${SPINNER}<span data-wait>Reading the boards…</span></p><ol class="steps">${steps}</ol>` +
+    `<p class="small">Usually instant. Every few hours it reads afresh, which takes about fifteen seconds.</p></div>`;
+  return (
+    `<article class="page" data-state="progress" aria-label="Reading the job boards">` +
+    `<div class="t lead-in" style="grid-row:1"><div class="ghost" aria-hidden="true">${bars}</div></div>` +
+    `<div class="m head-m" style="grid-row:1">${top}</div></article>`
+  );
+}
+
 /** What the visitor can be told when a check doesn't come back. Site copy, keyed by cause. */
 export const ERROR_COPY = {
   too_short: 'That’s too short to be a job posting. Paste the whole description.',
   too_long: 'That’s more than 12,000 characters. Trim it to the job description itself.',
   rate_limited: 'That’s a few checks in a row. Try again in three minutes.',
   busy: 'The model is busy just now. Try again in a minute.',
-  unavailable: 'The check isn’t available just now. The samples still work.',
+  unavailable: 'The check isn’t available just now. Try again later.',
   network: 'Couldn’t reach the check. Try again in a moment.',
   linkedin: 'LinkedIn links can’t be read here. Copy the job description from LinkedIn and paste that instead.',
   other_link: `That link isn’t one the check can read. ${BOARD_LIST} job links work; for anything else, paste the job description.`,

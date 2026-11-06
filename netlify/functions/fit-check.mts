@@ -15,5 +15,5 @@ export const config: Config = {
   method: ['POST'],
   // Per visitor, enforced by Netlify before the function runs; over the limit gets a 429.
   // A monthly spend cap in the Anthropic Console backs it up.
-  rateLimit: { windowLimit: 5, windowSize: 180, aggregateBy: ['ip', 'domain'] },
+  rateLimit: { windowLimit: 10, windowSize: 180, aggregateBy: ['ip', 'domain'] },
 };

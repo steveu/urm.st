@@ -276,3 +276,21 @@ describe('quoteRanges', () => {
     expect(quoteRanges('Salary (£70,000+) a year', ['(£70,000+)'])).toEqual([[7, 17]]);
   });
 });
+
+describe('the foot under a live role', () => {
+  const found = { link: 'https://jobs.ashbyhq.com/example/00000000-0000-4000-8000-000000000001', ruling: { reason: 'customer_delivery' as const, p: 0.9 }, screened: true, canRuled: true };
+
+  it('says Jev turned it down and Haiku checked it anyway, only once Haiku has', () => {
+    const read = resultSheetHtml(POSTING, answer(), { label: 'Example', source: { board: 'Ashby', truncated: false }, found: { ...found, checked: true } });
+    expect(read).toContain('Jev turned this one down: customer delivery · 0.90. Haiku checked it anyway, reading it from Ashby just now.');
+    const notRun = errorSheetHtml(POSTING, 'rate_limited', { label: 'Example', found });
+    expect(notRun).toContain('Jev turned this one down: customer delivery · 0.90.</p>');
+    expect(notRun).not.toContain('Haiku checked');
+  });
+
+  it('offers another role, one Jev turned down when there is one, the posting and your own', () => {
+    const html = errorSheetHtml(POSTING, 'network', { label: 'Example', found });
+    for (const hook of ['data-another', 'data-ruled', 'data-own']) expect(html).toContain(hook);
+    expect(errorSheetHtml(POSTING, 'network', { label: 'Example', found: { ...found, canRuled: false } })).not.toContain('data-ruled');
+  });
+});

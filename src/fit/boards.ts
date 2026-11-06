@@ -60,8 +60,8 @@ class Failed extends Error {
   }
 }
 
-/** GET a JSON body, reading no more than `cap` bytes. */
-async function getJson(fetchFn: FetchFn, url: URL, cap: number, timeoutMs: number): Promise<unknown> {
+/** GET a JSON body from an allowed API host, reading no more than `cap` bytes. Also used by the role finder. */
+export async function getJson(fetchFn: FetchFn, url: URL, cap: number, timeoutMs: number): Promise<unknown> {
   if (url.protocol !== 'https:' || !(API_HOSTS as readonly string[]).includes(url.hostname)) {
     throw new Error(`not an allowed API host: ${url.hostname}`);
   }
@@ -141,7 +141,7 @@ export async function fetchBoardPosting(
 
 // ---- The boards' fields, reduced to a title, location lines and a description ----
 
-interface Job {
+export interface Job {
   title: string | null;
   /** "Label: value" lines from the board's own location fields, in order. */
   fields: [string, string][];
@@ -183,6 +183,14 @@ function pick(link: BoardLink, body: unknown): Job | null {
       return job ? ashby(job) : null;
     }
   }
+}
+
+/**
+ * One job from a board's own record, reduced to what the text is built from. Also used by the
+ * role finder on the jobs in a board's list (Lever's and Ashby's lists carry descriptions).
+ */
+export function readJob(board: Board, j: Record<string, unknown>): Job {
+  return board === 'greenhouse' ? greenhouse(j) : board === 'lever' ? lever(j) : ashby(j);
 }
 
 function greenhouse(j: Record<string, unknown>): Job {
