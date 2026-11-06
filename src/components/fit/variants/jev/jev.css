@@ -149,3 +149,77 @@
   flex-basis: 100%;
   height: 0;
 }
+
+/* ---- Aligned: Haiku decides, Jev checks ---- */
+
+/* Found by Jev, not one of the verdict's reasons: a lighter wash, no note */
+.fit mark.m-tint.faint {
+  background: none;
+  text-decoration: underline dotted 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--c) 75%, transparent);
+  text-underline-offset: 4px;
+}
+
+/* Whether Jev agrees with a reason Haiku gave */
+.fit .note .aside {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
+.fit .note .aside::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.fit .note .aside[data-state='agree'] {
+  color: var(--job-radar-sage-ink);
+}
+
+.fit .note .aside[data-state='agree']::before {
+  background: currentColor;
+}
+
+.fit .note .aside[data-state='unsure'] {
+  color: var(--job-radar-straw-ink);
+}
+
+.fit .note .aside[data-state='unsure']::before {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.fit .note .aside[data-state='disagree'] {
+  color: var(--job-radar-clay-ink);
+}
+
+/* Reasons only Jev found, named once under the verdict */
+.fit .also {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.fit .also span {
+  flex-basis: 100%;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.fit .also i {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-style: normal;
+  background: color-mix(in srgb, var(--c-tint) 70%, transparent);
+  color: var(--c-ink);
+}

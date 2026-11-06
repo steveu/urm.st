@@ -1,0 +1,64 @@
+---
+// Mock-up: Haiku decides, Jev reads and checks, on the site's reason list. Real answers on four
+// invented postings (scripts/jev-aligned.ts). Throwaway: not for merging.
+import Base from '../../layouts/Base.astro';
+import JevBand from '../../components/fit/variants/jev/JevBand.astro';
+import { alignedSheets, type AlignedId } from '../../components/fit/variants/jev/aligned';
+import data from '../../components/fit/variants/jev/aligned-answers.json';
+
+const POSTINGS: Array<{ id: AlignedId; name: string }> = [
+  { id: 'halden', name: 'Product Engineer, AI (invented, from the real-role mock-ups)' },
+  { id: 'strong', name: 'Senior AI Product Engineer (the made-up “strong” sample)' },
+  { id: 'possible', name: 'Lead Frontend Engineer (the made-up “possible” sample)' },
+  { id: 'poor', name: 'Senior Backend Engineer, AI Platform (the made-up “poor” sample)' },
+];
+const runs = POSTINGS.map((p) => ({ ...p, ...alignedSheets(p.id) }));
+const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
+---
+
+<Base title="Fit check: Haiku decides, Jev checks" noindex>
+  <p class="label top">
+    <span class="wrap"><a href="/fit-variants">Mock-ups</a> / Haiku decides, Jev checks · {data.jev} and Haiku, run {data.ranAt.slice(0, 16).replace('T', ' ')}</span>
+  </p>
+  {
+    runs.map((r) => (
+      <>
+        <p class="label"><span class="wrap">{r.name}</span></p>
+        <JevBand kicker={`Jev · ${secs(r.facts!.jevMs)}`} title="Jev reads every sentence" sheet={r.read}>
+          <p>
+            Jev answers each of the site’s {20} reasons for the whole posting and for every sentence, while Haiku is still deciding. Each
+            sentence that backs a reason gets a dotted underline in that reason’s colour. No words yet.
+          </p>
+          <p class="facts">{r.facts!.questions} questions in {secs(r.facts!.jevMs)} · {r.facts!.found} of {r.facts!.sentences} sentences underlined</p>
+        </JevBand>
+        <JevBand kicker={`Haiku · ${secs(r.facts!.haikuMs)}`} title="Haiku decides, Jev checks" sheet={r.decided}>
+          <p>
+            Haiku’s verdict and its reasons, exactly as today, at their quotes in full tint. Each reason says whether Jev agrees. Jev’s other
+            sentences stay underlined, and reasons only Jev found are named once under the verdict.
+          </p>
+          <p class="facts">{r.facts!.verdict} · Jev agrees with {r.facts!.agreed} of {r.facts!.reasons} reasons</p>
+        </JevBand>
+        <JevBand kicker="Today" title="For comparison" sheet={r.today}>
+          <p>The band as it is now, from the same Haiku answer.</p>
+        </JevBand>
+      </>
+    ))
+  }
+</Base>
+
+<style>
+  .label {
+    margin: 0;
+    padding: 14px 0;
+    background: #8a8a86;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .label.top {
+    background: #4a4a46;
+  }
+  .label a {
+    color: inherit;
+  }
+</style>

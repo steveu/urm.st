@@ -92,6 +92,10 @@ export interface Note {
   quote?: string;
   /** A mark that repeats an earlier note: tinted, with no note of its own. */
   quiet?: boolean;
+  /** A lighter tint: found, but not one of the reasons the verdict rests on. */
+  faint?: boolean;
+  /** A short tag after the note, such as whether a second model agrees. */
+  aside?: { text: string; state: string };
 }
 
 interface Mark {
@@ -146,7 +150,7 @@ function markHtml(n: Note, inner: string, first: boolean) {
   const at = `data-tone="${n.tone}" style="--i:${n.i}"`;
   if (n.kind === 'injection') return `<mark class="m-void" ${at}><s>${inner}</s></mark>`;
   if (n.kind === 'location') return `<mark class="m-loc" ${at}>${first ? PIN : ''}${inner}</mark>`;
-  return `<mark class="m-tint" ${at}>${inner}</mark>`;
+  return `<mark class="m-tint${n.faint ? ' faint' : ''}" ${at}>${inner}</mark>`;
 }
 
 // ---- The posting as rows ----
@@ -327,7 +331,8 @@ function noteHtml(n: Note, lead: boolean): string {
   if (n.quiet) return '';
   const words = n.kind === 'location' ? `${PIN}<p>${escapeHtml(n.copy)}</p>` : `<p><b>${escapeHtml(n.label)}</b> ${escapeHtml(n.copy)}</p>`;
   const quote = n.quote ? `<blockquote>${escapeHtml(n.quote)}</blockquote>` : '';
-  return `<div class="note${lead ? ' lead' : ''}" data-kind="${n.kind}" data-tone="${n.tone}" style="--i:${n.i}">${words}${quote}</div>`;
+  const aside = n.aside ? `<p class="aside" data-state="${escapeHtml(n.aside.state)}">${escapeHtml(n.aside.text)}</p>` : '';
+  return `<div class="note${lead ? ' lead' : ''}" data-kind="${n.kind}" data-tone="${n.tone}" style="--i:${n.i}">${words}${aside}${quote}</div>`;
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
