@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { ago, funnelHtml, poolListHtml, readPool, type Pool, type PoolRole } from '../src/components/fit/pool.ts';
+import { ago, pickable, readPool, stripHtml, stripShape, stripSteps, type Pool, type PoolRole } from '../src/components/fit/pool.ts';
 
 // Invented roles throughout.
 const role = (company: string, title: string, extra: Partial<PoolRole> = {}): PoolRole => ({
   company,
   board: 'Ashby',
   title,
-  places: ['London', 'Remote'],
+  places: ['London'],
   link: `https://jobs.ashbyhq.com/example/${company}-${title}`.replace(/\s/g, '-'),
   ...extra,
 });
@@ -25,40 +25,50 @@ const pool = (over: Partial<Pool> = {}): Pool => ({
   ...over,
 });
 
-describe('funnelHtml', () => {
-  it('draws each step to scale, starting from the width above it', () => {
-    const html = funnelHtml(pool(), Date.parse('2026-11-06T12:00:00Z'));
-    expect(html).toContain('--i:0;--from:100.0%;--w:100.0%');
-    expect(html).toContain('--i:1;--from:100.0%;--w:50.0%');
-    expect(html).toContain('--i:2;--from:50.0%;--w:20.0%');
-    // Jev's step: from what it screened to what it left, never thinner than a sliver
-    expect(html).toContain('class="jev" style="--i:3;--from:20.0%;--w:0.8%"');
-    expect(html).toContain('left; Jev ruled out 1');
-    expect(html).toContain('Read 2 hours ago. Jev screened 2 roles in 6.2s, for $0.06.');
+describe('the strip', () => {
+  it('has a step for each narrowing, ending at the one role on the sheet', () => {
+    expect(stripSteps(pool()).map((s) => [s.count, s.by])).toEqual([
+      [1000, 'read'],
+      [500, 'title rule'],
+      [200, 'place rule'],
+      [1, 'Jev'],
+      [1, 'Haiku'],
+    ]);
+    expect(stripSteps(pool({ screening: null, screenFailed: true })).map((s) => s.by)).toEqual(['read', 'title rule', 'place rule', 'Haiku']);
   });
 
-  it('says so when Jev didn’t screen, and draws no Jev step', () => {
-    const html = funnelHtml(pool({ screening: null, screenFailed: true, ruledOut: [] }));
-    expect(html).not.toContain('class="jev"');
-    expect(html).toContain('Jev couldn’t screen them just now');
+  it('draws each step to scale, hatching what each rule took away and what Jev ruled out', () => {
+    const { polygon, cuts, sageFrom } = stripShape(stripSteps(pool()));
+    // Full height less a margin at the start; half of that once the title rule has run
+    expect(polygon.startsWith('0% 4%, ')).toBe(true);
+    expect(polygon).toContain('26% 27%');
+    expect(cuts.map((c) => c.kind)).toEqual(['rule', 'rule', 'jev']);
+    // Jev's cut is as thick as what it was given
+    expect(cuts[2].height).toBeCloseTo(200 * 0.092, 1);
+    expect(sageFrom).toBe(54);
+  });
+
+  it('says when it was read and what Jev cost', () => {
+    const html = stripHtml(pool(), Date.parse('2026-11-06T12:00:00Z'));
+    expect(html).toContain('Read 2 hours ago. Jev screened 2 roles in 6.2s, for $0.06.');
+    expect(html).toContain('<b>1</b> <span>left; 1 ruled out</span> <i class="by">Jev</i>');
+    expect(stripHtml(pool({ screening: null, screenFailed: true }))).toContain('Jev couldn’t screen them just now.');
   });
 });
 
-describe('poolListHtml', () => {
-  it('groups by company, marks the open role, and escapes board text', () => {
-    const roles = [role('A <b>', 'Product <i>Engineer</i>'), role('B', 'Designer')];
-    const html = poolListHtml(roles, { current: roles[1].link });
-    expect(html).toContain('<p class="co">A &lt;b&gt;</p>');
-    expect(html).toContain('Product &lt;i&gt;Engineer&lt;/i&gt;');
-    expect(html.match(/aria-current/g)?.length).toBe(1);
-    expect(html).toContain('London +1');
+describe('pickable', () => {
+  const r = (i: number, p: number, handsOn: number) => role('Example', `Role ${i}`, { p, handsOn });
+
+  it('steers towards hands-on building with little against it, and falls back when there are too few', () => {
+    const left = [r(1, 0.1, 0.95), r(2, 0.2, 0.9), r(3, 0.1, 0.05), r(4, 0.8, 0.95)];
+    expect(pickable(left, 2).map((x) => x.title)).toEqual(['Role 1', 'Role 2']);
+    expect(pickable(left, 3).map((x) => x.title)).toEqual(['Role 1', 'Role 2', 'Role 3']);
+    expect(pickable(left, 5)).toEqual(left);
   });
 
-  it('shows Jev’s reason on a ruled-out role, and filters by title or company', () => {
-    const out = [role('Example', 'Backend Engineer', { reason: 'backend_or_data', p: 0.97 })];
-    expect(poolListHtml(out, {})).toContain('mainly backend or data · 0.97');
-    expect(poolListHtml(out, { filter: 'design' })).toContain('Nothing matches');
-    expect(poolListHtml(out, { filter: 'EXAMPLE' })).toContain('Backend Engineer');
+  it('picks from everything when Jev didn’t screen', () => {
+    const left = [role('Example', 'Unscreened')];
+    expect(pickable(left, 1)).toEqual(left);
   });
 });
 

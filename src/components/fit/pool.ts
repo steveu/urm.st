@@ -1,10 +1,10 @@
-// The pool beside the sheet: the funnel's counts as bars, then its roles, listed by company.
-// What Jev left, or what it ruled out with its reason; never ranked. Everything here is site
-// copy or a board's own title, company and place, escaped. Drawn in the browser from the
-// funnel's answer (src/fit/finder/handler.ts).
+// The strip above the sheet: the funnel's counts drawn as one shape that narrows, step by
+// step, from every role on the boards to the one on the sheet. Its thickness at each step is
+// to scale; behind each narrowing, hatched, is what that step took away, in clay for what Jev
+// ruled out. Everything here is site copy or a number; the funnel's answer is read in the
+// browser (src/fit/finder/handler.ts).
 import type { ScreenId } from '../../fit/finder/screen.ts';
 import { SCREEN_SHORT } from '../../fit/finder/screen-copy.ts';
-import { escapeHtml } from './result.ts';
 
 export interface PoolRole {
   company: string;
@@ -14,6 +14,7 @@ export interface PoolRole {
   link: string;
   reason?: ScreenId;
   p?: number;
+  handsOn?: number;
 }
 
 export interface Pool {
@@ -44,7 +45,7 @@ export function readPool(body: unknown): Pool | null {
 }
 
 const n = (x: number) => x.toLocaleString('en-GB');
-const pct = (part: number, whole: number) => `${whole ? Math.max((100 * part) / whole, 0.8).toFixed(1) : 0}%`;
+const fix = (x: number) => Number(x.toFixed(2));
 
 /** "just now", "12 minutes ago", "3 hours ago", "yesterday". */
 export function ago(iso: string, now = Date.now()): string {
@@ -58,63 +59,87 @@ export function ago(iso: string, now = Date.now()): string {
 
 const usd = (x: number) => (x < 0.01 ? 'under a cent' : `$${x.toFixed(2)}`);
 
-/**
- * The funnel: one centred bar per step, to scale against every role read, so the pool visibly
- * narrows. Behind each bar, faint, is the width it came from: what that step took away. Jev's
- * step shows what it ruled out in clay. Each bar starts at the width above it, so the band can
- * draw the narrowing in (the `narrow` class).
- */
-export function funnelHtml(f: Pool, now = Date.now()): string {
-  const steps: Array<{ count: number; words: string; by: string; tone?: string }> = [
-    { count: f.listed, words: `roles on ${n(f.boards.read)} public job boards`, by: 'read' },
-    { count: f.inScope, words: 'engineering, design or product', by: 'title rule' },
-    { count: f.open, words: 'open to the UK', by: 'place rule' },
+interface Step {
+  count: number;
+  words: string;
+  by: string;
+  /** What this step took away is shown, hatched: clay for Jev. */
+  cut?: 'rule' | 'jev';
+}
+
+export function stripSteps(f: Pool): Step[] {
+  const steps: Step[] = [
+    { count: f.listed, words: `roles on ${n(f.boards.read)} job boards`, by: 'read' },
+    { count: f.inScope, words: 'engineering, design or product', by: 'title rule', cut: 'rule' },
+    { count: f.open, words: 'open to the UK', by: 'place rule', cut: 'rule' },
   ];
+  if (f.screening) steps.push({ count: f.left.length, words: `left; ${n(f.ruledOut.length)} ruled out`, by: 'Jev', cut: 'jev' });
+  steps.push({ count: 1, words: 'on the sheet', by: 'Haiku' });
+  return steps;
+}
+
+/**
+ * The narrowing shape, in percentages of its box: a plateau at each step, its thickness to
+ * scale against every role read, sloping down to the next. Returned as a clip-path polygon,
+ * the hatched cuts behind it, and where Jev's part begins (drawn in sage from there).
+ */
+export function stripShape(steps: Step[]) {
+  const k = steps.length;
+  const centre = (i: number) => ((i + 0.5) * 100) / k;
+  const half = (100 / k) * 0.2;
+  const thick = (i: number) => Math.max((steps[i].count / steps[0].count) * 92, 3);
+  const top: Array<[number, number]> = [[0, 50 - thick(0) / 2]];
+  steps.forEach((_, i) => {
+    top.push([centre(i) - half, 50 - thick(i) / 2], [centre(i) + half, 50 - thick(i) / 2]);
+  });
+  top.push([100, 50 - thick(k - 1) / 2]);
+  const bottom = top.map(([x, y]) => [x, 100 - y] as [number, number]).reverse();
+  const polygon = [...top, ...bottom].map(([x, y]) => `${fix(x)}% ${fix(y)}%`).join(', ');
+  const cuts = steps.flatMap((s, i) =>
+    s.cut && i
+      ? [{ kind: s.cut, left: fix(centre(i - 1) + half), width: fix(100 / k), top: fix(50 - thick(i - 1) / 2), height: fix(thick(i - 1)) }]
+      : [],
+  );
+  const jev = steps.findIndex((s) => s.cut === 'jev');
+  return { polygon, cuts, sageFrom: jev > 0 ? fix(centre(jev - 1) + half) : 100 };
+}
+
+/** The strip: the shape, then a caption under each step, then a line on when and how fast. */
+export function stripHtml(f: Pool, now = Date.now()): string {
+  const steps = stripSteps(f);
+  const { polygon, cuts, sageFrom } = stripShape(steps);
+  const hatch = cuts
+    .map((c) => `<i class="cut" data-kind="${c.kind}" style="left:${c.left}%;width:${c.width}%;top:${c.top}%;height:${c.height}%"></i>`)
+    .join('');
+  const shape =
+    `<div class="flow" aria-hidden="true">${hatch}` +
+    `<i class="body" style="clip-path:polygon(${polygon});--sage:${sageFrom}%"></i></div>`;
+  const caps = steps
+    .map(
+      (s, i) =>
+        `<li style="--i:${i}"${s.cut === 'jev' ? ' class="jev"' : ''}><b>${n(s.count)}</b> <span>${s.words}</span> <i class="by">${s.by}</i></li>`,
+    )
+    .join('');
   let note: string;
   if (f.screening) {
-    const screened = f.left.length + f.ruledOut.length;
-    steps.push({ count: f.left.length, words: `left; Jev ruled out ${n(f.ruledOut.length)}`, by: 'Jev', tone: 'jev' });
     const missed = f.unscreened ? ` It couldn’t answer for ${n(f.unscreened)}, so they’re left out.` : '';
-    note = `Read ${ago(f.at, now)}. Jev screened ${n(screened)} roles in ${(f.screening.ms / 1000).toFixed(1)}s, for ${usd(f.screening.costUsd)}.${missed}`;
+    note = `Read ${ago(f.at, now)}. Jev screened ${n(f.left.length + f.ruledOut.length)} roles in ${(f.screening.ms / 1000).toFixed(1)}s, for ${usd(f.screening.costUsd)}.${missed}`;
   } else {
-    note = `Read ${ago(f.at, now)}. ${f.screenFailed ? 'Jev couldn’t screen them just now, so every one is listed.' : 'Jev isn’t screening them here, so every one is listed.'}`;
+    note = `Read ${ago(f.at, now)}. ${f.screenFailed ? 'Jev couldn’t screen them just now.' : 'Jev isn’t screening them here.'}`;
   }
-  const rows = steps.map((s, i) => {
-    const from = pct(i ? steps[i - 1].count : s.count, f.listed);
-    return (
-      `<li${s.tone ? ` class="${s.tone}"` : ''} style="--i:${i};--from:${from};--w:${pct(s.count, f.listed)}">` +
-      `<span class="track" aria-hidden="true"><span class="was"></span><span class="bar"></span></span>` +
-      `<span class="cap"><b>${n(s.count)}</b> ${s.words} <i class="by">${s.by}</i></span></li>`
-    );
-  });
-  return `<ol class="funnel-bars">${rows.join('')}</ol><p class="funnel-note">${note}</p>`;
+  return `${shape}<ol class="steps-row" style="--k:${steps.length}">${caps}</ol><p class="strip-note">${note}</p>`;
 }
 
-export type PoolView = 'left' | 'out';
-
-/** The first place listed, and how many more: Greenhouse puts several in one field, split by semicolons. */
-function place(places: string[]): string {
-  const all = places.flatMap((p) => p.split(';')).map((p) => p.trim()).filter(Boolean);
-  return all.length ? `${all[0]}${all.length > 1 ? ` +${all.length - 1}` : ''}` : '';
-}
-
-/** One view of the pool, filtered, grouped under each company. The open role is marked. */
-export function poolListHtml(roles: PoolRole[], o: { filter?: string; current?: string | null }): string {
-  const q = (o.filter ?? '').trim().toLowerCase();
-  const shown = q ? roles.filter((r) => `${r.title} ${r.company}`.toLowerCase().includes(q)) : roles;
-  if (!shown.length) return `<p class="none">${q ? 'Nothing matches that.' : 'None.'}</p>`;
-  const out: string[] = [];
-  let company: string | null = null;
-  for (const r of shown) {
-    if (r.company !== company) {
-      if (company !== null) out.push('</ul>');
-      company = r.company;
-      out.push(`<p class="co">${escapeHtml(r.company)}</p><ul>`);
-    }
-    const why = r.reason ? `<span class="rw">${escapeHtml(SCREEN_SHORT[r.reason])} · ${r.p!.toFixed(2)}</span>` : `<span class="rp">${escapeHtml(place(r.places))}</span>`;
-    const cur = r.link === o.current ? ' aria-current="true"' : '';
-    out.push(`<li><button type="button" data-link="${escapeHtml(r.link)}"${cur}><span class="rt">${escapeHtml(r.title)}</span>${why}</button></li>`);
-  }
-  out.push('</ul>');
-  return out.join('');
+/**
+ * Which of the roles left a random pick comes from: those Jev read as mainly hands-on building
+ * with little against them, then any with little against them, then all. Nothing on the page is
+ * ranked; this only steers which role is shown.
+ */
+export function pickable(left: PoolRole[], min = 12): PoolRole[] {
+  const scored = left.filter((r) => typeof r.p === 'number');
+  if (scored.length < left.length) return left;
+  const handsOn = scored.filter((r) => (r.handsOn ?? 0) >= 0.7 && r.p! < 0.5);
+  if (handsOn.length >= min) return handsOn;
+  const clear = scored.filter((r) => r.p! < 0.5);
+  return clear.length >= min ? clear : left;
 }

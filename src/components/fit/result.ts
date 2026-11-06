@@ -401,29 +401,37 @@ export interface SheetOptions {
   edit?: boolean;
   /** For a job link with no text to show yet: the link stands in for the posting. */
   link?: string;
-  /** For a role opened from the pool: its link, and what Jev made of it (null: not ruled out). */
-  found?: { link: string; ruling: { reason: ScreenId; p: number } | null; screened: boolean };
+  /** For a live role: its link, what Jev made of it (null: not ruled out), and whether there's a ruled-out one to offer. */
+  found?: { link: string; ruling: { reason: ScreenId; p: number } | null; screened: boolean; canRuled: boolean; checked?: boolean };
 }
 
-const EDIT = '<button type="button" class="again" data-edit>Edit or paste another</button>';
+const EDIT =
+  '<div class="found-actions"><button type="button" class="again" data-edit>Edit or paste another</button>' +
+  '<button type="button" class="again" data-back>Back to a live role</button></div>';
 
 export const SHUFFLE =
   '<svg class="shuffle" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
 
-/** Under a role from the pool: what Jev made of it, where Haiku read it, another, and the posting. */
+/** Under a live role: what Jev made of it, where Haiku read it, then another, one Jev ruled out, the posting, or your own. */
 function foundFoot(o: SheetOptions & { found: NonNullable<SheetOptions['found']> }): string {
-  const { link, ruling, screened } = o.found;
+  const { link, ruling, screened, canRuled } = o.found;
   const board = o.source?.board;
   const cut = o.source?.truncated ? ' The listing is longer than 12,000 characters, so the check read the start of it, shown here.' : '';
   const jev = ruling
-    ? `Jev ruled this one out: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}. Haiku checked it anyway`
+    ? `Jev ruled this one out: ${escapeHtml(SCREEN_SHORT[ruling.reason])} · ${ruling.p.toFixed(2)}.`
     : screened
-      ? 'Jev screened this one and didn’t rule it out. Haiku checked it'
-      : 'Jev didn’t screen this one. Haiku checked it';
+      ? 'Jev screened this one and didn’t rule it out.'
+      : 'Jev didn’t screen this one.';
+  // Only when Haiku's answer is on the sheet: not on a check that didn't run
+  const haiku = o.found.checked
+    ? ` Haiku checked it${ruling ? ' anyway' : ''}${board ? `, reading it from ${escapeHtml(board)} just now` : ''}.${cut}`
+    : '';
   return (
-    `<p class="src">${jev}${board ? `, reading it from ${escapeHtml(board)} just now` : ''}.${cut}</p>` +
-    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another at random</button>` +
-    `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a></div>`
+    `<p class="src">${jev}${haiku}</p>` +
+    `<div class="found-actions"><button type="button" class="another" data-another>${SHUFFLE}Another role</button>` +
+    (canRuled ? `<button type="button" class="another ruled" data-ruled>One Jev ruled out</button>` : '') +
+    `<a class="again" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open the posting${board ? ` on ${escapeHtml(board)}` : ''} ↗</a>` +
+    `<button type="button" class="again" data-own>Paste your own</button></div>`
   );
 }
 

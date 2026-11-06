@@ -1,15 +1,15 @@
 ---
-// Home band for job-radar's fit check, a demo on my own profile. Beside the sheet, the pool:
+// Home band for job-radar's fit check, a demo on my own profile. Above the sheet, the strip:
 // every role on a set of public job boards, narrowed by a title rule, a place rule and Jev,
-// which rules out the clear noes (src/fit/finder). The funnel draws each step narrowing from
-// the last. What's left is listed by company, never ranked. Opening a role sends its link to
-// the fit check, and Haiku's answer is set on the sheet: each passage it rests on tinted in
+// which rules out the clear noes (src/fit/finder), down to the one on the sheet, picked at
+// random from what's left. Its link goes to the fit check, and Haiku's answer is set on the
+// sheet: each passage it rests on tinted in
 // place in the colour of the side it pulls (sage for, clay against, straw mixed), with the
 // verdict and a note level with each passage in the margin. A visitor can paste their own
 // posting instead. Every word on a sheet is site copy or the posting's own text, and one
 // renderer (./result.ts) draws them.
 //
-// Motion, only when it's wanted: the funnel narrows step by step; as a sheet is shown, its
+// Motion, only when it's wanted: the strip flows in, narrowing step by step; as a sheet is shown, its
 // tints sweep in one after another, then each note's leader draws and the note fades in; the
 // verdict arrives last.
 import '@fontsource-variable/petrona/wght.css';
@@ -21,9 +21,12 @@ import { FUNNEL_PATH } from '../../fit/finder/handler';
 import { BOARD_LIST } from '../../fit/links';
 import { EVAL_FIGURES } from '../../fit/evals/figures';
 import { PIN } from './result';
+import { stripShape } from './pool';
 
 const PROFILE = 'https://github.com/steveu/urm.st/blob/master/src/fit/profile.md';
 const BOARDS = FINDER_BOARDS.length;
+// The strip's outline while the boards are read: the same shape, made-up proportions
+const GHOST = stripShape([1000, 600, 300, 150, 1].map((count) => ({ count, words: '', by: '' }))).polygon;
 ---
 
 <section id="fit-check" class="band fit" aria-labelledby="fit-check-title" data-fit data-pane="role" data-boards={BOARDS}>
@@ -32,43 +35,18 @@ const BOARDS = FINDER_BOARDS.length;
       <p class="kicker"><span>job-radar</span></p>
       <h2 id="fit-check-title">Every reason, in the posting’s own&nbsp;words.</h2>
       <p class="lede">
-        job-radar is a matching tool I’m building. This demo runs on <a href={PROFILE}>my own profile</a>, the one I can
-        judge it against honestly. It reads every role on {BOARDS} public job boards. Two plain rules keep the engineering,
-        design and product roles open to the UK, and Jev, a fast decision model, rules out the clear noes. Open any role
-        and Haiku checks it, choosing from a fixed list of reasons, each quoting the posting word for word.
+        job-radar is a matching tool I’m building, shown here on <a href={PROFILE}>my own profile</a>. Every few hours it
+        reads every role on {BOARDS} public job boards, and plain rules and Jev, a fast decision model, narrow them to the
+        plausible ones. Haiku then reads one against the profile, choosing from a fixed list of reasons, each quoting the
+        posting word for word.
       </p>
     </header>
 
-    <div class="pool" data-pool data-path={FUNNEL_PATH}>
-      <div class="funnel" data-funnel aria-live="polite">
-        <ol class="funnel-bars ghosted" aria-hidden="true">
-          {
-            [100, 72, 44, 18].map((w, i) => (
-              <li style={`--i:${i};--from:${w}%;--w:${w}%`}>
-                <span class="track"><span class="bar" /></span>
-                <span class="cap" />
-              </li>
-            ))
-          }
-        </ol>
-        <p class="funnel-note" data-funnel-note>The live list needs JavaScript.</p>
-      </div>
-      <div class="pool-list" data-pool-list hidden>
-        <div class="pool-tabs" role="group" aria-label="Which roles to list">
-          <button type="button" aria-pressed="true" data-view="left">Left <span data-count-left></span></button>
-          <button type="button" aria-pressed="false" data-view="out">Ruled out <span data-count-out></span></button>
-        </div>
-        <label class="visually-hidden" for="fit-filter">Filter by title or company</label>
-        <input id="fit-filter" class="pool-filter" type="search" placeholder="Filter by title or company" autocomplete="off" data-filter />
-        <div class="roles" data-roles tabindex="-1"></div>
-      </div>
-      <button type="button" class="own-btn" data-own aria-pressed="false">
-        <svg class="plus" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-        Paste a posting or job link of your own
-      </button>
-    </div>
-
     <div class="stage">
+      <div class="strip" data-strip data-path={FUNNEL_PATH} aria-live="polite">
+        <div class="flow ghosted" aria-hidden="true"><i class="body" style={`clip-path:polygon(${GHOST})`}></i></div>
+        <p class="strip-note" data-strip-note>The live roles need JavaScript.</p>
+      </div>
       <div class="sheet" data-for="role">
         <div class="live-real" data-real tabindex="-1">
           <div class="page" data-state="message">
@@ -115,6 +93,7 @@ const BOARDS = FINDER_BOARDS.length;
               <li data-tone="void"><span class="swatch"></span><b>Ignored</b> instructions aimed at AI tools</li>
             </ul>
             <p class="key-line">Every mark is the posting’s own words, checked against your text.</p>
+            <button type="button" class="again back" data-back>Back to a live role</button>
           </div>
         </form>
         <div class="live" data-live tabindex="-1"></div>
@@ -136,7 +115,7 @@ const BOARDS = FINDER_BOARDS.length;
   import { VERDICT_COPY } from '../../fit/copy';
   import { BOARD_NAMES, parseJobLink, type ParsedLink } from '../../fit/links';
   import { validateAssessment } from '../../fit/schema';
-  import { funnelHtml, poolListHtml, readPool, type Pool, type PoolRole, type PoolView } from './pool';
+  import { pickable, readPool, stripHtml, type Pool, type PoolRole } from './pool';
   import {
     ERROR_COPY,
     errorSheetHtml,
@@ -160,7 +139,6 @@ const BOARDS = FINDER_BOARDS.length;
     const go = band.querySelector<HTMLButtonElement>('[data-go]')!;
     const live = band.querySelector<HTMLElement>('[data-live]')!;
     const status = band.querySelector<HTMLElement>('[data-status]')!;
-    const ownBtn = band.querySelector<HTMLButtonElement>('[data-own]')!;
     const min = Number(form.dataset.min);
     const max = Number(form.dataset.max);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -226,21 +204,18 @@ const BOARDS = FINDER_BOARDS.length;
       if (r.top < 0 || r.top > innerHeight * 0.6) el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
     }
 
-    // ---- Which pane the stage shows: a role from the pool, or the paste area ----
+    // ---- Which pane the stage shows: a live role, or the paste area ----
     function pane(which: 'role' | 'own') {
       band.dataset.pane = which;
-      ownBtn.setAttribute('aria-pressed', String(which === 'own'));
-      if (which === 'own') current = null;
-      drawList();
     }
 
-    ownBtn.addEventListener('click', (e) => {
+    function toOwn(byPointer: boolean) {
       pane('own');
       status.textContent = showingOwn() ? answeredSay : 'Paste a job posting or link to check it';
       if (showingOwn()) play(pageIn(live));
-      else if (e.detail > 0) requestAnimationFrame(() => box.focus({ preventScroll: true }));
+      else if (byPointer) requestAnimationFrame(() => box.focus({ preventScroll: true }));
       reveal(live.closest<HTMLElement>('.sheet')!);
-    });
+    }
 
     // Back from an answer to the paste area, the text kept
     live.addEventListener('click', (e) => {
@@ -381,70 +356,29 @@ const BOARDS = FINDER_BOARDS.length;
       }
     });
 
-    // ---- The pool: the funnel's counts, its roles, and a role opened on the sheet ----
-    const poolEl = band.querySelector<HTMLElement>('[data-pool]')!;
-    const funnelEl = band.querySelector<HTMLElement>('[data-funnel]')!;
-    const listWrap = band.querySelector<HTMLElement>('[data-pool-list]')!;
-    const rolesEl = band.querySelector<HTMLElement>('[data-roles]')!;
-    const filterEl = band.querySelector<HTMLInputElement>('[data-filter]')!;
-    const viewBtns = [...band.querySelectorAll<HTMLButtonElement>('[data-view]')];
+    // ---- The live roles: the strip, and a role on the sheet ----
+    const strip = band.querySelector<HTMLElement>('[data-strip]')!;
     const realBox = band.querySelector<HTMLElement>('[data-real]')!;
     const boards = Number(band.dataset.boards);
 
     let pool: Pool | null = null;
-    let view: PoolView = 'left';
     let current: string | null = null;
-    // Answers already had, by link, so opening a role again costs nothing
+    // Answers already had, by link, so a role shown again costs nothing
     const done = new Map<string, { html: string; say: string }>();
     const opened = new Set<string>();
 
-    const rolesIn = (v: PoolView) => (pool ? (v === 'left' ? pool.left : pool.ruledOut) : []);
-
-    function drawList() {
-      if (!pool) return;
-      rolesEl.innerHTML = poolListHtml(rolesIn(view), { filter: filterEl.value, current });
+    // A role at random, not yet shown here when there's one: one Jev ruled out, or one it left,
+    // steered towards hands-on building (pickable, in ./pool)
+    function randomRole(from: PoolRole[]): PoolRole | null {
+      const fresh = from.filter((r) => !opened.has(r.link) && r.link !== current);
+      const pick = fresh.length ? fresh : from;
+      return pick.length ? pick[Math.floor(Math.random() * pick.length)] : null;
     }
 
-    function setView(v: PoolView) {
-      view = v;
-      for (const b of viewBtns) b.setAttribute('aria-pressed', String(b.dataset.view === v));
-      drawList();
-      rolesEl.scrollTop = 0;
-    }
-
-    viewBtns.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view as PoolView)));
-    filterEl.addEventListener('input', drawList);
-
-    rolesEl.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-link]');
-      if (!btn) return;
-      const role = rolesIn(view).find((r) => r.link === btn.dataset.link);
-      if (role) void openRole(role, true);
-    });
-
-    // The open role's row, scrolled into view inside the list without moving the page
-    function showCurrentRow() {
-      const row = rolesEl.querySelector<HTMLElement>('[aria-current]');
-      if (!row) return;
-      const top = row.getBoundingClientRect().top - rolesEl.getBoundingClientRect().top + rolesEl.scrollTop;
-      if (top < rolesEl.scrollTop || top > rolesEl.scrollTop + rolesEl.clientHeight - row.offsetHeight) rolesEl.scrollTop = top - 48;
-    }
-
-    // A role from what's left, not yet opened here, at random
-    function randomRole(): PoolRole | null {
-      const left = pool?.left ?? [];
-      const fresh = left.filter((r) => !opened.has(r.link) && r.link !== current);
-      const from = fresh.length ? fresh : left;
-      return from.length ? from[Math.floor(Math.random() * from.length)] : null;
-    }
-
-    async function openRole(role: PoolRole, byHand: boolean) {
+    async function openRole(role: PoolRole) {
       pane('role');
       current = role.link;
       opened.add(role.link);
-      drawList();
-      if (!byHand) showCurrentRow();
-      else reveal(realBox);
       const label = `${role.title}, ${role.company}`;
       const had = done.get(role.link);
       if (had) {
@@ -454,7 +388,7 @@ const BOARDS = FINDER_BOARDS.length;
         return;
       }
       const ruling = role.reason && typeof role.p === 'number' ? { reason: role.reason, p: role.p } : null;
-      const found = { link: role.link, ruling, screened: !!pool?.screening };
+      const found = { link: role.link, ruling, screened: !!pool?.screening, canRuled: !!pool?.ruledOut.length };
       // Until the posting comes back with the answer: its title, and the company and places as listed
       const head = `${role.title}\n${[role.company, ...role.places].join(' · ')}`;
       realBox.innerHTML = progressSheetHtml(head, { label, step: 0, steps: linkSteps(role.board) });
@@ -485,10 +419,11 @@ const BOARDS = FINDER_BOARDS.length;
           const { status: _s, promptVersion: _p, posting: _t, ...answer } = body;
           const checked = validateAssessment(answer, linked.text);
           await wait(reduce ? 0 : 400);
-          if (checked.ok) put(resultSheetHtml(linked.text, checked.value, opts), `${label}: ${VERDICT_COPY[checked.value.verdict].label}`, true);
-          else put(unassessableSheetHtml(linked.text, opts), 'Couldn’t assess this one', true);
+          const read = { ...opts, found: { ...found, checked: true } };
+          if (checked.ok) put(resultSheetHtml(linked.text, checked.value, read), `${label}: ${VERDICT_COPY[checked.value.verdict].label}`, true);
+          else put(unassessableSheetHtml(linked.text, read), 'Couldn’t assess this one', true);
         } else if (body?.status === 'unassessable') {
-          put(unassessableSheetHtml(linked?.text ?? head, opts), 'Couldn’t assess this one', true);
+          put(unassessableSheetHtml(linked?.text ?? head, { ...opts, found: { ...found, checked: true } }), 'Couldn’t assess this one', true);
         } else {
           const cause = (LINK_CAUSES[body?.error] || CAUSES[body?.error] || 'unavailable') as ErrorCause;
           put(errorSheetHtml(head, cause, opts), 'The check didn’t run', false);
@@ -499,15 +434,20 @@ const BOARDS = FINDER_BOARDS.length;
       }
     }
 
-    realBox.addEventListener('click', (e) => {
-      if (!(e.target as HTMLElement).closest('[data-another]')) return;
-      const role = randomRole();
-      if (!role) return;
-      if (view !== 'left' || filterEl.value) {
-        filterEl.value = '';
-        setView('left');
+    // The buttons under a sheet: another role, one Jev ruled out, your own, or back to a live role
+    band.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('[data-own]')) return toOwn((e as MouseEvent).detail > 0);
+      if (t.closest('[data-back]')) {
+        pane('role');
+        status.textContent = done.get(current ?? '')?.say ?? '';
+        play(pageIn(realBox));
+        return reveal(realBox);
       }
-      void openRole(role, false);
+      const ruled = !!t.closest('[data-ruled]');
+      if (!ruled && !t.closest('[data-another]')) return;
+      const role = randomRole(ruled ? (pool?.ruledOut ?? []) : pickable(pool?.left ?? []));
+      if (role) void openRole(role);
     });
 
     const FAILED = {
@@ -517,38 +457,30 @@ const BOARDS = FINDER_BOARDS.length;
     };
 
     function poolFailed(message: string) {
-      funnelEl.querySelector('[data-funnel-note]')!.textContent = message;
-      funnelEl.querySelector('.funnel-bars')?.remove();
-      realBox.innerHTML = `<div class="page" data-state="message"><p class="plain">${message}</p></div>`;
+      strip.querySelector('[data-strip-note]')!.textContent = message;
+      strip.querySelector('.flow')?.remove();
+      realBox.innerHTML = `<div class="page" data-state="message"><p class="plain">${message}</p><p class="t"><button type="button" class="again" data-own>Paste your own</button></p></div>`;
       status.textContent = message;
     }
 
     async function loadPool() {
       realBox.innerHTML = findingSheetHtml(boards);
-      funnelEl.querySelector('[data-funnel-note]')!.textContent = `Reading ${boards} job boards…`;
+      strip.querySelector('[data-strip-note]')!.textContent = `Reading ${boards} job boards…`;
       status.textContent = 'Reading the job boards';
       try {
-        const res = await fetch(poolEl.dataset.path!, { headers: { accept: 'application/json' } });
+        const res = await fetch(strip.dataset.path!, { headers: { accept: 'application/json' } });
         const body = await res.json().catch(() => null);
         if (res.status === 429) return poolFailed(FAILED.limited);
         const p = body?.status === 'ok' ? readPool(body) : null;
         if (!p) return poolFailed(body?.error === 'none_found' ? FAILED.none : FAILED.boards);
         pool = p;
-        // The funnel narrows step by step from the full width; reduced motion, it's just there
-        funnelEl.innerHTML = funnelHtml(p);
-        if (!reduce) {
-          const bars = funnelEl.querySelector<HTMLElement>('.funnel-bars')!;
-          void bars.offsetWidth;
-          bars.classList.add('narrow');
-        } else funnelEl.querySelector('.funnel-bars')!.classList.add('narrow', 'still');
-        band.querySelector('[data-count-left]')!.textContent = n(p.left.length);
-        band.querySelector('[data-count-out]')!.textContent = n(p.ruledOut.length);
-        viewBtns.find((b) => b.dataset.view === 'out')!.hidden = !p.ruledOut.length;
-        listWrap.hidden = false;
-        drawList();
-        // A role at random from what's left is open to begin with, unless the visitor has moved on
-        const first = randomRole();
-        if (first && band.dataset.pane === 'role' && !current) void openRole(first, false);
+        // The shape flows in from the left, narrowing step by step; reduced motion, it's just there
+        strip.innerHTML = stripHtml(p);
+        if (!reduce) void strip.offsetWidth;
+        strip.classList.add('drawn');
+        // A role at random from what's left is on the sheet to begin with, unless the visitor has moved on
+        const first = randomRole(pickable(p.left));
+        if (first && band.dataset.pane === 'role' && !current) void openRole(first);
       } catch {
         poolFailed(FAILED.boards);
       }

@@ -57,8 +57,23 @@ export const SCREEN_QUESTIONS = {
 export type ScreenId = keyof typeof SCREEN_QUESTIONS;
 export const SCREEN_IDS = Object.keys(SCREEN_QUESTIONS) as ScreenId[];
 
+/**
+ * Asked alongside, never used to rule a role out: the profile counts hands-on product and
+ * design roles as possible fits too. It only steers which of the roles left is shown first,
+ * towards the hands-on building the profile is mostly about. On the live pool it set apart the
+ * product managers, product designers and programme managers, and none of the roles titled
+ * product, frontend, full-stack, design or AI engineer.
+ */
+export const HANDS_ON: Question = {
+  instructions: 'Is the role in the `posting` mainly hands-on building of software: writing the code for a product’s features, interface or AI behaviour?',
+  true: 'Most duties are writing and shipping code: product features, user interfaces, design systems in code, or an AI agent’s prompts, tools and evals.',
+  false: 'Most duties are product management, visual or UX design without code, analysis, quality assurance, research, marketing, support or operations.',
+};
+
 export interface ScreenAnswer {
   answers: Record<ScreenId, number>;
+  /** Jev's answer to HANDS_ON. */
+  handsOn: number;
   inputTokens: number;
 }
 
@@ -71,10 +86,10 @@ export function screenRequest(text: string) {
     model: JEV_MODEL,
     state: { posting: text },
     questions: Object.fromEntries(
-      SCREEN_IDS.map((id) => {
-        const q = SCREEN_QUESTIONS[id];
-        return [id, { type: 'noul', instructions: q.instructions, criteria: { true: q.true, false: q.false } }];
-      }),
+      [...SCREEN_IDS.map((id) => [id, SCREEN_QUESTIONS[id]] as const), ['hands_on', HANDS_ON] as const].map(([id, q]) => [
+        id,
+        { type: 'noul', instructions: q.instructions, criteria: { true: q.true, false: q.false } },
+      ]),
     ),
   };
 }
@@ -122,8 +137,10 @@ export function jevScreener(opts: { apiKey: string; fetch?: Fetch; timeoutMs?: n
       if (typeof p !== 'number' || !(p >= 0 && p <= 1)) throw new Error(`Jev gave no answer for ${id}`);
       answers[id] = p;
     }
+    const handsOn = json.answers?.hands_on?.noul;
+    if (typeof handsOn !== 'number' || !(handsOn >= 0 && handsOn <= 1)) throw new Error('Jev gave no answer for hands_on');
     const tokens = json.usage?.input_tokens;
-    return { answers, inputTokens: typeof tokens === 'number' ? tokens : 0 };
+    return { answers, handsOn, inputTokens: typeof tokens === 'number' ? tokens : 0 };
   };
 }
 

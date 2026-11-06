@@ -35,6 +35,13 @@ export interface FunnelRole {
   link: string;
 }
 
+export interface LeftRole extends FunnelRole {
+  /** Jev's strongest answer among the rule-out questions, below the line; absent when unscreened. */
+  p?: number;
+  /** Jev's answer on whether it's mainly hands-on building; absent when unscreened. */
+  handsOn?: number;
+}
+
 export interface RuledOutRole extends FunnelRole {
   reason: ScreenId;
   /** Jev's answer to that question, at or above the line. */
@@ -52,7 +59,7 @@ export interface Funnel {
   /** Of those, open to the UK. What Jev is asked about. */
   open: number;
   /** What Jev left, or every open role when Jev didn't screen. By company, then title. */
-  left: FunnelRole[];
+  left: LeftRole[];
   /** What Jev ruled out, with the reason. By company, then title. */
   ruledOut: RuledOutRole[];
   /** Open roles Jev couldn't answer for, or with too little text to ask about: in neither list. */
@@ -256,7 +263,7 @@ export async function runFunnel(opts: FunnelOptions = {}): Promise<FunnelResult>
     tokens += a.inputTokens;
     const out = ruling(a.answers);
     if (out) funnel.ruledOut.push({ ...o.role, reason: out.reason, p: out.p });
-    else funnel.left.push(o.role);
+    else funnel.left.push({ ...o.role, p: Math.max(...Object.values(a.answers)), handsOn: a.handsOn });
   });
   funnel.left.sort(byCompany);
   funnel.ruledOut.sort(byCompany);

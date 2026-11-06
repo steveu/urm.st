@@ -47,11 +47,10 @@
 
   .fit .grid {
     display: grid;
-    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr;
+    grid-template-columns: minmax(0, 284px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
     grid-template-areas:
       'head stage'
-      'pool stage'
       'close stage';
     column-gap: 64px;
   }
@@ -127,81 +126,75 @@
     text-decoration: none;
   }
 
-  /* ---- The pool: the funnel, then the roles it left ---- */
-  .fit .pool {
-    grid-area: pool;
-    min-width: 0;
-    margin-top: 28px;
+  /* ---- The strip: every role on the boards, narrowing to the one on the sheet ---- */
+  .fit .strip {
+    margin-bottom: 22px;
+    transition: opacity 200ms;
   }
 
-  .fit .funnel-bars {
+  .fit[data-pane='own'] .strip {
+    opacity: 0.4;
+  }
+
+  /* The shape, to scale; behind each narrowing, hatched, what that step took away */
+  .fit .flow {
+    position: relative;
+    height: 64px;
+  }
+
+  .fit .flow i {
+    position: absolute;
+    display: block;
+  }
+
+  .fit .flow .body {
+    inset: 0;
+    background: linear-gradient(90deg, #8c867c var(--sage, 100%), var(--job-radar-sage) var(--sage, 100%));
+  }
+
+  .fit .flow .cut {
+    border-radius: 2px;
+    background: repeating-linear-gradient(135deg, #ddd7cc 0 1.5px, transparent 1.5px 5px);
+  }
+
+  .fit .flow .cut[data-kind='jev'] {
+    background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--job-radar-clay) 55%, transparent) 0 1.5px, transparent 1.5px 5px);
+  }
+
+  .fit .flow.ghosted .body {
+    background: #ece8e0;
+  }
+
+  .fit .steps-row {
     display: grid;
-    gap: 9px;
-    margin: 0;
+    grid-template-columns: repeat(var(--k), minmax(0, 1fr));
+    gap: 8px;
+    margin: 8px 0 0;
     padding: 0;
     list-style: none;
   }
 
-  /* Each step a centred bar to scale, the width it came from faint behind it */
-  .fit .funnel-bars .track {
-    position: relative;
-    display: block;
-    height: 16px;
-  }
-
-  .fit .funnel-bars .was,
-  .fit .funnel-bars .bar {
-    position: absolute;
-    inset-block: 0;
-    left: 50%;
-    border-radius: 2px;
-    transform: translateX(-50%);
-  }
-
-  .fit .funnel-bars .was {
-    width: var(--from);
-    background: repeating-linear-gradient(135deg, #e6e1d7 0 2px, transparent 2px 5px);
-  }
-
-  .fit .funnel-bars .bar {
-    width: var(--from);
-    background: #8c867c;
-  }
-
-  .fit .funnel-bars.narrow .bar {
-    width: var(--w);
-  }
-
-  .fit .funnel-bars .jev .was {
-    background: repeating-linear-gradient(135deg, var(--job-radar-clay-tint) 0 2px, transparent 2px 5px);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--job-radar-clay) 35%, transparent);
-  }
-
-  .fit .funnel-bars .jev .bar {
-    background: var(--job-radar-sage);
-  }
-
-  .fit .funnel-bars .cap {
-    display: block;
-    margin-top: 4px;
+  .fit .steps-row li {
     font-size: 0.75rem;
     line-height: 1.35;
     text-align: center;
     color: var(--muted);
   }
 
-  .fit .funnel-bars .cap b {
+  .fit .steps-row b {
+    display: block;
     font-family: var(--font-mono);
-    font-weight: 700;
+    font-size: 0.9375rem;
     color: var(--ink);
   }
 
-  .fit .funnel-bars .jev .cap b {
+  .fit .steps-row .jev b {
     color: var(--job-radar-sage-ink);
   }
 
   .fit .by {
-    margin-left: 2px;
+    display: inline-block;
+    margin-top: 3px;
     padding: 1px 5px;
     border-radius: 3px;
     background: var(--job-radar-stone-tint);
@@ -213,195 +206,53 @@
     white-space: nowrap;
   }
 
-  .fit .jev .by {
+  .fit .steps-row .jev .by {
     background: var(--job-radar-sage-tint);
     color: var(--job-radar-sage-ink);
   }
 
-  .fit .funnel-bars.ghosted .bar {
-    width: var(--w);
-    background: #ece8e0;
-  }
-
-  .fit .funnel-bars.ghosted .cap {
-    height: 12px;
-    margin: 6px auto 0;
-    width: 60%;
-    border-radius: 3px;
-    background: #f1ede6;
-  }
-
-  .fit .funnel-note {
-    margin-top: 14px;
+  .fit .strip-note {
+    margin-top: 10px;
     font-size: 0.75rem;
     line-height: 1.5;
+    text-align: center;
     color: var(--muted);
-    text-wrap: pretty;
   }
 
-  .fit .pool-list {
-    margin-top: 18px;
-    border-top: 1px solid var(--line);
-  }
-
-  .fit .pool-list[hidden] {
-    display: none;
-  }
-
-  .fit .pool-tabs {
-    display: flex;
-    gap: 4px;
-    margin-top: 12px;
-  }
-
-  .fit .pool-tabs button {
-    padding: 5px 10px;
-    border: 0;
-    border-radius: 5px;
-    background: none;
-    font: 700 0.8125rem var(--font-sans);
-    color: var(--muted);
-    cursor: pointer;
-  }
-
-  .fit .pool-tabs button span {
-    font-family: var(--font-mono);
-    font-weight: 400;
-  }
-
-  .fit .pool-tabs button[aria-pressed='true'] {
-    background: var(--job-radar-sage-tint);
-    color: var(--job-radar-sage-ink);
-  }
-
-  .fit .pool-tabs button[data-view='out'][aria-pressed='true'] {
+  .fit .found-actions .ruled {
     background: var(--job-radar-clay-tint);
     color: var(--job-radar-clay-ink);
   }
 
-  .fit .pool-filter {
-    width: 100%;
-    margin-top: 10px;
-    padding: 7px 10px;
-    border: 1px solid var(--line);
-    border-radius: 5px;
-    background: #fff;
-    font: 0.8125rem var(--font-sans);
-    color: var(--ink);
+  .fit .found-actions .ruled:hover {
+    background: color-mix(in srgb, var(--job-radar-clay-tint) 80%, var(--job-radar-clay));
   }
 
-  .fit .roles {
-    max-height: 420px;
-    margin-top: 8px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-  }
-
-  .fit .roles:focus {
-    outline: none;
-  }
-
-  .fit .roles .co {
-    position: sticky;
-    top: 0;
-    padding: 8px 0 3px;
-    background: var(--bg);
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .fit .roles ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .fit .roles li button {
-    display: grid;
-    gap: 1px;
-    width: 100%;
-    padding: 5px 8px;
-    border: 0;
-    border-radius: 4px;
-    background: none;
-    font: 0.8125rem/1.35 var(--font-sans);
-    text-align: left;
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .fit .roles li button:hover {
-    background: color-mix(in srgb, var(--paper) 70%, #e9e3d6);
-  }
-
-  .fit .roles li button[aria-current] {
-    background: var(--paper);
-    box-shadow: inset 2px 0 0 var(--ink);
-    font-weight: 700;
-  }
-
-  .fit .roles .rp,
-  .fit .roles .rw {
-    font-size: 0.6875rem;
-    font-weight: 400;
-    color: var(--muted);
-  }
-
-  .fit .roles .rw {
-    font-family: var(--font-mono);
-    color: var(--job-radar-clay-ink);
-  }
-
-  .fit .roles .none {
-    padding: 12px 0;
-    font-size: 0.8125rem;
-    color: var(--muted);
-  }
-
-  .fit .own-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 14px;
-    padding: 6px 0;
-    border: 0;
-    background: none;
-    font: 700 0.8125rem var(--font-sans);
-    color: var(--ink-2);
-    cursor: pointer;
-  }
-
-  .fit .own-btn:hover,
-  .fit .own-btn[aria-pressed='true'] {
-    color: var(--ink);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .fit .own-btn .plus {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
+  .fit .key .back {
+    margin-top: 18px;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .fit .funnel-bars.narrow:not(.still) .bar {
-      transition: width 750ms cubic-bezier(0.22, 1, 0.36, 1) calc(150ms + var(--i) * 420ms);
+    /* Drawn in from the left, the way the roles flow; each step's caption as the shape reaches it */
+    .fit .strip.drawn .flow {
+      animation: fit-flow 1.8s cubic-bezier(0.33, 0, 0.2, 1) both;
     }
 
-    .fit .funnel-bars.narrow:not(.still) .cap {
-      animation: fit-fade 400ms ease-out both calc(var(--i) * 420ms);
+    .fit .strip.drawn .steps-row li {
+      animation: fit-fade 450ms ease-out both calc(150ms + var(--i) * 330ms);
     }
 
-    .fit .funnel-bars.ghosted .bar {
-      animation: fit-pulse-bar 1.4s ease-in-out infinite calc(var(--i) * 150ms);
+    .fit .flow.ghosted .body {
+      animation: fit-pulse-bar 1.4s ease-in-out infinite;
+    }
+  }
+
+  @keyframes fit-flow {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
     }
   }
 
@@ -1220,7 +1071,7 @@
     .fit .grid {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: none;
-      grid-template-areas: 'head' 'pool' 'stage' 'close';
+      grid-template-areas: 'head' 'stage' 'close';
       row-gap: 32px;
     }
 
@@ -1236,6 +1087,15 @@
 
   /* ---- Phone: the notes sit under each passage, and only the shown sheet takes up room ---- */
   @media (max-width: 720px) {
+    /* The strip keeps its shape, numbers and who did each step; the words make way */
+    .fit .steps-row span {
+      display: none;
+    }
+
+    .fit .steps-row b {
+      font-size: 0.8125rem;
+    }
+
     .fit {
       padding-block: 40px 44px;
     }

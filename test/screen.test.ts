@@ -31,7 +31,7 @@ function stubFetch(answers: Record<string, unknown>) {
 function textScreener(seen: string[] = []): Screener {
   return async (text) => {
     seen.push(text);
-    return { answers: /backend/i.test(text) ? with_('backend_or_data', 0.97) : none(), inputTokens: 1000 };
+    return { answers: /backend/i.test(text) ? with_('backend_or_data', 0.97) : none(), handsOn: 0.9, inputTokens: 1000 };
   };
 }
 
@@ -46,18 +46,21 @@ describe('ruling', () => {
 
 describe('jevScreener', () => {
   const ok = (answers: Record<string, number>) =>
-    new Response(JSON.stringify({ answers: Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, { noul: v }])), usage: { input_tokens: 812 } }), { status: 200 });
+    new Response(
+      JSON.stringify({ answers: Object.fromEntries(Object.entries({ hands_on: 0.9, ...answers }).map(([k, v]) => [k, { noul: v }])), usage: { input_tokens: 812 } }),
+      { status: 200 },
+    );
 
   it('asks every question of the posting in one pinned request, and reads the answers', async () => {
     const sent: Array<{ url: string; init: RequestInit }> = [];
     const screen = jevScreener({ apiKey: 'test-key', fetch: async (url, init) => (sent.push({ url, init }), ok(none())) });
     const got = await screen('An invented posting');
-    expect(got).toEqual({ answers: none(), inputTokens: 812 });
+    expect(got).toEqual({ answers: none(), handsOn: 0.9, inputTokens: 812 });
     expect(sent[0].url).toBe(JEV_URL);
     const body = JSON.parse(String(sent[0].init.body));
     expect(body).toEqual(screenRequest('An invented posting'));
     expect(body.model).toBe(JEV_MODEL);
-    expect(Object.keys(body.questions)).toEqual(SCREEN_IDS);
+    expect(Object.keys(body.questions)).toEqual([...SCREEN_IDS, 'hands_on']);
     for (const q of Object.values(body.questions) as Array<{ instructions: string }>) expect(q.instructions).toContain('`posting`');
     expect((sent[0].init.headers as Record<string, string>).authorization).toBe('Bearer test-key');
   });
@@ -105,6 +108,11 @@ describe('runFunnel with screening', () => {
     if (!r.ok) return;
     const f = r.funnel;
     expect(f.left.map((x) => x.title)).toEqual(['Design Engineer', 'Founding Engineer']);
+    // Each role left carries Jev's strongest answer, below the line, to steer which is shown
+    expect(f.left.map((x) => [x.p, x.handsOn])).toEqual([
+      [0.05, 0.9],
+      [0.05, 0.9],
+    ]);
     expect(f.ruledOut.map((x) => `${x.company}: ${x.reason} ${x.p}`)).toEqual(['Example Ashby: backend_or_data 0.97', 'Example Lever: backend_or_data 0.97']);
     expect(f.unscreened).toBe(0);
     expect(f.screening).toMatchObject({ model: JEV_MODEL });
