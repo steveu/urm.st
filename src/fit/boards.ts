@@ -60,8 +60,8 @@ class Failed extends Error {
   }
 }
 
-/** GET a JSON body, reading no more than `cap` bytes. */
-async function getJson(fetchFn: FetchFn, url: URL, cap: number, timeoutMs: number): Promise<unknown> {
+/** GET a JSON body from an allowed API host, reading no more than `cap` bytes. Also used by the role finder. */
+export async function getJson(fetchFn: FetchFn, url: URL, cap: number, timeoutMs: number): Promise<unknown> {
   if (url.protocol !== 'https:' || !(API_HOSTS as readonly string[]).includes(url.hostname)) {
     throw new Error(`not an allowed API host: ${url.hostname}`);
   }

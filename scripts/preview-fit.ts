@@ -15,6 +15,8 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import fitCheck from '../netlify/functions/fit-check.mts';
+import fitRole from '../netlify/functions/fit-role.mts';
+import { FIND_RATE_LIMIT, FIND_ROLE_PATH } from '../src/fit/finder/handler.ts';
 import { FIT_CHECK_PATH, RATE_LIMIT } from '../src/fit/handler.ts';
 
 const HOST = process.env.FIT_HOST || process.env.HOST || '127.0.0.1';
@@ -47,17 +49,24 @@ const TYPES: Record<string, string> = {
   '.pdf': 'application/pdf',
 };
 
-// Requests per address in the current window, as Netlify counts them
-const windows = new Map<string, { start: number; count: number }>();
-function allowed(ip: string): boolean {
+type Limit = { windowLimit: number; windowSize: number };
+type Windows = Map<string, { start: number; count: number }>;
+
+// Requests per address in the current window, as Netlify counts them, one count per function
+function allowed(windows: Windows, limit: Limit, ip: string): boolean {
   const now = Date.now();
   const w = windows.get(ip);
-  if (!w || now - w.start >= RATE_LIMIT.windowSize * 1000) {
+  if (!w || now - w.start >= limit.windowSize * 1000) {
     windows.set(ip, { start: now, count: 1 });
     return true;
   }
-  return ++w.count <= RATE_LIMIT.windowLimit;
+  return ++w.count <= limit.windowLimit;
 }
+
+const ROUTES: Record<string, { fn: (req: Request) => Promise<Response>; method: string; limit: Limit; windows: Windows }> = {
+  [FIT_CHECK_PATH]: { fn: fitCheck, method: 'POST', limit: RATE_LIMIT, windows: new Map() },
+  [FIND_ROLE_PATH]: { fn: fitRole, method: 'GET', limit: FIND_RATE_LIMIT, windows: new Map() },
+};
 
 async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer>> {
   const chunks: Buffer[] = [];
@@ -71,15 +80,15 @@ async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer>> 
   return new Uint8Array(Buffer.concat(chunks));
 }
 
-async function api(req: IncomingMessage, res: ServerResponse) {
-  if (req.method === 'POST' && !allowed(req.socket.remoteAddress ?? '')) {
+async function api(req: IncomingMessage, res: ServerResponse, route: (typeof ROUTES)[string]) {
+  if (req.method === route.method && !allowed(route.windows, route.limit, req.socket.remoteAddress ?? '')) {
     res.writeHead(429, { 'content-type': 'text/plain; charset=utf-8' }).end('Too many requests');
     return;
   }
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v);
   const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readBody(req);
-  const out = await fitCheck(new Request(`http://${HOST}${req.url}`, { method: req.method, headers, body }));
+  const out = await route.fn(new Request(`http://${HOST}${req.url}`, { method: req.method, headers, body }));
   res.writeHead(out.status, Object.fromEntries(out.headers));
   res.end(Buffer.from(await out.arrayBuffer()));
 }
@@ -125,8 +134,9 @@ function fail(res: ServerResponse) {
 createServer((req, res) => {
   try {
     const { pathname } = new URL(req.url ?? '/', 'http://localhost');
-    if (pathname === FIT_CHECK_PATH) {
-      api(req, res).catch(() => fail(res));
+    const route = Object.hasOwn(ROUTES, pathname) ? ROUTES[pathname] : undefined;
+    if (route) {
+      api(req, res, route).catch(() => fail(res));
       return;
     }
     serve(pathname, res);
@@ -134,5 +144,5 @@ createServer((req, res) => {
     fail(res);
   }
 }).listen(PORT, HOST, () => {
-  console.log(`Serving dist with the fit check at http://${HOST}:${PORT} (POST ${FIT_CHECK_PATH})`);
+  console.log(`Serving dist with the fit check at http://${HOST}:${PORT} (POST ${FIT_CHECK_PATH}, GET ${FIND_ROLE_PATH})`);
 });
