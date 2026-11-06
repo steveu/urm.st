@@ -1,0 +1,257 @@
+---
+// Mock-up of the fit check band with a way to check a real role, in three directions. Static:
+// each state is drawn server-side with the band's own renderer and styles. Throwaway: not for
+// merging.
+import '@fontsource-variable/petrona/wght.css';
+import '../../fit.css';
+import './real-role.css';
+import { VERDICT_COPY } from '../../../../fit/copy';
+import { SAMPLE_POSTINGS } from '../../../../fit/samples';
+import { SAMPLE_RESULTS } from '../../../../fit/sample-results';
+import { EVAL_FIGURES } from '../../../../fit/evals/figures';
+import { ERROR_COPY, miniHtml, progressSheetHtml, resultSheetHtml, errorSheetHtml, VERDICT_TONE, WAIT_HEADINGS } from '../../result';
+import { KINDS, LIST, POOL, ROLE, ROLE_RESULT } from './mock';
+
+export type Direction = 'tile' | 'strip' | 'list';
+export type State = 'resting' | 'finding' | 'result' | 'error';
+
+interface Props {
+  direction: Direction;
+  state?: State;
+  uid: string;
+}
+
+const { direction, state = 'resting', uid } = Astro.props;
+const PROFILE = 'https://github.com/steveu/urm.st/blob/master/src/fit/profile.md';
+const name = `fit-posting-${uid}`;
+
+const SHORT: Record<string, string> = {
+  strong: 'AI product engineer',
+  possible: 'Lead frontend',
+  poor: 'Backend engineer',
+  injection: 'Product designer',
+};
+const LINK_SHORT: Record<string, string> = { strong: 'Strong', possible: 'Partial', poor: 'Poor', injection: 'Hidden note' };
+
+const samples = SAMPLE_POSTINGS.map((s) => {
+  const result = SAMPLE_RESULTS.results[s.id]!;
+  return { id: s.id, label: `${s.title}, ${s.company}`, short: SHORT[s.id], mini: miniHtml(s.text, result), sheet: resultSheetHtml(s.text, result, { label: `${s.title}, ${s.company}` }) };
+});
+const strong = samples[0];
+
+const SHUFFLE =
+  '<svg class="rr-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h2.6c1.3 0 2.1.5 2.8 1.6l1.2 1.8c.7 1.1 1.5 1.6 2.8 1.6H14M11.8 7.3 14 9.5l-2.2 2.2M2 11.5h2.6c1.3 0 2.1-.5 2.8-1.6M9.4 6.1c.7-1.1 1.5-1.6 2.8-1.6H14M11.8 2.3 14 4.5l-2.2 2.2"/></svg>';
+
+const kind = direction === 'tile' ? 'product and engineering' : 'product engineer';
+const steps = [`Picking a live role from ${POOL.boards} companies’ job boards`, 'Reading it, then checking every quote'] as const;
+const roleLabel = `${ROLE.title}, ${ROLE.company}`;
+
+const finding = progressSheetHtml(null, {
+  label: 'Finding a real role',
+  link: `${kind[0].toUpperCase()}${kind.slice(1)} roles, live on ${POOL.boards} companies’ public job boards`,
+  step: 0,
+  steps,
+})
+  .replace(WAIT_HEADINGS[0], 'Finding a role…')
+  .replace('<h3 class="t title">Finding a real role</h3>', '<h3 class="t title rr-pending">Finding a real role</h3>');
+
+const reading = progressSheetHtml(ROLE.text, { label: roleLabel, step: 0, steps: ['Read from Ashby', 'Reading it, then checking every quote'] }).replace(
+  WAIT_HEADINGS[0],
+  'Reading the role…',
+);
+
+const foot =
+  `<p class="src">Picked at random from ${POOL.roles} live ${kind} roles on ${POOL.boards} companies’ public job boards, and read from ${ROLE.board} just now. Nothing is kept.</p>` +
+  `<div class="rr-actions">` +
+  (direction === 'list' ? '' : `<button type="button" class="rr-another">${SHUFFLE}Another role</button>`) +
+  `<a class="again" href="#">Open the posting on ${ROLE.board} ↗</a></div>`;
+const result = resultSheetHtml(ROLE.text, ROLE_RESULT, { label: roleLabel, source: { board: ROLE.board, truncated: false } }).replace(
+  `<p class="src">As read from ${ROLE.board}.</p>`,
+  foot,
+);
+
+const ERROR_TEXT =
+  direction === 'strip'
+    ? 'No product engineer roles are live on the boards right now. Try another kind of role, or Any.'
+    : 'Couldn’t reach the job boards just now. Try again, or paste a posting.';
+const error = errorSheetHtml(null, 'link_failed', {
+  label: 'A real role',
+  link: `${kind[0].toUpperCase()}${kind.slice(1)} roles, live on ${POOL.boards} companies’ public job boards`,
+}).replace(ERROR_COPY.link_failed, ERROR_TEXT);
+
+const live = direction === 'list' ? state !== 'resting' : state !== 'resting';
+const sheet = { resting: strong.sheet, finding: direction === 'list' ? reading : finding, result, error }[state];
+const made = !live;
+
+const verdict = VERDICT_COPY[ROLE_RESULT.verdict];
+const tone = VERDICT_TONE[ROLE_RESULT.verdict];
+
+const lede = {
+  tile: 'Try it on a real role, picked at random from public job boards, or paste your own.',
+  strip: 'Pick a kind of role and it checks a live one from public job boards. Or paste your own.',
+  list: 'Below are live roles from public job boards, as they list them. Pick one to check it.',
+}[direction];
+---
+
+<section class="band fit" data-mock aria-label="Fit check mock-up">
+  <div class="wrap grid">
+    <header class="head">
+      <p class="kicker"><span>job-radar</span></p>
+      <h2>Every reason, in the posting’s own&nbsp;words.</h2>
+      <p class="lede">
+        job-radar is a matching tool I’m building. This demo runs on <a href={PROFILE}>my own profile</a>, the one I can
+        judge it against honestly. It can only choose from a fixed list of reasons, and each one has to quote the posting
+        word for word, or it isn’t shown. {lede}
+      </p>
+    </header>
+
+    <div class="stage">
+      {
+        direction === 'tile' && (
+          <fieldset class="thumbs rr-thumbs">
+            <legend class="visually-hidden">Choose a posting</legend>
+            <div class="rr-group">
+              <p class="rr-glabel">Live</p>
+              <div class="rr-row">
+                <label class="thumb rr-real">
+                  <input class="visually-hidden" type="radio" {name} value="real" checked={live} />
+                  {state === 'result' ? (
+                    <span class="mini" aria-hidden="true" set:html={miniHtml(ROLE.text, ROLE_RESULT)} />
+                  ) : (
+                    <span class="mini blank" aria-hidden="true" set:html={SHUFFLE} />
+                  )}
+                  <span class="cap">{state === 'result' ? ROLE.title : state === 'finding' ? 'Finding one…' : 'A real role'}</span>
+                </label>
+                <label class="thumb own">
+                  <input class="visually-hidden" type="radio" {name} value="own" />
+                  <span class="mini blank" aria-hidden="true">
+                    <svg class="plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" /></svg>
+                  </span>
+                  <span class="cap">Paste your own</span>
+                </label>
+              </div>
+            </div>
+            <div class="rr-group">
+              <p class="rr-glabel">Made-up examples</p>
+              <div class="rr-row">
+                {samples.map((s) => (
+                  <label class="thumb" title={s.label}>
+                    <input class="visually-hidden" type="radio" {name} value={s.id} checked={!live && s.id === 'strong'} />
+                    <span class="mini" aria-hidden="true" set:html={s.mini} />
+                    <span class="cap">{s.short}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </fieldset>
+        )
+      }
+
+      {
+        direction === 'strip' && (
+          <div class="rr-strip">
+            <div class="rr-ask">
+              <p class="rr-q">Check a real role</p>
+              <fieldset class="rr-kinds">
+                <legend class="visually-hidden">Kind of role</legend>
+                {KINDS.map((k, i) => (
+                  <label class="rr-kind">
+                    <input class="visually-hidden" type="radio" name={`${name}-kind`} checked={i === 0} />
+                    <span>{k}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <button type="button" class:list={['rr-go', { done: state === 'result' }]} aria-busy={state === 'finding' ? 'true' : 'false'}>
+                {state === 'finding' ? 'Finding…' : state === 'result' ? 'Another' : 'Find one'}
+              </button>
+            </div>
+            <p class="rr-alt">
+              Or <a href="#">paste your own</a>. Made-up examples:{' '}
+              {samples.map((s, i) => (
+                <>
+                  {i > 0 && <span class="rr-dot">·</span>}
+                  <a href="#" aria-current={!live && s.id === 'strong' ? 'true' : undefined}>
+                    {LINK_SHORT[s.id]}
+                  </a>
+                </>
+              ))}
+            </p>
+          </div>
+        )
+      }
+
+      {
+        direction === 'list' && (
+          <div class="rr-list">
+            <div class="rr-lhead">
+              <p class="rr-q">Live roles</p>
+              <p class="rr-lsub">
+                {LIST.length} of {POOL.roles}, picked at random from {POOL.boards} companies’ public job boards
+              </p>
+              <button type="button" class="rr-another" set:html={`${SHUFFLE}Show others`} />
+            </div>
+            <ol class="rr-rows">
+              {LIST.map((r, i) => {
+                const picked = live && i === 0;
+                const checked = i === 3 && live;
+                return (
+                  <li>
+                    <label class:list={['rr-roww', { on: picked }]}>
+                      <input class="visually-hidden" type="radio" {name} checked={picked} />
+                      <span class="rr-title">
+                        {r.title}
+                        <span class="rr-co">{r.company}</span>
+                      </span>
+                      <span class="rr-where">{r.where}</span>
+                      <span class="rr-board">
+                        {r.board} · {r.age}
+                      </span>
+                      <span class="rr-state">
+                        {picked && state === 'finding' && <span class="rr-checking">Checking…</span>}
+                        {picked && state === 'result' && (
+                          <span class="rr-chip" data-tone={tone}>
+                            {verdict.label}
+                          </span>
+                        )}
+                        {checked && (
+                          <span class="rr-chip" data-tone="against">
+                            Poor match
+                          </span>
+                        )}
+                        {!picked && !checked && <span class="rr-check">Check</span>}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ol>
+            <p class="rr-alt">
+              Or <a href="#">paste your own</a>. Made-up examples:{' '}
+              {samples.map((s, i) => (
+                <>
+                  {i > 0 && <span class="rr-dot">·</span>}
+                  <a href="#" aria-current={!live && s.id === 'strong' ? 'true' : undefined}>
+                    {LINK_SHORT[s.id]}
+                  </a>
+                </>
+              ))}
+            </p>
+          </div>
+        )
+      }
+
+      <div class="sheets">
+        {made && direction !== 'tile' && <p class="rr-tag">Made-up example</p>}
+        <div class="sheet" data-show set:html={sheet} />
+      </div>
+    </div>
+
+    <footer class="close">
+      <p>
+        Claude Haiku picks the verdict and the reasons and quotes the posting; it never writes a word that appears
+        here.{' '}<Fragment set:html={EVAL_FIGURES.closeHtml} />
+      </p>
+      <a class="more" href="/work/fit-check">How this was measured →</a>
+    </footer>
+  </div>
+</section>

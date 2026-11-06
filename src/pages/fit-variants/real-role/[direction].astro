@@ -1,0 +1,60 @@
+---
+// Mock-ups: checking a real role, three directions, each in its states. Throwaway: not for merging.
+import Base from '../../../layouts/Base.astro';
+import Band, { type Direction, type State } from '../../../components/fit/variants/real-role/Band.astro';
+
+export function getStaticPaths() {
+  return [{ params: { direction: 'tile' } }, { params: { direction: 'strip' } }, { params: { direction: 'list' } }];
+}
+
+const direction = Astro.params.direction as Direction;
+const NAMES: Record<Direction, string> = { tile: 'A · Tile', strip: 'B · Ask strip', list: 'C · Live list' };
+const STATES: Record<Direction, Array<{ state: State; label: string }>> = {
+  tile: [
+    { state: 'resting', label: 'Resting: a made-up example shows, “A real role” leads the row' },
+    { state: 'finding', label: 'Clicked “A real role”: picking one from the boards' },
+    { state: 'result', label: 'A real role, checked; the tile becomes its thumbnail' },
+    { state: 'error', label: 'The boards couldn’t be reached' },
+  ],
+  strip: [
+    { state: 'resting', label: 'Resting: the question leads, a made-up example below' },
+    { state: 'finding', label: 'Finding a product engineer role' },
+    { state: 'result', label: 'A real role, checked; the button becomes “Another”' },
+    { state: 'error', label: 'No role of that kind live right now' },
+  ],
+  list: [
+    { state: 'resting', label: 'Resting: five live roles as the boards list them, a made-up example below' },
+    { state: 'finding', label: 'Picked the first: its posting shows while it’s read' },
+    { state: 'result', label: 'Checked; an earlier check stays on its row' },
+  ],
+};
+---
+
+<Base title={`Fit check: real role, ${NAMES[direction]}`} noindex>
+  <p class="label top"><span class="wrap"><a href="/fit-variants">Mock-ups</a> / Real role / {NAMES[direction]}</span></p>
+  {
+    STATES[direction].map((s) => (
+      <>
+        <p class="label"><span class="wrap">{s.label}</span></p>
+        <Band {direction} state={s.state} uid={`${direction}-${s.state}`} />
+      </>
+    ))
+  }
+</Base>
+
+<style>
+  .label {
+    margin: 0;
+    padding: 14px 0;
+    background: #8a8a86;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .label.top {
+    background: #4a4a46;
+  }
+  .label a {
+    color: inherit;
+  }
+</style>

@@ -1,0 +1,325 @@
+/* Real-role mock-ups: only what's new on top of the band's own styles. Throwaway. */
+
+.fit[data-mock] .sheet[data-show] {
+  display: block;
+}
+
+.fit .rr-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Tile: live tiles and made-up examples, in two labelled groups ---- */
+.fit .rr-thumbs {
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.fit .rr-group + .rr-group {
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+
+.fit .rr-glabel {
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fit .rr-row {
+  display: flex;
+  gap: 18px;
+}
+
+.fit .rr-real .mini.blank {
+  color: var(--job-radar-sage-ink);
+  background: var(--job-radar-sage-tint);
+  outline: 0;
+}
+
+.fit .rr-real .mini.blank .rr-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.fit .rr-real input:checked ~ .mini.blank {
+  background: var(--job-radar-sage-tint);
+}
+
+.fit .rr-real .cap {
+  max-width: 104px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Strip: a question with its kinds and a button ---- */
+.fit .rr-strip,
+.fit .rr-list {
+  margin-bottom: 18px;
+}
+
+.fit .rr-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px rgb(60 50 35 / 0.08),
+    0 1px 2px rgb(60 50 35 / 0.05);
+}
+
+.fit .rr-q {
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.fit .rr-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fit .rr-kind span {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+}
+
+.fit .rr-kind input:checked + span {
+  background: var(--job-radar-sage-tint);
+  color: var(--job-radar-sage-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--job-radar-sage) 45%, transparent);
+}
+
+.fit .rr-go {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--job-radar-sage-ink);
+  font: 700 0.875rem var(--font-sans);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.fit .rr-go[aria-busy='true'] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.fit .rr-go.done {
+  background: none;
+  color: var(--job-radar-sage-ink);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.fit .rr-alt {
+  margin-top: 10px;
+  padding-left: 2px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.fit .rr-alt a {
+  color: var(--ink-2);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.fit .rr-alt a[aria-current] {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
+}
+
+.fit .rr-dot {
+  margin: 0 6px;
+  color: #b9b3a8;
+}
+
+/* Over a made-up sample, once real roles are on offer */
+.fit .rr-tag {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--job-radar-stone-tint);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--job-radar-stone-ink);
+}
+
+/* ---- The sheet's foot for a real role ---- */
+.fit .rr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+}
+
+.fit .rr-another {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 14px 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--job-radar-sage-tint);
+  font: 700 0.8125rem var(--font-sans);
+  color: var(--job-radar-sage-ink);
+  cursor: pointer;
+}
+
+.fit .rr-pending {
+  color: var(--muted);
+}
+
+/* ---- List: live roles as the boards list them ---- */
+.fit .rr-list {
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px rgb(60 50 35 / 0.08),
+    0 1px 2px rgb(60 50 35 / 0.05);
+  padding: 14px 16px 12px;
+}
+
+.fit .rr-lhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-bottom: 8px;
+}
+
+.fit .rr-lsub {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.fit .rr-lhead .rr-another {
+  margin-left: auto;
+  align-self: center;
+}
+
+.fit .rr-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fit .rr-roww {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 0.9fr) 116px;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 -8px;
+  padding: 9px 8px;
+  border-top: 1px solid var(--rule);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fit .rr-roww:hover {
+  background: #f6f3ec;
+}
+
+.fit .rr-roww.on {
+  background: #f3f0e8;
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+.fit .rr-title {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.fit .rr-co {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* The board's own words for where: left as written, so the mess shows */
+.fit .rr-where {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+.fit .rr-board {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.fit .rr-state {
+  justify-self: end;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fit .rr-check {
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.fit .rr-checking {
+  color: var(--muted);
+}
+
+.fit .rr-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-tint);
+  color: var(--c-ink);
+}
+
+@media (max-width: 720px) {
+  .fit .rr-thumbs {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .fit .rr-group + .rr-group {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .fit .rr-roww {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fit .rr-where,
+  .fit .rr-board {
+    grid-column: 1;
+  }
+}

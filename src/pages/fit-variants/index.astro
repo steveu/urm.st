@@ -1,0 +1,76 @@
+---
+// Index of the fit check band's mock-ups. Throwaway: not for merging.
+import Base from '../../layouts/Base.astro';
+
+const directions = [
+  { slug: 'tile', name: 'Tile', line: 'Smallest change. “A real role” joins the thumbnail row, beside “Paste your own”; the samples are labelled as made up.' },
+  { slug: 'strip', name: 'Ask strip', line: 'Real roles lead. A question with kinds of role and one button; paste and the samples become links underneath.' },
+  { slug: 'list', name: 'Live list', line: 'Most real data on show. Five live roles, locations as the boards write them; pick one to check. Reads most like a shortlist.' },
+];
+---
+
+<Base title="Fit check mock-ups" noindex>
+  <section class="wrap idx">
+    <h1>Fit check: checking a real role</h1>
+    <p class="sub">Static mock-ups, each page showing the band in its states. The role, company and counts are invented stand-ins.</p>
+    <ol>
+      {
+        directions.map((v, i) => (
+          <li>
+            <a href={`/fit-variants/real-role/${v.slug}`}>
+              <span class="n">{String.fromCharCode(65 + i)}</span>
+              <span class="name">{v.name}</span>
+              <span class="line">{v.line}</span>
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a href="/#fit-check">
+          <span class="n">·</span>
+          <span class="name">Current</span>
+          <span class="line">The band as it is on fit-check, for comparison.</span>
+        </a>
+      </li>
+    </ol>
+  </section>
+</Base>
+
+<style>
+  .idx {
+    padding-block: 64px;
+  }
+  h1 {
+    font-size: 1.75rem;
+  }
+  .sub {
+    margin-top: 8px;
+    color: var(--muted, #6b665e);
+  }
+  ol {
+    margin-top: 32px;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+  a {
+    display: grid;
+    grid-template-columns: 32px 140px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid #e8e4dc;
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover .name {
+    text-decoration: underline;
+  }
+  .n {
+    font-family: var(--font-mono);
+    color: #8a8a86;
+  }
+  .name {
+    font-weight: 700;
+  }
+</style>
